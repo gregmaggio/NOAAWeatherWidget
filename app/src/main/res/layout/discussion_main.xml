@@ -11,11 +11,12 @@
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
             android:id="@+id/discussionScroller">
-            <WebView
+            <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
                 android:scrollbars="vertical"
                 android:scrollbarStyle="insideOverlay"
+                android:text=""
                 android:id="@+id/discussionView" />
         </ScrollView>
     </LinearLayout>

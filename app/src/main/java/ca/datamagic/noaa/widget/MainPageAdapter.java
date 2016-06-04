@@ -24,6 +24,16 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     }
 
     @Override
+    public CharSequence getPageTitle(int position) {
+        switch (position) {
+            case 0: return  "Current";
+            case 1: return  "Forecast";
+            case 2: return  "Discussion";
+        }
+        return "";
+    }
+
+    @Override
     public Fragment getItem(int position) {
         return _fragments.get(position);
     }

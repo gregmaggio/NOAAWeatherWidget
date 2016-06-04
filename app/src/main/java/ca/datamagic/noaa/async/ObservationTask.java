@@ -14,18 +14,20 @@ public class ObservationTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
     private ObservationDAO _dao = null;
     private double _latitude = 0.0;
     private double _longitude = 0.0;
+    private String _unit = "e";
 
-    public ObservationTask(double latitude, double longitude) {
+    public ObservationTask(double latitude, double longitude, String unit) {
         _dao = new ObservationDAO();
         _latitude = latitude;
         _longitude = longitude;
+        _unit = unit;
     }
 
     private DWMLDTO load() {
         int tries = 0;
         while (tries < _maxTries) {
             try {
-                return _dao.GetCurrentObservation(_latitude, _longitude);
+                return _dao.GetCurrentObservation(_latitude, _longitude, _unit);
             } catch (Throwable t) {
                 Log.w(_tag, "Exception", t);
             }

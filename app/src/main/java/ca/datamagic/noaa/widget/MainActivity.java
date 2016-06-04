@@ -147,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void actionRefresh() {
         try {
-            ObservationTask observationTask = new ObservationTask(_latitude, _longitude);
+            ObservationTask observationTask = new ObservationTask(_latitude, _longitude, _unit);
             observationTask.addListener(new AsyncTaskListener<DWMLDTO>() {
                 @Override
                 public void Completed(AsyncTaskResult<DWMLDTO> result) {
@@ -174,7 +174,15 @@ public class MainActivity extends AppCompatActivity {
                     if (result.getResult() != null) {
                         if (result.getResult().size() > 0) {
                             _wfo = result.getResult().get(0);
-                            renderDiscussion(_wfo);
+
+                            DiscussionTask discussionTask = new DiscussionTask(_wfo.getWFO());
+                            discussionTask.addListener(new AsyncTaskListener<String>() {
+                                @Override
+                                public void Completed(AsyncTaskResult<String> result) {
+                                    renderDiscussion(result.getResult());
+                                }
+                            });
+                            executeAsyncTask(discussionTask);
                         }
                     }
                 }
@@ -203,10 +211,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void renderDiscussion(WFODTO wfo) {
+    private void renderDiscussion(String discussion) {
         try {
             DiscussionFragment fragment = (DiscussionFragment) _mainPageAdapter.getItem(MainPageAdapter.DiscussionIndex);
-            fragment.render(wfo);
+            fragment.render(discussion);
         } catch (Throwable t) {
             Log.e(_tag, "Exception", t);
         }

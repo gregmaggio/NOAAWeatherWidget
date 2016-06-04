@@ -29,9 +29,10 @@ import ca.datamagic.noaa.dto.ValidTimeDTO;
  */
 public class ForecastFragment extends Fragment {
     private static final String _tag = "ForecastFragment";
-    private static SimpleDateFormat _dayFormat = new SimpleDateFormat("E");
+    private static SimpleDateFormat _dayMonthFormat = new SimpleDateFormat("d/M");
+    private static SimpleDateFormat _dayOfWeekFormat = new SimpleDateFormat("E");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
-    private static DecimalFormat _popFormat = new DecimalFormat("0");
+    private static char _degrees = (char)0x00B0;
     private String _format = "24 hourly";
     private TableLayout _forecastTable = null;
     private LayoutInflater _inflater = null;
@@ -124,74 +125,81 @@ public class ForecastFragment extends Fragment {
 
     public void render(DWMLDTO forecast) {
         _forecast = forecast;
-        _forecastTable.removeAllViews();
-        if (_forecast != null) {
-            TimeLayoutDTO selectedTimeLayout = getSelectedTimeLayout();
-            TemperatureDTO maximum = getMaximumTemperature();
-            TemperatureDTO minimum = getMinimumTemperature();
+        if (_forecastTable != null) {
+            _forecastTable.removeAllViews();
+            if (_forecast != null) {
+                TimeLayoutDTO selectedTimeLayout = getSelectedTimeLayout();
+                TemperatureDTO maximum = getMaximumTemperature();
+                TemperatureDTO minimum = getMinimumTemperature();
 
-            if (selectedTimeLayout != null) {
-                List<ValidTimeDTO> startTimes = selectedTimeLayout.getStartTimes();
-                if (startTimes != null) {
-                    for (int ii = 0; ii < startTimes.size(); ii++) {
-                        Log.d(_tag, "Processing day " + ii);
-                        String day = "";
-                        ValidTimeDTO startTime = startTimes.get(ii);
-                        if (startTime.getTimeStamp() != null) {
-                            day = _dayFormat.format(startTime.getTimeStamp().getTime());
+                if (selectedTimeLayout != null) {
+                    List<ValidTimeDTO> startTimes = selectedTimeLayout.getStartTimes();
+                    if (startTimes != null) {
+                        for (int ii = 0; ii < startTimes.size(); ii++) {
+                            Log.d(_tag, "Processing day " + ii);
+                            String dayMonth = "";
+                            String dayOfWeek = "";
+                            ValidTimeDTO startTime = startTimes.get(ii);
+                            if (startTime.getTimeStamp() != null) {
+                                dayMonth = _dayMonthFormat.format(startTime.getTimeStamp().getTime());
+                                dayOfWeek = _dayOfWeekFormat.format(startTime.getTimeStamp().getTime());
+                            }
+                            Log.d(_tag, "dayMonth: " + dayMonth);
+                            Log.d(_tag, "dayOfWeek: " + dayOfWeek);
+
+                            String weatherSummary = "";
+                            if (ii < _forecast.getData().getParameters().getWeather().getWeatherConditions().size())
+                                weatherSummary = _forecast.getData().getParameters().getWeather().getWeatherConditions().get(ii).getWeatherSummary();
+                            Log.d(_tag, "weatherSummary: " + weatherSummary);
+
+                            String imageUrl = "";
+                            if (ii < _forecast.getData().getParameters().getConditionsIcon().getIconLink().size())
+                                imageUrl = _forecast.getData().getParameters().getConditionsIcon().getIconLink().get(ii);
+                            Log.d(_tag, "imageUrl: " + imageUrl);
+
+                            String min = "";
+                            if (ii < minimum.getValues().size())
+                                min = _temperatureFormat.format(minimum.getValues().get(ii));
+                            Log.d(_tag, "min: " + min);
+
+                            String max = "";
+                            if (ii < maximum.getValues().size())
+                                max = _temperatureFormat.format(maximum.getValues().get(ii));
+                            Log.d(_tag, "max: " + max);
+
+                            if ((dayMonth != null) && (dayMonth.length() > 0) &&
+                                (dayOfWeek != null) && (dayOfWeek.length() > 0) &&
+                                (weatherSummary != null) && (weatherSummary.length() > 0) &&
+                                (imageUrl != null) && (imageUrl.length() > 0) &&
+                                (min != null) && (min.length() > 0) &&
+                                (max != null) && (max.length() > 0)) {
+                                TableRow row = new TableRow(getContext());
+                                row.setVisibility(View.VISIBLE);
+                                row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+                                LinearLayout item = (LinearLayout) _inflater.inflate(R.layout.forecast_item, null);
+                                item.setVisibility(View.VISIBLE);
+
+                                ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
+                                TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
+                                TextView dayMonthView = (TextView) item.findViewById(R.id.dayMonth);
+                                TextView dayOfWeekView = (TextView) item.findViewById(R.id.dayOfWeek);
+                                TextView minView = (TextView) item.findViewById(R.id.min);
+                                TextView maxView = (TextView) item.findViewById(R.id.max);
+
+                                weatherSummaryView.setText(weatherSummary);
+                                dayMonthView.setText(dayMonth);
+                                dayOfWeekView.setText(dayOfWeek);
+                                minView.setText(min + _degrees);
+                                maxView.setText(max + _degrees);
+
+                                row.addView(item);
+                                _forecastTable.addView(row);
+
+                                ImageTask imageTask = new ImageTask(imageUrl, conditionsView);
+                                imageTask.execute((Void[]) null);
+                            }
                         }
-                        Log.d(_tag, "day: " + day);
-
-                        String weatherSummary = "";
-                        if (ii < _forecast.getData().getParameters().getWeather().getWeatherConditions().size())
-                            weatherSummary = _forecast.getData().getParameters().getWeather().getWeatherConditions().get(ii).getWeatherSummary();
-                        Log.d(_tag, "weatherSummary: " + weatherSummary);
-
-                        String imageUrl = "";
-                        if (ii < _forecast.getData().getParameters().getConditionsIcon().getIconLink().size())
-                            imageUrl = _forecast.getData().getParameters().getConditionsIcon().getIconLink().get(ii);
-                        Log.d(_tag, "imageUrl: " + imageUrl);
-
-                        String min = "";
-                        if (ii < minimum.getValues().size())
-                            min = _temperatureFormat.format(minimum.getValues().get(ii));
-                        Log.d(_tag, "min: " + min);
-
-                        String max = "";
-                        if (ii < maximum.getValues().size())
-                            max = _temperatureFormat.format(maximum.getValues().get(ii));
-                        Log.d(_tag, "max: " + max);
-
-                        String pop = "";
-                        if (ii < _forecast.getData().getParameters().getProbabilityOfPrecipitation().getValues().size())
-                            pop = _popFormat.format(_forecast.getData().getParameters().getProbabilityOfPrecipitation().getValues().get(ii));
-                        Log.d(_tag, "pop: " + pop);
-
-                        TableRow row = new TableRow(getContext());
-                        row.setVisibility(View.VISIBLE);
-                        row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-
-                        LinearLayout item = (LinearLayout) _inflater.inflate(R.layout.forecast_item, null);
-                        item.setVisibility(View.VISIBLE);
-
-                        ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
-                        TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
-                        TextView dayView = (TextView) item.findViewById(R.id.day);
-                        TextView minView = (TextView) item.findViewById(R.id.min);
-                        TextView maxView = (TextView) item.findViewById(R.id.max);
-                        TextView popView = (TextView) item.findViewById(R.id.pop);
-
-                        weatherSummaryView.setText(weatherSummary);
-                        dayView.setText(day);
-                        minView.setText(min);
-                        maxView.setText(max);
-                        popView.setText(pop);
-
-                        row.addView(item);
-                        _forecastTable.addView(row);
-
-                        ImageTask imageTask = new ImageTask(imageUrl, conditionsView);
-                        imageTask.execute((Void[]) null);
                     }
                 }
             }

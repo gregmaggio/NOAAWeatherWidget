@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
+import android.widget.TextView;
 
 import java.text.MessageFormat;
 
@@ -18,24 +19,26 @@ import ca.datamagic.noaa.dto.WFODTO;
  */
 public class DiscussionFragment extends Fragment {
     private ScrollView _discussionScroller = null;
-    private WebView _discussionView = null;
-    private WFODTO _wfo = null;
+    private TextView _discussionView = null;
+    private String _discussion = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.discussion_main, container, false);
         _discussionScroller = (ScrollView)view.findViewById(R.id.discussionScroller);
-        _discussionView = (WebView)view.findViewById(R.id.discussionView);
-        render(_wfo);
+        _discussionView = (TextView)view.findViewById(R.id.discussionView);
+        render(_discussion);
         return view;
     }
 
-    public void render(WFODTO wfo) {
-        _wfo = wfo;
-        if (_wfo != null) {
-            _discussionView.loadUrl(MessageFormat.format("http://forecast.weather.gov/product.php?site={0}&issuedby={0}&product=AFD&format=txt&version=1&glossary=1", _wfo.getWFO()));
-        } else {
-            _discussionView.loadData("", null, null);
+    public void render(String discussion) {
+        _discussion = discussion;
+        if (_discussionView != null) {
+            if (_discussion != null) {
+                _discussionView.setText(_discussion);
+            } else {
+                _discussionView.setText("Discussion not available");
+            }
         }
     }
 }

@@ -3,174 +3,162 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <TextView
-        android:padding="6dip"
-        android:layout_width="254dp"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:textAlignment="center"
-        android:id="@+id/location" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            android:padding="6dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:id="@+id/location" />
+    </LinearLayout>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent">
-            <TextView
-                android:padding="6dip"
-                android:layout_width="127dp"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textAlignment="center"
-                android:id="@+id/coordinates" />
-            <TextView
-                android:padding="6dip"
-                android:layout_width="127dp"
-                android:layout_height="wrap_content"
-                android:text=""
-                android:textAlignment="center"
-                android:id="@+id/elevation" />
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="(Lat,Lon)"
+                    android:id="@+id/coordinates" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Elevation"
+                    android:id="@+id/elevation" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="70dp"
+                    android:layout_height="wrap_content"
+                    android:text="Temp"
+                    android:id="@+id/temperatureLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Temp"
+                    android:id="@+id/temperature" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="(Feels Like blah)"
+                    android:id="@+id/feelsLikeTemperature" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Humidity"
+                    android:id="@+id/humidityLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/humidity" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="75dp"
+                    android:layout_height="wrap_content"
+                    android:text="Wind"
+                    android:id="@+id/windLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/wind" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Dew Point"
+                    android:id="@+id/dewPointLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/dewPoint" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Visibility"
+                    android:id="@+id/visibilityLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/visibility" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pressure"
+                    android:id="@+id/pressureLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/pressure" />
+            </LinearLayout>
         </LinearLayout>
-        <ImageView
-            android:id="@+id/currentConditionsImage"
-            android:contentDescription=""
-            android:layout_width="86dp"
-            android:layout_height="86dp"
-            android:src="@drawable/_blank" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Temperature"
-            android:textAlignment="center"
-            android:id="@+id/temperatureLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/temperature" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Feels Like"
-            android:textAlignment="center"
-            android:id="@+id/feelsLikeTemperatureLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/feelsLikeTemperature" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Dew Point"
-            android:textAlignment="center"
-            android:id="@+id/dewPointLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/dewPoint" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Relative Humidity"
-            android:textAlignment="center"
-            android:id="@+id/humidityLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/humidity" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Wind"
-            android:textAlignment="center"
-            android:id="@+id/windLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/wind" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Visibility"
-            android:textAlignment="center"
-            android:id="@+id/visibilityLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="175dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/visibility" />
-    </LinearLayout>
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text="Pressure"
-            android:textAlignment="center"
-            android:id="@+id/pressureLabel" />
-        <TextView
-            android:padding="6dip"
-            android:layout_width="127dp"
-            android:layout_height="wrap_content"
-            android:text=""
-            android:textAlignment="center"
-            android:id="@+id/pressure" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent">
+            <ImageView
+                android:id="@+id/currentConditionsImage"
+                android:contentDescription=""
+                android:layout_width="86dp"
+                android:layout_height="86dp"
+                android:textAlignment="center"
+                android:src="@drawable/_blank" />
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

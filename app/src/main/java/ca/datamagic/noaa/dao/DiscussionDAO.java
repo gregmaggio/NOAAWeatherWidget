@@ -28,11 +28,11 @@ public class DiscussionDAO {
         boolean started = false;
         while ((currentLine = reader.readLine()) != null) {
             if (!started) {
-                if (currentLine.toLowerCase().contains("<pre")) {
+                if (currentLine.trim().compareToIgnoreCase("000") == 0) {
                     started = true;
                 }
             } else {
-                if (currentLine.toLowerCase().contains("</pre>")) {
+                if (currentLine.trim().compareToIgnoreCase("$$") == 0) {
                     break;
                 }
                 buffer.append(currentLine);

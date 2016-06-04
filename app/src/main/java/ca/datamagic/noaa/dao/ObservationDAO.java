@@ -25,8 +25,12 @@ public class ObservationDAO {
      * @param longitude
      * @return
      */
-    public DWMLDTO GetCurrentObservation(double latitude, double longitude) throws Exception {
-        URL url = new URL(MessageFormat.format("http://forecast.weather.gov/MapClick.php?lat={0}&lon={1}&unit=0&lg=english&FcstType=dwml", Double.toString(latitude), Double.toString(longitude)));
+    public DWMLDTO GetCurrentObservation(double latitude, double longitude, String unit) throws Exception {
+        int intUnit = 0;
+        if (unit.compareToIgnoreCase("m") == 0) {
+            intUnit = 1;
+        }
+        URL url = new URL(MessageFormat.format("http://forecast.weather.gov/MapClick.php?lat={0}&lon={1}&unit={2}&lg=english&FcstType=dwml", Double.toString(latitude), Double.toString(longitude), Integer.toString(intUnit)));
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setDoInput(true);
         connection.setDoOutput(false);

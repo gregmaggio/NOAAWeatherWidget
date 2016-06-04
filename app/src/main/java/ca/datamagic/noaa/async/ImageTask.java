@@ -57,6 +57,7 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
         try {
             Bitmap bitmap = null;
             if ((_imageUrl != null) && (_imageUrl.length() > 0)) {
+                Log.d(_tag, "imageUrl: " + _imageUrl);
                 bitmap = getBitmap(_imageUrl);
                 if (bitmap == null) {
                     bitmap = load();
