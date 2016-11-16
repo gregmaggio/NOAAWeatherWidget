@@ -18,4 +18,16 @@ public class WFODAOTester {
         WFODAO dao = new WFODAO();
         List<WFODTO> items = dao.read(39.32, -94.72);
     }
+
+    @Test
+    public void test2() throws Exception {
+        WFODAO dao = new WFODAO();
+        List<WFODTO> items = dao.list();
+    }
+
+    @Test
+    public void test3() throws Exception {
+        WFODAO dao = new WFODAO();
+        WFODTO wfo = dao.read("LWX");
+    }
 }

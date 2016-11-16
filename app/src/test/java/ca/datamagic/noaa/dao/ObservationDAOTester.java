@@ -14,6 +14,6 @@ public class ObservationDAOTester {
     @Test
     public void test1() throws Exception {
         ObservationDAO dao = new ObservationDAO();
-        DWMLDTO dwml = dao.GetCurrentObservation(39.32, -94.72);
+        DWMLDTO dwml = dao.GetCurrentObservation(39.32, -94.72, null);
     }
 }

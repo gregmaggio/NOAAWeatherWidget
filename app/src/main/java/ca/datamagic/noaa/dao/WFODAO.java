@@ -21,7 +21,7 @@ import ca.datamagic.noaa.dto.WFODTO;
  */
 public class WFODAO {
     public List<WFODTO> list() throws MalformedURLException, IOException, JSONException {
-        URL url = new URL("http://datamagic.ca/WFO/wfo/");
+        URL url = new URL("http://datamagic.ca/WFO/api");
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setDoInput(true);
         connection.setDoOutput(false);
@@ -46,7 +46,7 @@ public class WFODAO {
     }
 
     public List<WFODTO> read(double latitude, double longitude) throws MalformedURLException, IOException, JSONException {
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/{0}/{1}/coordinates", Double.toString(latitude), Double.toString(longitude)));
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/{0}/{1}/coordinates", Double.toString(latitude), Double.toString(longitude)));
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setDoInput(true);
         connection.setDoOutput(false);
@@ -71,7 +71,7 @@ public class WFODAO {
     }
 
     public WFODTO read(String id) throws MalformedURLException, IOException, JSONException {
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/{0}", id));
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/{0}", id));
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setDoInput(true);
         connection.setDoOutput(false);
