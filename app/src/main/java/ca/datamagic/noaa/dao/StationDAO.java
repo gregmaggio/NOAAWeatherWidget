@@ -14,14 +14,15 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.WFODTO;
 
 /**
- * Created by Greg on 1/3/2016.
+ * Created by Greg on 12/14/2016.
  */
-public class WFODAO {
-    public List<WFODTO> list() throws MalformedURLException, IOException, JSONException {
-        URL url = new URL("http://datamagic.ca/WFO/api/wfo/list");
+public class StationDAO {
+    public List<StationDTO> list() throws MalformedURLException, IOException, JSONException {
+        URL url = new URL("http://datamagic.ca/WFO/api/station");
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setDoInput(true);
         connection.setDoOutput(false);
@@ -38,40 +39,15 @@ public class WFODAO {
         }
         String json = buffer.toString();
         JSONArray array = new JSONArray(json);
-        ArrayList<WFODTO> items = new ArrayList<WFODTO>();
+        ArrayList<StationDTO> items = new ArrayList<StationDTO>();
         for (int ii = 0; ii < array.length(); ii++) {
-            items.add(new WFODTO(array.getJSONObject(ii)));
+            items.add(new StationDTO(array.getJSONObject(ii)));
         }
         return items;
     }
 
-    public List<WFODTO> read(double latitude, double longitude) throws MalformedURLException, IOException, JSONException {
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/wfo/{0}/{1}/coordinates", Double.toString(latitude), Double.toString(longitude)));
-        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
-        connection.setDoInput(true);
-        connection.setDoOutput(false);
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(5000);
-        connection.connect();
-
-        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-        StringBuffer buffer = new StringBuffer();
-        String currentLine = null;
-        boolean started = false;
-        while ((currentLine = reader.readLine()) != null) {
-            buffer.append(currentLine);
-        }
-        String json = buffer.toString();
-        JSONArray array = new JSONArray(json);
-        ArrayList<WFODTO> items = new ArrayList<WFODTO>();
-        for (int ii = 0; ii < array.length(); ii++) {
-            items.add(new WFODTO(array.getJSONObject(ii)));
-        }
-        return items;
-    }
-
-    public WFODTO read(String id) throws MalformedURLException, IOException, JSONException {
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/wfo/{0}", id));
+    public StationDTO nearestWithRadiosonde(double latitude, double longitude) throws MalformedURLException, IOException, JSONException {
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/station/{0}/{1}/nearestWithRadiosonde", Double.toString(latitude), Double.toString(longitude)));
         HttpURLConnection connection = (HttpURLConnection)url.openConnection();
         connection.setDoInput(true);
         connection.setDoOutput(false);
@@ -88,7 +64,48 @@ public class WFODAO {
         }
         String json = buffer.toString();
         JSONObject obj = new JSONObject(json);
-        ArrayList<WFODTO> items = new ArrayList<WFODTO>();
-        return new WFODTO(obj);
+        return new StationDTO(obj);
+    }
+
+    public StationDTO nearest(double latitude, double longitude) throws MalformedURLException, IOException, JSONException {
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/station/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setDoInput(true);
+        connection.setDoOutput(false);
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        connection.connect();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuffer buffer = new StringBuffer();
+        String currentLine = null;
+        boolean started = false;
+        while ((currentLine = reader.readLine()) != null) {
+            buffer.append(currentLine);
+        }
+        String json = buffer.toString();
+        JSONObject obj = new JSONObject(json);
+        return new StationDTO(obj);
+    }
+
+    public StationDTO read(String id) throws MalformedURLException, IOException, JSONException {
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/station/{0}", id));
+        HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+        connection.setDoInput(true);
+        connection.setDoOutput(false);
+        connection.setRequestMethod("GET");
+        connection.setConnectTimeout(5000);
+        connection.connect();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuffer buffer = new StringBuffer();
+        String currentLine = null;
+        boolean started = false;
+        while ((currentLine = reader.readLine()) != null) {
+            buffer.append(currentLine);
+        }
+        String json = buffer.toString();
+        JSONObject obj = new JSONObject(json);
+        return new StationDTO(obj);
     }
 }

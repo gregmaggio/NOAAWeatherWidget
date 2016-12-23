@@ -16,20 +16,20 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import java.io.File;
+import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.Calendar;
-import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import ca.datamagic.noaa.async.AsyncTaskListener;
-import ca.datamagic.noaa.async.AsyncTaskResult;
-import ca.datamagic.noaa.async.DiscussionTask;
-import ca.datamagic.noaa.async.ForecastTask;
-import ca.datamagic.noaa.async.ObservationTask;
-import ca.datamagic.noaa.async.WFOTask;
-import ca.datamagic.noaa.dto.DWMLDTO;
-import ca.datamagic.noaa.dto.WFODTO;
+import ca.datamagic.noaa.logging.LogFormatter;
+import ca.datamagic.noaa.logging.LogHandler;
 
 public class MainActivity extends AppCompatActivity {
     private static final String _tag = "WeatherWidget";
+    private static final Logger _logger = Logger.getLogger("MainActivity");
+    private static final int _maxTries = 5;
     private double _latitude = 38.9967;
     private double _longitude = -76.9275;
     private int _year = Calendar.getInstance().get(Calendar.YEAR);
@@ -40,12 +40,12 @@ public class MainActivity extends AppCompatActivity {
     private String _format = "24 hourly";
     private SharedPreferences _preferences = null;
     private MainPageAdapter _mainPageAdapter = null;
+    private ObservationFragment _observationFragment = null;
+    private ForecastFragment _forecastFragment = null;
+    private DiscussionFragment _discussionFragment = null;
+    private SkewTFragment _skewTFragment = null;
     private ViewPager _viewPager = null;
     private LocationManager _locationManager = null;
-    private DWMLDTO _observation = null;
-    private DWMLDTO _forecast = null;
-    private WFODTO _wfo = null;
-    private String _discussion = null;
 
     private void readPreferences() {
         if (_preferences != null) {
@@ -78,13 +78,38 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        try {
+            String logPath = getBaseContext().getFilesDir().getAbsolutePath();
+            System.out.println("logPath: " + logPath);
+            String[] parts = logPath.split(File.pathSeparator);
+            String path = "";
+            for (int ii = 0; ii < parts.length; ii++) {
+                path += "/" + parts[ii];
+                (new File(path)).mkdir();
+            }
+            String logFile = MessageFormat.format("{0}/NOAAWeatherWidget.txt", logPath);
+            LogHandler logHandler = new LogHandler(logFile, true);
+            logHandler.setLevel(Level.ALL);
+            logHandler.setFormatter(new LogFormatter());
+            _logger.addHandler(logHandler);
+        } catch (IOException ex) {
+            // Do Nothing!
+        }
+
         _preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager());
+        _observationFragment = (ObservationFragment) _mainPageAdapter.getItem(MainPageAdapter.ObservationIndex);
+        _forecastFragment = (ForecastFragment) _mainPageAdapter.getItem(MainPageAdapter.ForecastIndex);
+        _discussionFragment = (DiscussionFragment) _mainPageAdapter.getItem(MainPageAdapter.DiscussionIndex);
+        _skewTFragment = (SkewTFragment) _mainPageAdapter.getItem(MainPageAdapter.SkewTIndex);
         _viewPager = (ViewPager) findViewById(R.id.viewpager);
         _viewPager.setAdapter(_mainPageAdapter);
         _locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         readPreferences();
         actionRefresh();
+
+        _logger.log(Level.INFO, "Created");
     }
 
     @Override
@@ -147,74 +172,42 @@ public class MainActivity extends AppCompatActivity {
 
     private void actionRefresh() {
         try {
-            ObservationTask observationTask = new ObservationTask(_latitude, _longitude, _unit);
-            observationTask.addListener(new AsyncTaskListener<DWMLDTO>() {
-                @Override
-                public void Completed(AsyncTaskResult<DWMLDTO> result) {
-                    _observation = result.getResult();
-                    renderObservation();
-                }
-            });
-            executeAsyncTask(observationTask);
-
-            ForecastTask forecastTask = new ForecastTask(_latitude, _longitude, _year, _month, _day, _numDays, _unit, _format);
-            forecastTask.addListener(new AsyncTaskListener<DWMLDTO>() {
-                @Override
-                public void Completed(AsyncTaskResult<DWMLDTO> result) {
-                    _forecast = result.getResult();
-                    renderForecast();
-                }
-            });
-            executeAsyncTask(forecastTask);
-
-            WFOTask wfoTask = new WFOTask(_latitude, _longitude);
-            wfoTask.addListener(new AsyncTaskListener<List<WFODTO>>() {
-                @Override
-                public void Completed(AsyncTaskResult<List<WFODTO>> result) {
-                    if (result.getResult() != null) {
-                        if (result.getResult().size() > 0) {
-                            _wfo = result.getResult().get(0);
-
-                            DiscussionTask discussionTask = new DiscussionTask(_wfo.getWFO());
-                            discussionTask.addListener(new AsyncTaskListener<String>() {
-                                @Override
-                                public void Completed(AsyncTaskResult<String> result) {
-                                    renderDiscussion(result.getResult());
-                                }
-                            });
-                            executeAsyncTask(discussionTask);
-                        }
-                    }
-                }
-            });
-            executeAsyncTask(wfoTask);
+            refreshObservation();
+            refreshForecast();
+            refreshWFO();
+            refreshStation();
         } catch (Throwable t) {
             Log.e(_tag, "Exception", t);
         }
     }
 
-    private void renderObservation() {
+    private void refreshObservation() {
         try {
-            ObservationFragment observationFragment = (ObservationFragment) _mainPageAdapter.getItem(MainPageAdapter.ObservationIndex);
-            observationFragment.render(_observation);
+            new ObservationRefresh(_latitude, _longitude, _unit, _observationFragment);
         } catch (Throwable t) {
             Log.e(_tag, "Exception", t);
         }
     }
 
-    private void renderForecast() {
+    private void refreshForecast() {
         try {
-            ForecastFragment forecastFragment = (ForecastFragment) _mainPageAdapter.getItem(MainPageAdapter.ForecastIndex);
-            forecastFragment.render(_forecast);
+            new ForecastRefresh(_latitude, _longitude, _year, _month, _day, _numDays, _unit, _format, _forecastFragment);
         } catch (Throwable t) {
             Log.e(_tag, "Exception", t);
         }
     }
 
-    private void renderDiscussion(String discussion) {
+    private void refreshWFO() {
         try {
-            DiscussionFragment fragment = (DiscussionFragment) _mainPageAdapter.getItem(MainPageAdapter.DiscussionIndex);
-            fragment.render(discussion);
+            new WFORefresh(_latitude, _longitude, _discussionFragment);
+        } catch (Throwable t) {
+            Log.e(_tag, "Exception", t);
+        }
+    }
+
+    private void refreshStation() {
+        try {
+            new StationRefresh(_latitude, _longitude, _skewTFragment);
         } catch (Throwable t) {
             Log.e(_tag, "Exception", t);
         }

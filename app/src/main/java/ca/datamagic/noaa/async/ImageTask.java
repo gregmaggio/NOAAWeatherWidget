@@ -2,6 +2,7 @@ package ca.datamagic.noaa.async;
 
 import android.graphics.Bitmap;
 import android.util.Log;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import java.util.Hashtable;

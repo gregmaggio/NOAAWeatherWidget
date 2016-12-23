@@ -14,6 +14,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ObservationIndex = 0;
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
+    public static final int SkewTIndex = 3;
     private List<Fragment> _fragments = new ArrayList<Fragment>();
 
     public MainPageAdapter(FragmentManager manager) {
@@ -21,14 +22,16 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _fragments.add(new ObservationFragment());
         _fragments.add(new ForecastFragment());
         _fragments.add(new DiscussionFragment());
+        _fragments.add(new SkewTFragment());
     }
 
     @Override
     public CharSequence getPageTitle(int position) {
         switch (position) {
-            case 0: return  "Current";
-            case 1: return  "Forecast";
-            case 2: return  "Discussion";
+            case ObservationIndex: return  "Current";
+            case ForecastIndex: return  "Forecast";
+            case DiscussionIndex: return  "Discussion";
+            case SkewTIndex: return "SkewT";
         }
         return "";
     }
