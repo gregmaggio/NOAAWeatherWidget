@@ -35,6 +35,8 @@ public class ProbabilityOfPrecipitationDTO {
 	public static final String TypeAttribute = "type";
 	public static final String UnitsAttribute = "units";
 	public static final String TimeLayoutAttribute = "time-layout";
+	public static final String NameNode = "name";
+	public static final String ValueNode = "value";
 	private String _type = null;
 	private String _units = null;
 	private String _timeLayout = null;

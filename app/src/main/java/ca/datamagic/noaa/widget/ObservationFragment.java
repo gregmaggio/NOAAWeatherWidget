@@ -2,7 +2,6 @@ package ca.datamagic.noaa.widget;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
-import java.text.MessageFormat;
 import java.util.List;
 
 import ca.datamagic.noaa.async.ImageTask;
@@ -40,7 +38,6 @@ import ca.datamagic.noaa.util.WindDirectionConverter;
  * Created by Greg on 1/10/2016.
  */
 public class ObservationFragment extends Fragment {
-    private static final String _tag = "ObservationFragment";
     private static DecimalFormat _coordinatesFormat = new DecimalFormat("0.0");
     private static DecimalFormat _elevationFormat = new DecimalFormat("0.0");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
@@ -50,20 +47,20 @@ public class ObservationFragment extends Fragment {
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
     private TableLayout _observationTable = null;
     private LayoutInflater _inflater = null;
-    private DWMLDTO _observation = null;
+    private DWMLDTO _dwml = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.observation_main, container, false);
         _observationTable = (TableLayout) view.findViewById(R.id.observationTable);
         _inflater = inflater;
-        render(_observation);
+        render(_dwml);
         return view;
     }
 
     private String getAreaDescription() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
@@ -75,8 +72,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getLatitude() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
@@ -91,8 +88,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getLongitude() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
@@ -107,8 +104,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getElevation() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
@@ -123,8 +120,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private String getElevationUnits() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
@@ -139,8 +136,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getApparentTemperature() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -163,8 +160,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getDewPointTemperature() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -187,8 +184,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getWindDirection() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -203,8 +200,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getWindSpeed() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -225,8 +222,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getWindGust() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -247,8 +244,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getHumidity() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -263,8 +260,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getPressure() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -279,8 +276,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private String getConditionsIcon() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -298,8 +295,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private Double getVisibility() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -325,8 +322,8 @@ public class ObservationFragment extends Fragment {
     }
 
     private String getVisibilityUnits() {
-        if (_observation != null) {
-            DataDTO data = _observation.getData();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getObservation();
             if (data != null) {
                 ParametersDTO parameters = data.getParameters();
                 if (parameters != null) {
@@ -351,10 +348,10 @@ public class ObservationFragment extends Fragment {
         return null;
     }
 
-    public void render(DWMLDTO observation) {
-        _observation = observation;
+    public void render(DWMLDTO dwml) {
+        _dwml = dwml;
         _observationTable.removeAllViews();
-        if (_observation != null) {
+        if (_dwml != null) {
             String locationText = getAreaDescription();
             Double latitude = getLatitude();
             Double longitude = getLongitude();

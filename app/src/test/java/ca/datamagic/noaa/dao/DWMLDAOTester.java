@@ -4,15 +4,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import ca.datamagic.noaa.dto.DWMLDTO;
+
 /**
- * Created by Greg on 1/2/2016.
+ * Created by Greg on 2/18/2017.
  */
 @RunWith(JUnit4.class)
-public class DiscussionDAOTester {
+public class DWMLDAOTester {
     @Test
     public void test1() throws Throwable {
-        DiscussionDAO dao = new DiscussionDAO();
-        String discussion = dao.load("EAX");
-        System.out.println(discussion);
+        DWMLDAO dao = new DWMLDAO();
+        DWMLDTO dwml = dao.load(33.94, -118.39, "e");
     }
 }

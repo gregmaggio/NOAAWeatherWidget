@@ -15,17 +15,27 @@ package ca.datamagic.noaa.dto;
  */
 public class HazardDTO {
 	public static final String NodeName = "hazard";
+	public static final String HeadlineAttribute = "headline";
 	public static final String HazardCodeAttribute = "hazardCode";
 	public static final String PhenomenaAttribute = "phenomena";
 	public static final String SignificanceAttribute = "significance";
 	public static final String HazardTypeAttribute = "hazardType";
 	public static final String HazardTextUrlNode = "hazardTextURL";
+	private String _headline = null;
 	private String _hazardCode = null;
 	private String _phenomena = null;
 	private String _significance = null;
 	private String _hazardType = null;
 	private String _hazardTextUrl = null;
-	
+
+	public String getHeadline() {
+		return _headline;
+	}
+
+	public void setHeadline(String newVal) {
+		_headline = newVal;
+	}
+
 	public String getHazardCode() {
 		return _hazardCode;
 	}

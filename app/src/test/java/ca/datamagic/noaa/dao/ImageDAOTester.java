@@ -16,7 +16,7 @@ import ca.datamagic.noaa.widget.BuildConfig;
 @Config(constants = BuildConfig.class, sdk = 21)
 public class ImageDAOTester {
     @Test
-    public void test1() throws Exception {
+    public void test1() throws Throwable {
         ImageDAO dao = new ImageDAO();
         Bitmap bitmap = dao.load("http://forecast.weather.gov/newimages/medium/sct.png");
     }

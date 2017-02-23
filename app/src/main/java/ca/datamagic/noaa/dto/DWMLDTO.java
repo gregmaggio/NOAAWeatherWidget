@@ -8,7 +8,8 @@ public class DWMLDTO {
     public static final String VersionAttribute = "version";
     private String _version = null;
     private HeadDTO _head = null;
-    private DataDTO _data = null;
+    private DataDTO _forecast = null;
+    private DataDTO _observation = null;
 
     public String getVersion() {
         return _version;
@@ -26,11 +27,19 @@ public class DWMLDTO {
         _head = newVal;
     }
 
-    public DataDTO getData() {
-        return _data;
+    public DataDTO getForecast() {
+        return _forecast;
     }
 
-    public void setData(DataDTO newVal) {
-        _data = newVal;
+    public void setForecast(DataDTO newVal) {
+        _forecast = newVal;
+    }
+
+    public DataDTO getObservation() {
+        return _observation;
+    }
+
+    public void setObservation(DataDTO newVal) {
+        _observation = newVal;
     }
 }

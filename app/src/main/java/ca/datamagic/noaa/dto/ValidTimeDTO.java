@@ -17,10 +17,12 @@ import java.util.regex.Pattern;
  *
  */
 public class ValidTimeDTO {
+	public static final String PeriodNameAttribute = "period-name";
 	private static final Pattern _timeStampRegex = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})-(\\d{2}):(\\d{2})");
 	private Calendar _timeStamp = null;
+	private String _periodName = null;
 
-	public ValidTimeDTO(String timeStampText) {
+	public ValidTimeDTO(String timeStampText, String periodName) {
 		Matcher matcher = _timeStampRegex.matcher(timeStampText);
 		if (matcher.matches()) {
 			int year = Integer.parseInt(matcher.group(1));
@@ -38,13 +40,19 @@ public class ValidTimeDTO {
 			utc.set(Calendar.HOUR_OF_DAY, hour);
 			utc.set(Calendar.MINUTE, minute);
 			utc.set(Calendar.SECOND, second);
+			utc.set(Calendar.MILLISECOND, 0);
 			utc.add(Calendar.HOUR, -1 * hourAdjust);
 			utc.add(Calendar.MINUTE, -1 * minuteAdjust);
 			_timeStamp = utc;
 		}
+		_periodName = periodName;
 	}
 	
 	public Calendar getTimeStamp() {
 		return _timeStamp;
+	}
+
+	public String getPeriodName() {
+		return _periodName;
 	}
 }

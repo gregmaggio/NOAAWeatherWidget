@@ -8,16 +8,10 @@ public final class FeelsLikeTemperatureCalculator {
         Double feelsLikeTemperature = null;
 
         if ((temperatureFahrenheit != null) && !temperatureFahrenheit.isNaN()) {
-            if (feelsLikeTemperature == null) {
+            if (temperatureFahrenheit.doubleValue() >= 80) {
                 feelsLikeTemperature = computeHeatIndexTemperature(temperatureFahrenheit, relativeHumidity);
-            }
-
-            if (feelsLikeTemperature == null) {
+            } else if (temperatureFahrenheit.doubleValue() <= 40) {
                 feelsLikeTemperature = computeWindChill(temperatureFahrenheit, windSpeed);
-            }
-
-            if (feelsLikeTemperature == null) {
-                feelsLikeTemperature = new Double(temperatureFahrenheit.doubleValue());
             }
         }
 

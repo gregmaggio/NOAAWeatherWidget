@@ -1,7 +1,9 @@
 package ca.datamagic.noaa.async;
 
 import android.os.AsyncTask;
-import android.util.Log;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +12,7 @@ import java.util.List;
  * Created by Greg on 1/9/2016.
  */
 public abstract class AsyncTaskBase<Params, Progress, Result> extends AsyncTask<Params, Progress, AsyncTaskResult<Result>> {
-    private static final String _tag = "AsyncTaskBase";
+    private Logger _logger = LogManager.getLogger(AsyncTaskBase.class);
     private List<AsyncTaskListener<Result>> _listeners = new ArrayList<AsyncTaskListener<Result>>();
 
     public void addListener(AsyncTaskListener<Result> listener) {
@@ -21,12 +23,12 @@ public abstract class AsyncTaskBase<Params, Progress, Result> extends AsyncTask<
         _listeners.remove(listener);
     }
 
-    protected void FireCompleted(AsyncTaskResult<Result> result) {
+    protected void fireCompleted(AsyncTaskResult<Result> result) {
         for (AsyncTaskListener<Result> listener : _listeners) {
             try {
-                listener.Completed(result);
+                listener.completed(result);
             } catch (Throwable t) {
-                Log.w(_tag, "Exception", t);
+                _logger.warn("Exception", t);
             }
         }
     }

@@ -14,19 +14,19 @@ import ca.datamagic.noaa.dto.WFODTO;
 @RunWith(JUnit4.class)
 public class WFODAOTester {
     @Test
-    public void test1() throws Exception {
+    public void test1() throws Throwable {
         WFODAO dao = new WFODAO();
         List<WFODTO> items = dao.read(39.32, -94.72);
     }
 
     @Test
-    public void test2() throws Exception {
+    public void test2() throws Throwable {
         WFODAO dao = new WFODAO();
         List<WFODTO> items = dao.list();
     }
 
     @Test
-    public void test3() throws Exception {
+    public void test3() throws Throwable {
         WFODAO dao = new WFODAO();
         WFODTO wfo = dao.read("LWX");
     }

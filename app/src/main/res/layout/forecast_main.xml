@@ -15,8 +15,7 @@
                 android:id="@+id/forecastTable"
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
-                android:scrollbars="vertical"
-                android:scrollbarStyle="insideOverlay"></TableLayout>
+                android:scrollbars="none" />
         </ScrollView>
     </LinearLayout>
 </RelativeLayout>

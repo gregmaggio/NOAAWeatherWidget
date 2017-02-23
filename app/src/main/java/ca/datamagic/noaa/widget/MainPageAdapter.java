@@ -15,6 +15,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
     public static final int SkewTIndex = 3;
+    public static final int DebugIndex = 4;
     private List<Fragment> _fragments = new ArrayList<Fragment>();
 
     public MainPageAdapter(FragmentManager manager) {

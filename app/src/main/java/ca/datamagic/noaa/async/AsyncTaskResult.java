@@ -7,6 +7,10 @@ public class AsyncTaskResult<T> {
     private T _result = null;
     private Throwable _throwable = null;
 
+    public AsyncTaskResult() {
+        super();
+    }
+
     public AsyncTaskResult(T result) {
         super();
         _result = result;

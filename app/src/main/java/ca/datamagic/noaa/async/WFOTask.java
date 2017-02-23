@@ -1,6 +1,7 @@
 package ca.datamagic.noaa.async;
 
-import android.util.Log;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.Hashtable;
 import java.util.List;
@@ -13,9 +14,8 @@ import ca.datamagic.noaa.dto.WFODTO;
  * Created by Greg on 1/3/2016.
  */
 public class WFOTask extends AsyncTaskBase<Void, Void, List<WFODTO>> {
-    private static final String _tag = "WFOTask";
-    private static final int _maxTries = 5;
     private static Hashtable<PointDTO, List<WFODTO>> _cachedItems = new Hashtable<PointDTO, List<WFODTO>>();
+    private Logger _logger = LogManager.getLogger(WFOTask.class);
     private WFODAO _dao = null;
     private PointDTO _point = null;
     private double _latitude = 0.0;
@@ -39,26 +39,15 @@ public class WFOTask extends AsyncTaskBase<Void, Void, List<WFODTO>> {
         _cachedItems.put(point, wfo);
     }
 
-    private List<WFODTO> load() {
-        int tries = 0;
-        while (tries < _maxTries) {
-            try {
-                return _dao.read(_latitude, _longitude);
-            } catch (Throwable t) {
-                Log.w(_tag, "Exception", t);
-            }
-            ++tries;
-        }
-        return null;
-    }
-
     @Override
     protected AsyncTaskResult<List<WFODTO>> doInBackground(Void... params) {
-        Log.d(_tag, "Running Task");
+        if (_logger.isDebugEnabled()) {
+            _logger.debug("Running Task");
+        }
         try {
             List<WFODTO> wfo = getCachedItem(_point);
             if (wfo == null) {
-                wfo = load();
+                wfo = _dao.read(_latitude, _longitude);
             }
             return new AsyncTaskResult<List<WFODTO>>(wfo);
         } catch (Throwable t) {
@@ -68,12 +57,12 @@ public class WFOTask extends AsyncTaskBase<Void, Void, List<WFODTO>> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<List<WFODTO>> result) {
-        Log.d(_tag, "Completed Task");
+        if (_logger.isDebugEnabled()) {
+            _logger.debug("Completed Task");
+        }
         if (result.getResult() != null) {
             setCachedItem(_point, result.getResult());
-        } else if (result.getThrowable() != null) {
-            Log.e(_tag, "Exception", result.getThrowable());
         }
-        FireCompleted(result);
+        fireCompleted(result);
     }
 }

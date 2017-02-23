@@ -1,9 +1,10 @@
 package ca.datamagic.noaa.async;
 
 import android.graphics.Bitmap;
-import android.util.Log;
-import android.view.ViewGroup;
 import android.widget.ImageView;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
 import java.util.Hashtable;
 
@@ -13,9 +14,8 @@ import ca.datamagic.noaa.dao.ImageDAO;
  * Created by Greg on 1/1/2016.
  */
 public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
-    private static final String _tag = "ImageTask";
-    private static final int _maxTries = 5;
     private static Hashtable<String, Bitmap> _cachedImages = new Hashtable<String, Bitmap>();
+    private Logger _logger = LogManager.getLogger(ImageTask.class);
     private ImageDAO _dao = null;
     private String _imageUrl = null;
     private ImageView _imageView = null;
@@ -39,29 +39,17 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
         _cachedImages.put(key, newVal);
     }
 
-    private Bitmap load() {
-        int tries = 0;
-        while (tries < _maxTries) {
-            try {
-                return _dao.load(_imageUrl);
-            } catch (Throwable t) {
-                Log.w(_tag, "Exception", t);
-            }
-            ++tries;
-        }
-        return null;
-    }
-
     @Override
     protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
-        Log.d(_tag, "Running Task");
+        if (_logger.isDebugEnabled()) {
+            _logger.debug("Running Task");
+        }
         try {
             Bitmap bitmap = null;
             if ((_imageUrl != null) && (_imageUrl.length() > 0)) {
-                Log.d(_tag, "imageUrl: " + _imageUrl);
                 bitmap = getBitmap(_imageUrl);
                 if (bitmap == null) {
-                    bitmap = load();
+                    bitmap = _dao.load(_imageUrl);
                     if (bitmap != null) {
                         setBitmap(_imageUrl, bitmap);
                     }
@@ -75,12 +63,12 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<Bitmap> result) {
-        Log.d(_tag, "Completed Task");
+        if (_logger.isDebugEnabled()) {
+            _logger.debug("Completed Task");
+        }
         if (result.getResult() != null) {
             _imageView.setImageBitmap(result.getResult());
-        } else if (result.getThrowable() != null) {
-            Log.e(_tag, "Exception", result.getThrowable());
         }
-        FireCompleted(result);
+        fireCompleted(result);
     }
 }

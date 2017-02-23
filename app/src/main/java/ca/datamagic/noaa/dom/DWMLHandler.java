@@ -4,7 +4,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.helpers.DefaultHandler;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -18,6 +17,8 @@ import ca.datamagic.noaa.dto.ConditionsIconDTO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.DataDTO;
 import ca.datamagic.noaa.dto.DirectionDTO;
+import ca.datamagic.noaa.dto.HazardConditionsDTO;
+import ca.datamagic.noaa.dto.HazardDTO;
 import ca.datamagic.noaa.dto.HazardsDTO;
 import ca.datamagic.noaa.dto.HeightDTO;
 import ca.datamagic.noaa.dto.HumidityDTO;
@@ -26,6 +27,7 @@ import ca.datamagic.noaa.dto.MoreWeatherInformationDTO;
 import ca.datamagic.noaa.dto.ParametersDTO;
 import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.PressureDTO;
+import ca.datamagic.noaa.dto.ProbabilityOfPrecipitationDTO;
 import ca.datamagic.noaa.dto.TemperatureDTO;
 import ca.datamagic.noaa.dto.TimeLayoutDTO;
 import ca.datamagic.noaa.dto.ValidTimeDTO;
@@ -37,10 +39,10 @@ import ca.datamagic.noaa.dto.WindSpeedDTO;
 import ca.datamagic.util.XmlUtils;
 
 /**
- * Created by Greg on 1/4/2016.
+ * Created by Greg on 2/18/2017.
  */
-public class ObservationHandler extends DefaultHandler {
-    private String _currentElement = null;
+
+public class DWMLHandler {
     private DWMLDTO _dwml = null;
 
     public DWMLDTO parse(String xml) throws Exception {
@@ -93,29 +95,32 @@ public class ObservationHandler extends DefaultHandler {
         if (element.getNodeName().toLowerCase().contains(DataDTO.NodeName.toLowerCase())) {
             String type = element.getAttribute(DataDTO.TypeAttribute);
             if ((type != null) && (type.length() > 0)) {
-                if (type.compareToIgnoreCase("current observations") == 0) {
-                    _dwml.setData(new DataDTO());
-                    if (element.hasChildNodes()) {
-                        NodeList childNodes = element.getChildNodes();
-                        for (int index = 0; index < childNodes.getLength(); index++) {
-                            Node child = childNodes.item(index);
-                            if (child.getNodeType() == Node.ELEMENT_NODE) {
-                                if (child.getNodeName().toLowerCase().contains(LocationDTO.NodeName.toLowerCase())) {
-                                    traverseLocation((Element) child);
-                                    continue;
-                                }
-                                if (child.getNodeName().toLowerCase().contains(MoreWeatherInformationDTO.NodeName.toLowerCase())) {
-                                    traverseMoreWeatherInformation((Element) child);
-                                    continue;
-                                }
-                                if (child.getNodeName().toLowerCase().contains(TimeLayoutDTO.NodeName.toLowerCase())) {
-                                    traverseTimeLayout((Element) child);
-                                    continue;
-                                }
-                                if (child.getNodeName().toLowerCase().contains(ParametersDTO.NodeName.toLowerCase())) {
-                                    traverseParameters((Element) child);
-                                    continue;
-                                }
+                DataDTO data = new DataDTO();
+                if (type.compareToIgnoreCase("forecast") == 0) {
+                    _dwml.setForecast(data);
+                } else  if (type.compareToIgnoreCase("current observations") == 0) {
+                    _dwml.setObservation(data);
+                }
+                if ((data != null) && element.hasChildNodes()) {
+                    NodeList childNodes = element.getChildNodes();
+                    for (int index = 0; index < childNodes.getLength(); index++) {
+                        Node child = childNodes.item(index);
+                        if (child.getNodeType() == Node.ELEMENT_NODE) {
+                            if (child.getNodeName().toLowerCase().contains(LocationDTO.NodeName.toLowerCase())) {
+                                traverseLocation(data, (Element) child);
+                                continue;
+                            }
+                            if (child.getNodeName().toLowerCase().contains(MoreWeatherInformationDTO.NodeName.toLowerCase())) {
+                                traverseMoreWeatherInformation(data, (Element) child);
+                                continue;
+                            }
+                            if (child.getNodeName().toLowerCase().contains(TimeLayoutDTO.NodeName.toLowerCase())) {
+                                traverseTimeLayout(data, (Element) child);
+                                continue;
+                            }
+                            if (child.getNodeName().toLowerCase().contains(ParametersDTO.NodeName.toLowerCase())) {
+                                traverseParameters(data, (Element) child);
+                                continue;
                             }
                         }
                     }
@@ -124,11 +129,9 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseLocation(Element element) throws Exception {
+    private void traverseLocation(DataDTO data, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(LocationDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
             data.setLocation(new LocationDTO());
-
             LocationDTO location = data.getLocation();
             if (element.hasChildNodes()) {
                 NodeList childNodes = element.getChildNodes();
@@ -144,11 +147,11 @@ public class ObservationHandler extends DefaultHandler {
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(PointDTO.NodeName.toLowerCase())) {
-                            traversePoint((Element) child);
+                            traversePoint(location, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(HeightDTO.NodeName.toLowerCase())) {
-                            traverseHeight((Element) child);
+                            traverseHeight(location, (Element) child);
                             continue;
                         }
                     }
@@ -157,10 +160,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseHeight(Element element) throws Exception {
+    private void traverseHeight(LocationDTO location, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(HeightDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            LocationDTO location = data.getLocation();
             location.setHeight(new HeightDTO());
 
             HeightDTO height = location.getHeight();
@@ -173,11 +174,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traversePoint(Element element) throws Exception {
+    private void traversePoint(LocationDTO location, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(PointDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-
-            LocationDTO location = data.getLocation();
             location.setPoint(new PointDTO());
 
             PointDTO point = location.getPoint();
@@ -186,22 +184,18 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseMoreWeatherInformation(Element element) throws Exception {
+    private void traverseMoreWeatherInformation(DataDTO data, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(MoreWeatherInformationDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
             data.setMoreWeatherInformation(new MoreWeatherInformationDTO());
-
             MoreWeatherInformationDTO moreWeatherInformation = data.getMoreWeatherInformation();
             moreWeatherInformation.setLink(XmlUtils.getText(element));
             moreWeatherInformation.setApplicableLocation(element.getAttribute(MoreWeatherInformationDTO.ApplicableLocationAttribute));
         }
     }
 
-    private void traverseTimeLayout(Element element) throws Exception {
+    private void traverseTimeLayout(DataDTO data, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(TimeLayoutDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
             List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
-
             TimeLayoutDTO timeLayout = new TimeLayoutDTO();
             timeLayout.setTimeCoordinate(element.getAttribute(TimeLayoutDTO.TimeCoordinateAttribute));
             timeLayout.setSummarization(element.getAttribute(TimeLayoutDTO.SummarizationAttribute));
@@ -211,16 +205,25 @@ public class ObservationHandler extends DefaultHandler {
                 for (int index = 0; index < childNodes.getLength(); index++) {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        Element childElement = (Element)child;
                         if (child.getNodeName().toLowerCase().contains(TimeLayoutDTO.LayoutKeyNode.toLowerCase())) {
                             timeLayout.setLayoutKey(XmlUtils.getText(child));
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(TimeLayoutDTO.StartValidTimeNode.toLowerCase())) {
-                            timeLayout.getStartTimes().add(new ValidTimeDTO(XmlUtils.getText(child)));
+                            String periodName = "";
+                            if (childElement.hasAttribute(ValidTimeDTO.PeriodNameAttribute)) {
+                                periodName = childElement.getAttribute(ValidTimeDTO.PeriodNameAttribute);
+                            }
+                            timeLayout.getStartTimes().add(new ValidTimeDTO(XmlUtils.getText(child), periodName));
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(TimeLayoutDTO.EndValidTimeNode.toLowerCase())) {
-                            timeLayout.getEndTimes().add(new ValidTimeDTO(XmlUtils.getText(child)));
+                            String periodName = "";
+                            if (childElement.hasAttribute(ValidTimeDTO.PeriodNameAttribute)) {
+                                periodName = childElement.getAttribute(ValidTimeDTO.PeriodNameAttribute);
+                            }
+                            timeLayout.getEndTimes().add(new ValidTimeDTO(XmlUtils.getText(child), periodName));
                             continue;
                         }
                     }
@@ -231,11 +234,9 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseParameters(Element element) throws Exception {
+    private void traverseParameters(DataDTO data, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(ParametersDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
             data.setParameters(new ParametersDTO());
-
             ParametersDTO parameters = data.getParameters();
             parameters.setApplicableLocation(element.getAttribute(ParametersDTO.ApplicableLocationAttribute));
             if (element.hasChildNodes()) {
@@ -244,35 +245,39 @@ public class ObservationHandler extends DefaultHandler {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
                         if (child.getNodeName().toLowerCase().contains(TemperatureDTO.NodeName.toLowerCase())) {
-                            traverseTemperature((Element) child);
+                            traverseTemperature(parameters, (Element) child);
+                            continue;
+                        }
+                        if (child.getNodeName().toLowerCase().contains(ProbabilityOfPrecipitationDTO.NodeName.toLowerCase())) {
+                            traverseProbabilityOfPrecipitation(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(HumidityDTO.NodeName.toLowerCase())) {
-                            traverseHumidity((Element) child);
+                            traverseHumidity(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(WeatherDTO.NodeName.toLowerCase())) {
-                            traverseWeather((Element) child);
+                            traverseWeather(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(ConditionsIconDTO.NodeName.toLowerCase())) {
-                            traverseConditionsIcon((Element) child);
+                            traverseConditionsIcon(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(DirectionDTO.NodeName.toLowerCase())) {
-                            traverseDirection((Element) child);
+                            traverseDirection(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(WindSpeedDTO.NodeName.toLowerCase())) {
-                            traverseWindSpeed((Element) child);
+                            traverseWindSpeed(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(PressureDTO.NodeName.toLowerCase())) {
-                            traversePressure((Element) child);
+                            traversePressure(parameters, (Element) child);
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(HazardsDTO.NodeName.toLowerCase())) {
-                            //traverseHazards((Element)child);
+                            traverseHazards(parameters, (Element)child);
                             continue;
                         }
                     }
@@ -281,10 +286,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseTemperature(Element element) throws Exception {
+    private void traverseTemperature(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(TemperatureDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
             TemperatureDTO temperature = new TemperatureDTO();
             temperature.setType(element.getAttribute(TemperatureDTO.TypeAttribute));
             temperature.setUnits(element.getAttribute(TemperatureDTO.UnitsAttribute));
@@ -312,10 +315,37 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseHumidity(Element element) throws Exception {
+    private void traverseProbabilityOfPrecipitation(ParametersDTO parameters, Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(ProbabilityOfPrecipitationDTO.NodeName.toLowerCase())) {
+            ProbabilityOfPrecipitationDTO probabilityOfPrecipitation = new ProbabilityOfPrecipitationDTO();
+            probabilityOfPrecipitation.setType(element.getAttribute(ProbabilityOfPrecipitationDTO.TypeAttribute));
+            probabilityOfPrecipitation.setUnits(element.getAttribute(ProbabilityOfPrecipitationDTO.UnitsAttribute));
+            probabilityOfPrecipitation.setTimeLayout(element.getAttribute(ProbabilityOfPrecipitationDTO.TimeLayoutAttribute));
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int index = 0; index < childNodes.getLength(); index++) {
+                    Node child = childNodes.item(index);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        if (child.getNodeName().toLowerCase().contains(ProbabilityOfPrecipitationDTO.NameNode.toLowerCase())) {
+                            probabilityOfPrecipitation.setName(XmlUtils.getText(child));
+                            continue;
+                        }
+                        if (child.getNodeName().toLowerCase().contains(ProbabilityOfPrecipitationDTO.ValueNode.toLowerCase())) {
+                            String text = XmlUtils.getText(child);
+                            if ((text != null) && (text.length() > 0)) {
+                                probabilityOfPrecipitation.getValues().add(new Double(text));
+                            }
+                            continue;
+                        }
+                    }
+                }
+            }
+            parameters.setProbabilityOfPrecipitation(probabilityOfPrecipitation);
+        }
+    }
+
+    private void traverseHumidity(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(HumidityDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
             parameters.setHumidity(new HumidityDTO());
             HumidityDTO humidity = parameters.getHumidity();
             humidity.setType(element.getAttribute(HumidityDTO.TypeAttribute));
@@ -340,13 +370,12 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseWeather(Element element) throws Exception {
+    private void traverseWeather(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(WeatherDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
             parameters.setWeather(new WeatherDTO());
             WeatherDTO weather = parameters.getWeather();
             weather.setTimeLayout(element.getAttribute(WeatherDTO.TimeLayoutAttribute));
+            List<WeatherConditionsDTO> weatherConditions = new ArrayList<WeatherConditionsDTO>();
             if (element.hasChildNodes()) {
                 for (int ii = 0; ii < element.getChildNodes().getLength(); ii++) {
                     if (element.getChildNodes().item(ii).getNodeType() == Node.ELEMENT_NODE) {
@@ -354,60 +383,57 @@ public class ObservationHandler extends DefaultHandler {
                         if (child.getNodeName().compareToIgnoreCase(WeatherDTO.NameNode) == 0) {
                             weather.setName(XmlUtils.getText(child));
                         } else  if (child.getNodeName().compareToIgnoreCase(WeatherConditionsDTO.NodeName) == 0) {
-                            traverseWeatherConditions(child);
+                            WeatherConditionsDTO weatherCondition = new WeatherConditionsDTO();
+                            traverseWeatherCondition(weatherCondition, child);
+                            weatherConditions.add(weatherCondition);
                         }
                     }
                 }
             }
+            weather.setWeatherConditions(weatherConditions);
         }
     }
 
-    private void traverseWeatherConditions(Element element) throws  Exception {
+    private void traverseWeatherCondition(WeatherConditionsDTO weatherCondition, Element element) throws  Exception {
         if (element.getNodeName().toLowerCase().contains(WeatherConditionsDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
-            WeatherDTO weather = parameters.getWeather();
-            weather.setWeatherConditions(new ArrayList<WeatherConditionsDTO>());
-            List<WeatherConditionsDTO> weatherConditionsList = weather.getWeatherConditions();
-            weatherConditionsList.add(new WeatherConditionsDTO());
-            WeatherConditionsDTO weatherConditions = weatherConditionsList.get(0);
-            weatherConditions.setWeatherSummary(element.getAttribute(WeatherConditionsDTO.WeatherSummaryAttribute));
+            weatherCondition.setWeatherSummary(element.getAttribute(WeatherConditionsDTO.WeatherSummaryAttribute));
+            traverseValues(weatherCondition, element);
+        }
+    }
+
+    private void traverseValues(WeatherConditionsDTO weatherCondition, Element element) throws  Exception {
+        if (element.getNodeName().toLowerCase().contains(WeatherConditionsDTO.NodeName.toLowerCase())) {
+            List<ValueDTO> values = new ArrayList<ValueDTO>();
             if (element.hasChildNodes()) {
                 for (int ii = 0; ii < element.getChildNodes().getLength(); ii++) {
                     if (element.getChildNodes().item(ii).getNodeType() == Node.ELEMENT_NODE) {
                         Element child = (Element) element.getChildNodes().item(ii);
                         if (child.getNodeName().compareToIgnoreCase(ValueDTO.NodeName) == 0) {
-                            traverseValue(child);
+                            ValueDTO value = new ValueDTO();
+                            traverseValue(value, child);
+                            values.add(value);
                         }
                     }
                 }
             }
+            weatherCondition.setValues(values);
         }
     }
 
-    private void traverseValue(Element element) throws  Exception {
+    private void traverseValue(ValueDTO value, Element element) throws  Exception {
         if (element.getNodeName().toLowerCase().contains(ValueDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
-            WeatherDTO weather = parameters.getWeather();
-            List<WeatherConditionsDTO> weatherConditionsList = weather.getWeatherConditions();
-            WeatherConditionsDTO weatherConditions = weatherConditionsList.get(0);
-            weatherConditions.setValues(new ArrayList<ValueDTO>());
-            List<ValueDTO> values = weatherConditions.getValues();
-            values.add(new ValueDTO());
-            ValueDTO value = values.get(0);
             if (element.hasChildNodes()) {
                 for (int ii = 0; ii < element.getChildNodes().getLength(); ii++) {
                     if (element.getChildNodes().item(ii).getNodeType() == Node.ELEMENT_NODE) {
                         Element child = (Element) element.getChildNodes().item(ii);
                         if (child.getNodeName().compareToIgnoreCase(VisibilityDTO.NodeName) == 0) {
-                            value.setVisibility(new VisibilityDTO());
-                            VisibilityDTO visibility = value.getVisibility();
+                            VisibilityDTO visibility = new VisibilityDTO();
                             visibility.setUnits(child.getAttribute(VisibilityDTO.UnitsAttribute));
                             String text = XmlUtils.getText(child);
                             if ((text != null) && (text.length() > 0)) {
                                 visibility.setValue(new Double(text));
                             }
+                            value.setVisibility(visibility);
                         }
                     }
                 }
@@ -415,11 +441,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseConditionsIcon(Element element) throws Exception {
+    private void traverseConditionsIcon(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(ConditionsIconDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-
-            ParametersDTO parameters = data.getParameters();
             parameters.setConditionsIcon(new ConditionsIconDTO());
 
             ConditionsIconDTO conditionsIcon = parameters.getConditionsIcon();
@@ -445,10 +468,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseDirection(Element element) throws Exception {
+    private void traverseDirection(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(DirectionDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
             parameters.setDirection(new DirectionDTO());
             DirectionDTO direction = parameters.getDirection();
             direction.setType(element.getAttribute(DirectionDTO.TypeAttribute));
@@ -474,10 +495,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traverseWindSpeed(Element element) throws Exception {
+    private void traverseWindSpeed(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(WindSpeedDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
             parameters.getWindSpeeds().add(new WindSpeedDTO());
             WindSpeedDTO windSpeed = parameters.getWindSpeeds().get(parameters.getWindSpeeds().size() - 1);
             windSpeed.setType(element.getAttribute(WindSpeedDTO.TypeAttribute));
@@ -503,10 +522,8 @@ public class ObservationHandler extends DefaultHandler {
         }
     }
 
-    private void traversePressure(Element element) throws Exception {
+    private void traversePressure(ParametersDTO parameters, Element element) throws Exception {
         if (element.getNodeName().toLowerCase().contains(PressureDTO.NodeName.toLowerCase())) {
-            DataDTO data = _dwml.getData();
-            ParametersDTO parameters = data.getParameters();
             parameters.setPressure(new PressureDTO());
             PressureDTO pressure = parameters.getPressure();
             pressure.setType(element.getAttribute(PressureDTO.TypeAttribute));
@@ -524,7 +541,68 @@ public class ObservationHandler extends DefaultHandler {
                             } catch (Throwable t) {
                                 pressure.setValue(null);
                             }
-                            continue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void traverseHazards(ParametersDTO parameters, Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(HazardsDTO.NodeName.toLowerCase())) {
+            HazardsDTO hazards = new HazardsDTO();
+            hazards.setTimeLayout(element.getAttribute(HazardsDTO.TimeLayoutAttribute));
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int ii = 0; ii < childNodes.getLength(); ii++) {
+                    Node child = childNodes.item(ii);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        if (child.getNodeName().toLowerCase().contains(HazardsDTO.NameNode.toLowerCase())) {
+                            hazards.setName(XmlUtils.getText(child));
+                        } else if (child.getNodeName().toLowerCase().contains(HazardConditionsDTO.NodeName.toLowerCase())) {
+                            HazardConditionsDTO hazardConditions = new HazardConditionsDTO();
+                            traverseHazardConditions(hazardConditions, (Element) child);
+                            hazards.setHazardConditions(hazardConditions);
+                        }
+                    }
+                }
+            }
+            parameters.setHazards(hazards);
+        }
+    }
+
+    private void traverseHazardConditions(HazardConditionsDTO hazardConditions, Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(HazardConditionsDTO.NodeName.toLowerCase())) {
+            List<HazardDTO> hazards = new ArrayList<HazardDTO>();
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int ii = 0; ii < childNodes.getLength(); ii++) {
+                    Node child = childNodes.item(ii);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        if (child.getNodeName().toLowerCase().contains(HazardDTO.NodeName.toLowerCase())) {
+                            HazardDTO hazard = new HazardDTO();
+                            traverseHazard(hazard, (Element) child);
+                            hazards.add(hazard);
+                        }
+                    }
+                }
+            }
+            hazardConditions.setHazards(hazards);
+        }
+    }
+
+    private void traverseHazard(HazardDTO hazard, Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(HazardDTO.NodeName.toLowerCase())) {
+            if (element.hasAttribute(HazardDTO.HeadlineAttribute)) {
+                hazard.setHeadline(element.getAttribute(HazardDTO.HeadlineAttribute));
+            }
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int ii = 0; ii < childNodes.getLength(); ii++) {
+                    Node child = childNodes.item(ii);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        if (child.getNodeName().toLowerCase().contains(HazardDTO.HazardTextUrlNode.toLowerCase())) {
+                            hazard.setHazardTextUrl(XmlUtils.getText(child));
                         }
                     }
                 }
