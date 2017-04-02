@@ -3,11 +3,13 @@ package ca.datamagic.noaa.widget;
 import android.Manifest;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
@@ -23,6 +25,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -36,9 +39,13 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.chainsaw.Main;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
@@ -53,6 +60,7 @@ import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.WFODTO;
+import ca.datamagic.noaa.logging.AndroidLogWriter;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private static Logger _logger = LogManager.getLogger(MainActivity.class);
@@ -87,6 +95,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private SearchView _search = null;
     private Menu _mainMenu = null;
     private boolean _processing = false;
+    private ProgressBar _spinner = null;
 
     private void readPreferences() {
         if (_preferences != null) {
@@ -132,6 +141,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        _spinner = (ProgressBar)findViewById(R.id.progressBar);
+
         readCurrentState();
 
         ListView leftDrawer = (ListView)findViewById(R.id.left_drawer);
@@ -168,11 +179,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             initializeGoogleApiClient();
         }
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PackageManager.PERMISSION_GRANTED);
-        } else {
-            initializeLogging();
-        }
+        initializeLogging();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_SETTINGS}, PackageManager.PERMISSION_GRANTED);
@@ -203,9 +210,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void initializeLogging() {
         try {
-            File extPath = getExternalFilesDir("NOAAWeatherWidget");
-            String logPath = extPath.getAbsolutePath();
-            String logFile = MessageFormat.format("{0}{1}NOAAWeatherWidget.txt", logPath, File.pathSeparator);
+            File intPath = getFilesDir();
+            String logPath = intPath.getAbsolutePath();
+            String logFile = MessageFormat.format("{0}/NOAAWeatherWidget.txt", logPath);
 
             // creates pattern layout
             EnhancedPatternLayout layout = new EnhancedPatternLayout();
@@ -221,10 +228,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             rollingAppender.setAppend(true);
             rollingAppender.setImmediateFlush(true);
 
+            AndroidLogWriter androidLogWriter = new AndroidLogWriter();
+
             // configures the root logger
             Logger rootLogger = Logger.getRootLogger();
             rootLogger.setLevel(Level.DEBUG);
             rootLogger.addAppender(rollingAppender);
+            rootLogger.addAppender(androidLogWriter);
 
             cleanOldLogs(logPath);
         } catch (Throwable t) {
@@ -241,8 +251,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 File[] logFiles = logDirectory.listFiles();
                 if (logFiles != null) {
                     for (int ii = 0; ii < logFiles.length; ii++) {
-                        if (logFiles[ii].lastModified() < keepDate.getTimeInMillis()) {
-                            logFiles[ii].delete();
+                        if (logFiles[ii].getName().contains("NOAAWeatherWidget")) {
+                            if (logFiles[ii].lastModified() < keepDate.getTimeInMillis()) {
+                                logFiles[ii].delete();
+                            }
                         }
                     }
                 }
@@ -363,6 +375,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             case R.id.action_settings:
                 // TODO
                 return true;
+            case R.id.action_senderror:
+                actionSendError();
+                return true;
             case R.id.action_exit:
                 finish();
                 return true;
@@ -379,8 +394,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _savedLongitude = _longitude;
                     _latitude = lastLocation.getLatitude();
                     _longitude = lastLocation.getLongitude();
+                    actionRefresh();
+                } else {
+                    _logger.debug("lastLocation is null!");
                 }
-                actionRefresh();
             }
         } catch (SecurityException ex) {
             // TODO: Show Error
@@ -395,6 +412,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         try {
             _processing = true;
+            _spinner.setVisibility(View.VISIBLE);
             _year = Calendar.getInstance().get(Calendar.YEAR);
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
@@ -449,6 +467,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(boolean success) {
                     _processing = false;
+                    _spinner.setVisibility(View.GONE);
                     if (!success) {
                         _latitude = _savedlatitude;
                         _longitude = _savedLongitude;
@@ -463,6 +482,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         } catch (Throwable t) {
             // TODO: Show Error
             _processing = false;
+            _spinner.setVisibility(View.GONE);
         }
     }
 
@@ -501,6 +521,67 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             task.execute((Void[]) null);
         } catch (Throwable t) {
             // TODO: Show Error
+        }
+    }
+
+    private void actionSendError() {
+        String zipFileName = null;
+        ZipOutputStream zipOutputStream = null;
+        FileInputStream fileInputStream = null;
+        try {
+            File intPath = getFilesDir();
+            String logPath = intPath.getAbsolutePath();
+
+            zipFileName = MessageFormat.format("{0}/logs.zip", logPath);
+            File zipFile = new File(zipFileName);
+            if (zipFile.exists()) {
+                zipFile.delete();
+            }
+            zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile));
+
+            File logDirectory = new File(logPath);
+            if (logDirectory.exists()) {
+                File[] logFiles = logDirectory.listFiles();
+                if (logFiles != null) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead = 0;
+                    for (int ii = 0; ii < logFiles.length; ii++) {
+                        if (logFiles[ii].getName().contains("NOAAWeatherWidget")) {
+                            // We want this file
+                            ZipEntry zipEntry = new ZipEntry(logFiles[ii].getName());
+                            zipOutputStream.putNextEntry(zipEntry);
+                            fileInputStream = new FileInputStream(logFiles[ii]);
+                            while ((bytesRead = fileInputStream.read(buffer, 0, buffer.length)) > 0) {
+                                zipOutputStream.write(buffer, 0, bytesRead);
+                            }
+                            zipOutputStream.closeEntry();
+                            fileInputStream.close();
+                            fileInputStream = null;
+                        }
+                    }
+                }
+            }
+
+            zipOutputStream.close();
+            zipOutputStream = null;
+        } catch (Throwable t) {
+            // TODO: Show Error
+        }
+
+        if (fileInputStream != null) {
+            try {
+                fileInputStream.close();
+            } catch (Throwable t) {
+                _logger.warn("Exception", t);
+            }
+        }
+
+        if (zipOutputStream != null) {
+            try {
+                zipOutputStream.close();
+            } catch (Throwable t) {
+                _logger.warn("Exception", t);
+            }
         }
     }
 
@@ -563,7 +644,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onStationClick(StationDTO station) {
+    public void onStationSelect(StationDTO station) {
         _drawerLayout.closeDrawer(Gravity.LEFT);
         _selectedStation = station;
         _savedlatitude = _latitude;
@@ -571,5 +652,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _latitude = _selectedStation.getLatitude();
         _longitude = _selectedStation.getLongitude();
         actionRefresh();
+    }
+
+    @Override
+    public void onStationRemove(StationDTO station) {
+        _stationsAdapter.remove(station);
+        _stationsAdapter.notifyDataSetInvalidated();
+        _stationsHelper.writeStations(_stationsAdapter.getStations());
+        _drawerLayout.closeDrawer(Gravity.LEFT);
     }
 }

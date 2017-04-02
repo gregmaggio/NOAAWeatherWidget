@@ -44,9 +44,9 @@ public class StationsHelper extends SQLiteOpenHelper {
 
     public void writeStations(List<StationDTO> stations) {
         SQLiteDatabase db = getWritableDatabase();
+        db.delete("station", null, null);
         for (int ii = 0; ii < stations.size(); ii++) {
             StationDTO station = stations.get(ii);
-            //latitude NUMERIC, longitude NUMERIC, has_radiosonde TEXT
             ContentValues values = new ContentValues();
             values.put("station_id", station.getStationId());
             values.put("station_name", station.getStationName());

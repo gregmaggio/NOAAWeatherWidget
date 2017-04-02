@@ -38,12 +38,6 @@ public class ForecastFragment extends Fragment {
     private TableLayout _forecastTable = null;
     private LayoutInflater _inflater = null;
     private DWMLDTO _dwml = null;
-    private Hashtable<String, TimeLayoutDTO> _timeLayouts = null;
-    private TimeLayoutDTO _detailedTimeLayout = null;
-    private TimeLayoutDTO _dayTimeLayout = null;
-    private TimeLayoutDTO _nightTimeLayout = null;
-    private TemperatureDTO _dayTimeMaxTemperature = null;
-    private TemperatureDTO _nightTimeMinTemperature = null;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -54,112 +48,95 @@ public class ForecastFragment extends Fragment {
         return view;
     }
 
-    private Hashtable<String, TimeLayoutDTO> getTimeLayouts() {
-        if (_timeLayouts == null) {
-            _timeLayouts = new Hashtable<String, TimeLayoutDTO>();
-            if (_dwml != null) {
-                DataDTO data = _dwml.getForecast();
-                if (data != null) {
-                    List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
-                    if (timeLayouts != null) {
-                        for (int ii = 0; ii < timeLayouts.size(); ii++) {
-                            _timeLayouts.put(timeLayouts.get(ii).getLayoutKey(), timeLayouts.get(ii));
-                        }
-                    }
-                }
-            }
-        }
-        return _timeLayouts;
-    }
-
     private TimeLayoutDTO getDetailedTimeLayout() {
-        if (_detailedTimeLayout == null) {
-            if (_dwml != null) {
-                DataDTO data = _dwml.getForecast();
-                if (data != null) {
-                    List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
-                    if ((timeLayouts != null) && (timeLayouts.size() > 0)) {
-                        _detailedTimeLayout = timeLayouts.get(0);
-                    }
+        if (_dwml != null) {
+            DataDTO data = _dwml.getForecast();
+            if (data != null) {
+                List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
+                if ((timeLayouts != null) && (timeLayouts.size() > 0)) {
+                    return timeLayouts.get(0);
                 }
             }
         }
-        return _detailedTimeLayout;
+        return null;
     }
 
     private TimeLayoutDTO getDayTimeLayout() {
-        if (_dayTimeLayout == null) {
-            if (_dwml != null) {
-                DataDTO data = _dwml.getForecast();
-                if (data != null) {
-                    List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
-                    if ((timeLayouts != null) && (timeLayouts.size() > 1)) {
-                        _dayTimeLayout = timeLayouts.get(1);
-                    }
+        if (_dwml != null) {
+            DataDTO data = _dwml.getForecast();
+            if (data != null) {
+                List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
+                if ((timeLayouts != null) && (timeLayouts.size() > 1)) {
+                    return timeLayouts.get(1);
                 }
             }
         }
-        return _dayTimeLayout;
+        return null;
     }
 
     private TimeLayoutDTO getNightTimeLayout() {
-        if (_nightTimeLayout == null) {
-            if (_dwml != null) {
-                DataDTO data = _dwml.getForecast();
-                if (data != null) {
-                    List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
-                    if ((timeLayouts != null) && (timeLayouts.size() > 2)) {
-                        _nightTimeLayout = timeLayouts.get(2);
-                    }
+        if (_dwml != null) {
+            DataDTO data = _dwml.getForecast();
+            if (data != null) {
+                List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
+                if ((timeLayouts != null) && (timeLayouts.size() > 2)) {
+                    return timeLayouts.get(2);
                 }
             }
         }
-        return _nightTimeLayout;
+        return null;
     }
 
     private TemperatureDTO getDayTimeMaxTemperature() {
-        if (_dayTimeMaxTemperature == null) {
-            if (_dwml != null) {
-                DataDTO data = _dwml.getForecast();
-                if (data != null) {
-                    List<TemperatureDTO> temperatures = data.getParameters().getTemperatures();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getForecast();
+            if (data != null) {
+                ParametersDTO parameters = data.getParameters();
+                if (parameters != null) {
+                    List<TemperatureDTO> temperatures = parameters.getTemperatures();
                     if (temperatures != null) {
                         for (int ii = 0; ii < temperatures.size(); ii++) {
                             if (temperatures.get(ii).getType().compareToIgnoreCase("maximum") == 0) {
-                                _dayTimeMaxTemperature = temperatures.get(ii);
-                                break;
+                                return temperatures.get(ii);
                             }
                         }
                     }
                 }
             }
         }
-        return _dayTimeMaxTemperature;
+        return null;
     }
 
     private TemperatureDTO getNightTimeMinTemperature() {
-        if (_nightTimeMinTemperature == null) {
-            if (_dwml != null) {
-                DataDTO data = _dwml.getForecast();
-                if (data != null) {
-                    List<TemperatureDTO> temperatures = data.getParameters().getTemperatures();
+        if (_dwml != null) {
+            DataDTO data = _dwml.getForecast();
+            if (data != null) {
+                ParametersDTO parameters = data.getParameters();
+                if (parameters != null) {
+                    List<TemperatureDTO> temperatures = parameters.getTemperatures();
                     if (temperatures != null) {
                         for (int ii = 0; ii < temperatures.size(); ii++) {
                             if (temperatures.get(ii).getType().compareToIgnoreCase("minimum") == 0) {
-                                _nightTimeMinTemperature = temperatures.get(ii);
-                                break;
+                                return temperatures.get(ii);
                             }
                         }
                     }
                 }
             }
         }
-        return _nightTimeMinTemperature;
+        return null;
     }
 
     public void render(DWMLDTO dwml) {
         _dwml = dwml;
         if (_forecastTable != null) {
+            int count = _forecastTable.getChildCount();
+            for (int ii = 0; ii < count; ii++) {
+                View child = _forecastTable.getChildAt(ii);
+                if (child instanceof TableRow) {
+                    ((ViewGroup)child).removeAllViews();
+                }
+            }
             _forecastTable.removeAllViews();
             if (_dwml != null) {
                 DataDTO data = _dwml.getForecast();
@@ -189,32 +166,17 @@ public class ForecastFragment extends Fragment {
                                 imageUrl = data.getParameters().getConditionsIcon().getIconLink().get(ii);
 
                             String temperatureString = "";
-                            int temperatureIndex = -1;
-                            long startTimeInMillis = startTime.getTimeStamp().getTimeInMillis();
                             for (int jj = 0; jj < dayTimeLayout.getStartTimes().size(); jj++) {
-                                long timeInMillis = dayTimeLayout.getStartTimes().get(jj).getTimeStamp().getTimeInMillis();
-                                long difference = Math.abs(startTimeInMillis - timeInMillis);
-                                if (difference < 3600001) {
-                                    temperatureIndex = jj;
+                                if (startTime.getPeriodName().compareToIgnoreCase(dayTimeLayout.getStartTimes().get(jj).getPeriodName()) == 0) {
+                                    temperatureString = _temperatureFormat.format(dayTimeMaxTemperature.getValues().get(jj));
                                     break;
                                 }
                             }
-                            if (temperatureIndex > -1) {
-                                if (temperatureIndex < dayTimeMaxTemperature.getValues().size()) {
-                                    temperatureString = _temperatureFormat.format(dayTimeMaxTemperature.getValues().get(temperatureIndex));
-                                }
-                            } else {
+                            if (temperatureString.length() < 1) {
                                 for (int jj = 0; jj < nightTimeLayout.getStartTimes().size(); jj++) {
-                                    long timeInMillis = nightTimeLayout.getStartTimes().get(jj).getTimeStamp().getTimeInMillis();
-                                    long difference = Math.abs(startTimeInMillis - timeInMillis);
-                                    if (difference < 3600001) {
-                                        temperatureIndex = jj;
+                                    if (startTime.getPeriodName().compareToIgnoreCase(nightTimeLayout.getStartTimes().get(jj).getPeriodName()) == 0) {
+                                        temperatureString = _temperatureFormat.format(nightTimeMinTemperature.getValues().get(jj));
                                         break;
-                                    }
-                                }
-                                if (temperatureIndex > -1) {
-                                    if (temperatureIndex < nightTimeMinTemperature.getValues().size()) {
-                                        temperatureString = _temperatureFormat.format(nightTimeMinTemperature.getValues().get(temperatureIndex));
                                     }
                                 }
                             }
@@ -229,6 +191,7 @@ public class ForecastFragment extends Fragment {
                                     spacerRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                                     LinearLayout forecastDivider = (LinearLayout) _inflater.inflate(R.layout.forecast_divider, null);
                                     forecastDivider.setVisibility(View.VISIBLE);
+                                    _forecastTable.addView(spacerRow);
                                 }
                                 TableRow row = new TableRow(getContext());
                                 row.setVisibility(View.VISIBLE);

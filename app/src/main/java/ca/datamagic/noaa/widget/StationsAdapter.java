@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -45,10 +46,20 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         _listeners.remove(listener);
     }
 
-    private void FireStationClick(StationDTO station) {
+    private void FireStationSelect(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
-                _listeners.get(ii).onStationClick(station);
+                _listeners.get(ii).onStationSelect(station);
+            } catch (Throwable t) {
+                _logger.warn("Exception", t);
+            }
+        }
+    }
+
+    private void FireStationRemove(StationDTO station) {
+        for (int ii = 0; ii < _listeners.size(); ii++) {
+            try {
+                _listeners.get(ii).onStationRemove(station);
             } catch (Throwable t) {
                 _logger.warn("Exception", t);
             }
@@ -87,9 +98,22 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
     }
 
+    public void remove(StationDTO station) {
+        for (int ii = 0; ii < _stations.size(); ii++) {
+            if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
+                _stations.remove(ii);
+                break;
+            }
+        }
+    }
+
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        StationDTO station = null;
+        if (_stations.size() > 0) {
+            station = _stations.get(position);
+        }
         View view = convertView;
         boolean viewInflated = false;
         if (view == null) {
@@ -97,27 +121,40 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
             viewInflated = true;
         }
         TextView stationName = (TextView)view.findViewById(R.id.station_name);
+        if (station != null) {
+            stationName.setTag(station);
+            stationName.setText(station.getStationName());
+        }
         if (viewInflated) {
             stationName.setOnClickListener(this);
         }
-        if (_stations.size() > 0) {
-            stationName.setText(_stations.get(position).getStationName());
+        ImageView removeStation = (ImageView)view.findViewById(R.id.remove_station);
+        removeStation.setClickable(true);
+        if (station != null) {
+            removeStation.setTag(station);
+        }
+        if (viewInflated) {
+            removeStation.setOnClickListener(this);
         }
         return view;
     }
 
     @Override
     public void onClick(View v) {
-        TextView stationName = (TextView)v;
-        for (int ii = 0; ii < _stations.size(); ii++) {
-            if (_stations.get(ii).getStationName().compareToIgnoreCase(stationName.getText().toString()) == 0) {
-                FireStationClick(_stations.get(ii));
-                break;
+        Object tag = v.getTag();
+        if (tag != null) {
+            if (tag instanceof StationDTO) {
+                if (v instanceof TextView) {
+                    FireStationSelect((StationDTO) tag);
+                } else  if (v instanceof ImageView) {
+                    FireStationRemove((StationDTO) tag);
+                }
             }
         }
     }
 
     public interface StationsAdapterListener {
-        public void onStationClick(StationDTO station);
+        public void onStationSelect(StationDTO station);
+        public void onStationRemove(StationDTO station);
     }
 }

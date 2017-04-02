@@ -14,6 +14,6 @@ public class DWMLDAOTester {
     @Test
     public void test1() throws Throwable {
         DWMLDAO dao = new DWMLDAO();
-        DWMLDTO dwml = dao.load(33.94, -118.39, "e");
+        DWMLDTO dwml = dao.load(33.81167, -118.14639, "e");
     }
 }
