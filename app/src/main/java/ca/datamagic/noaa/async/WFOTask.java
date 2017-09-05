@@ -1,21 +1,20 @@
 package ca.datamagic.noaa.async;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import java.util.Hashtable;
 import java.util.List;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.WFODAO;
 import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.WFODTO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 1/3/2016.
  */
 public class WFOTask extends AsyncTaskBase<Void, Void, List<WFODTO>> {
+    private Logger _logger = LogFactory.getLogger(WFOTask.class);
     private static Hashtable<PointDTO, List<WFODTO>> _cachedItems = new Hashtable<PointDTO, List<WFODTO>>();
-    private Logger _logger = LogManager.getLogger(WFOTask.class);
     private WFODAO _dao = null;
     private PointDTO _point = null;
     private double _latitude = 0.0;
@@ -41,9 +40,7 @@ public class WFOTask extends AsyncTaskBase<Void, Void, List<WFODTO>> {
 
     @Override
     protected AsyncTaskResult<List<WFODTO>> doInBackground(Void... params) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("Retrieving WFO...");
         try {
             List<WFODTO> wfo = getCachedItem(_point);
             if (wfo == null) {
@@ -57,9 +54,7 @@ public class WFOTask extends AsyncTaskBase<Void, Void, List<WFODTO>> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<List<WFODTO>> result) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Completed Task");
-        }
+        _logger.info("...WFO retrieved.");
         if (result.getResult() != null) {
             setCachedItem(_point, result.getResult());
         }

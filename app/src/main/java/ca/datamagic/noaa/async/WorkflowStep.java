@@ -1,17 +1,18 @@
 package ca.datamagic.noaa.async;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 2/12/2017.
  */
 
 public class WorkflowStep<Params, Progress, Result> {
-    private static Logger _logger = LogManager.getLogger(WorkflowStep.class);
+    private Logger _logger = LogFactory.getLogger(WorkflowStep.class);
     private AsyncTaskBase<Params, Progress, Result> _task = null;
     private AsyncTaskListener<Result> _listener = null;
     public List<WorkflowStepListener> _listeners = null;
@@ -35,7 +36,7 @@ public class WorkflowStep<Params, Progress, Result> {
             try {
                 _listeners.get(ii).pass(this);
             } catch (Throwable t) {
-                _logger.warn("Exception", t);
+                _logger.log(Level.WARNING, "Exception passing to a workflow step listener.", t);
             }
         }
     }
@@ -45,7 +46,7 @@ public class WorkflowStep<Params, Progress, Result> {
             try {
                 _listeners.get(ii).drop(this);
             } catch (Throwable t) {
-                _logger.warn("Exception", t);
+                _logger.log(Level.WARNING, "Exception dropping to a workflow step listener.", t);
             }
         }
     }

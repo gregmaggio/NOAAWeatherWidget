@@ -1,15 +1,15 @@
 package ca.datamagic.noaa.async;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.DiscussionDAO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 1/3/2016.
  */
 public class DiscussionTask extends AsyncTaskBase<Void, Void, String> {
-    private Logger _logger = LogManager.getLogger(DiscussionTask.class);
+    private Logger _logger = LogFactory.getLogger(DiscussionTask.class);
     private DiscussionDAO _dao = null;
     private String _wfo = null;
 
@@ -20,9 +20,7 @@ public class DiscussionTask extends AsyncTaskBase<Void, Void, String> {
 
     @Override
     protected AsyncTaskResult<String> doInBackground(Void... params) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("Loading discussion...");
         try {
             return new AsyncTaskResult<String>(_dao.load(_wfo));
         } catch (Throwable t) {
@@ -32,9 +30,7 @@ public class DiscussionTask extends AsyncTaskBase<Void, Void, String> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<String> result) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("...Discussion loaded.");
         fireCompleted(result);
     }
 }

@@ -1,9 +1,7 @@
 package ca.datamagic.noaa.widget;
 
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,8 +13,6 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Hashtable;
 import java.util.List;
 
 import ca.datamagic.noaa.async.ImageTask;
@@ -30,7 +26,7 @@ import ca.datamagic.noaa.dto.ValidTimeDTO;
 /**
  * Created by Greg on 1/10/2016.
  */
-public class ForecastFragment extends Fragment {
+public class ForecastFragment extends Fragment implements Renderer {
     private static SimpleDateFormat _dayMonthFormat = new SimpleDateFormat("d/M");
     private static SimpleDateFormat _dayOfWeekFormat = new SimpleDateFormat("E");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
@@ -44,8 +40,15 @@ public class ForecastFragment extends Fragment {
         View view = inflater.inflate(R.layout.forecast_main, container, false);
         _forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         _inflater = inflater;
-        render(_dwml);
         return view;
+    }
+
+    public DWMLDTO getDWML() {
+        return _dwml;
+    }
+
+    public void setDWML(DWMLDTO newVal) {
+        _dwml = newVal;
     }
 
     private TimeLayoutDTO getDetailedTimeLayout() {
@@ -61,7 +64,7 @@ public class ForecastFragment extends Fragment {
         return null;
     }
 
-    private TimeLayoutDTO getDayTimeLayout() {
+    private TimeLayoutDTO getTimeLayout1() {
         if (_dwml != null) {
             DataDTO data = _dwml.getForecast();
             if (data != null) {
@@ -74,7 +77,7 @@ public class ForecastFragment extends Fragment {
         return null;
     }
 
-    private TimeLayoutDTO getNightTimeLayout() {
+    private TimeLayoutDTO getTimeLayout2() {
         if (_dwml != null) {
             DataDTO data = _dwml.getForecast();
             if (data != null) {
@@ -127,8 +130,8 @@ public class ForecastFragment extends Fragment {
         return null;
     }
 
-    public void render(DWMLDTO dwml) {
-        _dwml = dwml;
+    @Override
+    public void render() {
         if (_forecastTable != null) {
             int count = _forecastTable.getChildCount();
             for (int ii = 0; ii < count; ii++) {
@@ -141,8 +144,8 @@ public class ForecastFragment extends Fragment {
             if (_dwml != null) {
                 DataDTO data = _dwml.getForecast();
                 TimeLayoutDTO detailedTimeLayout = getDetailedTimeLayout();
-                TimeLayoutDTO dayTimeLayout = getDayTimeLayout();
-                TimeLayoutDTO nightTimeLayout = getNightTimeLayout();
+                TimeLayoutDTO timeLayout1 = getTimeLayout1();
+                TimeLayoutDTO timeLayout2 = getTimeLayout2();
                 TemperatureDTO dayTimeMaxTemperature = getDayTimeMaxTemperature();
                 TemperatureDTO nightTimeMinTemperature = getNightTimeMinTemperature();
 
@@ -166,10 +169,21 @@ public class ForecastFragment extends Fragment {
                                 imageUrl = data.getParameters().getConditionsIcon().getIconLink().get(ii);
 
                             String temperatureString = "";
-                            for (int jj = 0; jj < dayTimeLayout.getStartTimes().size(); jj++) {
-                                if (startTime.getPeriodName().compareToIgnoreCase(dayTimeLayout.getStartTimes().get(jj).getPeriodName()) == 0) {
-                                    temperatureString = _temperatureFormat.format(dayTimeMaxTemperature.getValues().get(jj));
-                                    break;
+                            TimeLayoutDTO dayTimeLayout = null;
+                            TimeLayoutDTO nightTimeLayout = null;
+                            if (dayTimeMaxTemperature.getTimeLayout().compareToIgnoreCase(timeLayout1.getLayoutKey()) == 0) {
+                                dayTimeLayout = timeLayout1;
+                                nightTimeLayout = timeLayout2;
+                            } else if (dayTimeMaxTemperature.getTimeLayout().compareToIgnoreCase(timeLayout1.getLayoutKey()) == 0) {
+                                dayTimeLayout = timeLayout2;
+                                nightTimeLayout = timeLayout1;
+                            }
+                            if (dayTimeLayout != null) {
+                                for (int jj = 0; jj < dayTimeLayout.getStartTimes().size(); jj++) {
+                                    if (startTime.getPeriodName().compareToIgnoreCase(dayTimeLayout.getStartTimes().get(jj).getPeriodName()) == 0) {
+                                        temperatureString = _temperatureFormat.format(dayTimeMaxTemperature.getValues().get(jj));
+                                        break;
+                                    }
                                 }
                             }
                             if (temperatureString.length() < 1) {
@@ -182,9 +196,9 @@ public class ForecastFragment extends Fragment {
                             }
 
                             if ((dayMonth != null) && (dayMonth.length() > 0) &&
-                                (dayOfWeek != null) && (dayOfWeek.length() > 0) &&
-                                (weatherSummary != null) && (weatherSummary.length() > 0) &&
-                                (imageUrl != null) && (imageUrl.length() > 0)) {
+                                    (dayOfWeek != null) && (dayOfWeek.length() > 0) &&
+                                    (weatherSummary != null) && (weatherSummary.length() > 0) &&
+                                    (imageUrl != null) && (imageUrl.length() > 0)) {
                                 if (ii > 0) {
                                     TableRow spacerRow = new TableRow(getContext());
                                     spacerRow.setVisibility(View.VISIBLE);

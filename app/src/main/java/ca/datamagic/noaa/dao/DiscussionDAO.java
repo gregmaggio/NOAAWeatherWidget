@@ -1,32 +1,32 @@
 package ca.datamagic.noaa.dao;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.logging.Logger;
 
+import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.ThreadEx;
 
 /**
  * Created by Greg on 1/2/2016.
  */
 public class DiscussionDAO {
-    private static Logger _logger = LogManager.getLogger(DiscussionDAO.class);
+    private Logger _logger = LogFactory.getLogger(DiscussionDAO.class);
     private static int _maxTries = 5;
+    private static String _discussionStart = "<pre class=\"glossaryProduct\">".toLowerCase();
+    private static String _discussionEnd = "</pre>".toLowerCase();
 
     public String load(String issuedBy) throws Throwable {
         Throwable lastError = null;
         URL url = new URL(MessageFormat.format("http://forecast.weather.gov/product.php?site={0}&issuedby={0}&product=AFD&format=txt&version=1&glossary=0", issuedBy));
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        _logger.info("url: " + url.toString());
+        HttpURLConnection connection = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -37,12 +37,13 @@ public class DiscussionDAO {
                 String currentLine = null;
                 boolean started = false;
                 while ((currentLine = reader.readLine()) != null) {
+                    currentLine = currentLine.trim();
                     if (!started) {
-                        if (currentLine.trim().compareToIgnoreCase("000") == 0) {
+                        if (currentLine.toLowerCase().contains(_discussionStart)) {
                             started = true;
                         }
                     } else {
-                        if (currentLine.trim().compareToIgnoreCase("$$") == 0) {
+                        if (currentLine.toLowerCase().contains(_discussionEnd)) {
                             break;
                         }
                         buffer.append(currentLine);
@@ -50,14 +51,23 @@ public class DiscussionDAO {
                     }
                 }
                 String responseText = buffer.toString();
+                _logger.info("responseText: " + responseText);
                 if ((responseText == null) || (responseText.length() < 1)) {
                     throw new Exception("Discussion was null");
                 }
                 return responseText;
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)

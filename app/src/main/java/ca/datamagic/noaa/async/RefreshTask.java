@@ -1,8 +1,8 @@
 package ca.datamagic.noaa.async;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
+import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.widget.MainActivity;
 
 /**
@@ -10,7 +10,7 @@ import ca.datamagic.noaa.widget.MainActivity;
  */
 
 public class RefreshTask extends AsyncTaskBase<Void, Void, Void> {
-    private Logger _logger = LogManager.getLogger(RefreshTask.class);
+    private Logger _logger = LogFactory.getLogger(RefreshTask.class);
     private MainActivity _mainActivity = null;
 
     public RefreshTask(MainActivity mainActivity) {
@@ -19,9 +19,7 @@ public class RefreshTask extends AsyncTaskBase<Void, Void, Void> {
 
     @Override
     protected AsyncTaskResult<Void> doInBackground(Void... params) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("Refreshing views...");
         try {
             _mainActivity.actionRefresh();
             return new AsyncTaskResult<Void>();
@@ -32,9 +30,7 @@ public class RefreshTask extends AsyncTaskBase<Void, Void, Void> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<Void> result) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("...views refreshed.");
         fireCompleted(result);
     }
 }

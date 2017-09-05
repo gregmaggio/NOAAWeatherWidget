@@ -17,24 +17,31 @@ import ca.datamagic.noaa.dto.WFODTO;
 /**
  * Created by Greg on 1/10/2016.
  */
-public class DiscussionFragment extends Fragment {
+public class DiscussionFragment extends Fragment implements Renderer {
     private ScrollView _discussionScroller = null;
     private TextView _discussionView = null;
     private String _discussion = null;
+
+    public String getDiscussion() {
+        return _discussion;
+    }
+
+    public void setDiscussion(String newVal) {
+        _discussion = newVal;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.discussion_main, container, false);
         _discussionScroller = (ScrollView)view.findViewById(R.id.discussionScroller);
         _discussionView = (TextView)view.findViewById(R.id.discussionView);
-        render(_discussion);
         return view;
     }
 
-    public void render(String discussion) {
-        _discussion = discussion;
+    @Override
+    public void render() {
         if (_discussionView != null) {
-            if (_discussion != null) {
+            if ((_discussion != null) && (_discussion.length() > 0)) {
                 _discussionView.setText(_discussion);
             } else {
                 _discussionView.setText("Discussion not available");

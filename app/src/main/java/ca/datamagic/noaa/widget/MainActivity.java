@@ -3,13 +3,11 @@ package ca.datamagic.noaa.widget;
 import android.Manifest;
 import android.app.SearchManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.location.Location;
-import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
@@ -31,27 +29,19 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-import org.apache.log4j.DailyRollingFileAppender;
-import org.apache.log4j.EnhancedPatternLayout;
-import org.apache.log4j.Level;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-import org.apache.log4j.chainsaw.Main;
-
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.DWMLTask;
 import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.RefreshTask;
+import ca.datamagic.noaa.async.SendErrorTask;
 import ca.datamagic.noaa.async.StationSearchTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.WFOTask;
@@ -60,10 +50,10 @@ import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.WFODTO;
-import ca.datamagic.noaa.logging.AndroidLogWriter;
+import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
-    private static Logger _logger = LogManager.getLogger(MainActivity.class);
+    private Logger _logger = null;
     private MainActivity _thisInstance = this;
     private double _latitude = 38.9967;
     private double _longitude = -76.9275;
@@ -141,6 +131,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        initializeLogging();
+
         _spinner = (ProgressBar)findViewById(R.id.progressBar);
 
         readCurrentState();
@@ -179,8 +171,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             initializeGoogleApiClient();
         }
 
-        initializeLogging();
-
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_SETTINGS}, PackageManager.PERMISSION_GRANTED);
         }
@@ -193,6 +183,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _skewTFragment = (SkewTFragment) _mainPageAdapter.getItem(MainPageAdapter.SkewTIndex);
         _viewPager = (ViewPager) findViewById(R.id.viewpager);
         _viewPager.setAdapter(_mainPageAdapter);
+        _viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                Renderer renderer = (Renderer)_mainPageAdapter.getItem(position);
+                renderer.render();
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+
+            }
+        });
 
         readPreferences();
         actionRefresh();
@@ -211,58 +218,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void initializeLogging() {
         try {
             File intPath = getFilesDir();
-            String logPath = intPath.getAbsolutePath();
-            String logFile = MessageFormat.format("{0}/NOAAWeatherWidget.txt", logPath);
-
-            // creates pattern layout
-            EnhancedPatternLayout layout = new EnhancedPatternLayout();
-            String conversionPattern = "%d [%t] %-5p %c - %m%n";
-            layout.setConversionPattern(conversionPattern);
-
-            // creates daily rolling file appender
-            DailyRollingFileAppender rollingAppender = new DailyRollingFileAppender();
-            rollingAppender.setFile(logFile);
-            rollingAppender.setDatePattern("'.'yyyy-MM-dd");
-            rollingAppender.setLayout(layout);
-            rollingAppender.activateOptions();
-            rollingAppender.setAppend(true);
-            rollingAppender.setImmediateFlush(true);
-
-            AndroidLogWriter androidLogWriter = new AndroidLogWriter();
-
-            // configures the root logger
-            Logger rootLogger = Logger.getRootLogger();
-            rootLogger.setLevel(Level.DEBUG);
-            rootLogger.addAppender(rollingAppender);
-            rootLogger.addAppender(androidLogWriter);
-
-            cleanOldLogs(logPath);
+            LogFactory.initialize(Level.ALL, intPath.getAbsolutePath(), true);
+            _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
             // Do Nothing
         }
     }
 
-    private void cleanOldLogs(String logPath) {
-        try {
-            Calendar keepDate = Calendar.getInstance();
-            keepDate.add(Calendar.DATE, -7);
-            File logDirectory = new File(logPath);
-            if (logDirectory.exists()) {
-                File[] logFiles = logDirectory.listFiles();
-                if (logFiles != null) {
-                    for (int ii = 0; ii < logFiles.length; ii++) {
-                        if (logFiles[ii].getName().contains("NOAAWeatherWidget")) {
-                            if (logFiles[ii].lastModified() < keepDate.getTimeInMillis()) {
-                                logFiles[ii].delete();
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Throwable t) {
-            // Do Nothing
-        }
-    }
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         for (int ii = 0; ii < permissions.length; ii++) {
@@ -396,13 +358,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _longitude = lastLocation.getLongitude();
                     actionRefresh();
                 } else {
-                    _logger.debug("lastLocation is null!");
+                    // TODO
                 }
             }
         } catch (SecurityException ex) {
             // TODO: Show Error
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Security Exception in myLocation.", ex);
+            }
         } catch (Throwable t) {
             // TODO: Show Error
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in myLocation.", t);
+            }
         }
     }
 
@@ -422,10 +390,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<DWMLDTO> result) {
                     if (result.getThrowable() != null) {
-                        // TODO: Show Error
+                        _observationFragment.setDWML(null);
+                        _forecastFragment.setDWML(null);
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
+                        }
                     } else {
-                        _observationFragment.render(result.getResult());
-                        _forecastFragment.render(result.getResult());
+                        _observationFragment.setDWML(result.getResult());
+                        _forecastFragment.setDWML(result.getResult());
                     }
                 }
             };
@@ -435,7 +407,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<List<WFODTO>> result) {
                     if (result.getThrowable() != null) {
-                        // TODO: Show Error
+                        _discussionFragment.setDiscussion(null);
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Error retrieving WFO.", result.getThrowable());
+                        }
                     } else {
                         if (result.getResult().size() > 0) {
                             _wfo = result.getResult().get(0);
@@ -450,11 +425,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<StationDTO> result) {
                     if (result.getThrowable() != null) {
-                        // TODO: Show Error
+                        _skewTFragment.setSkewTUrl(null);
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
+                        }
                     } else {
                         _station = result.getResult();
                         String skewTUrl = MessageFormat.format("http://weather.unisys.com/upper_air/skew/skew_{0}.gif", _station.getStationId());
-                        _skewTFragment.render(skewTUrl);
+                        _skewTFragment.setSkewTUrl(skewTUrl);
                     }
                 }
             };
@@ -474,6 +452,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         RefreshTask refreshTask = new RefreshTask(_thisInstance);
                         refreshTask.execute((Void)null);
                     } else {
+                        Renderer renderer = (Renderer)_mainPageAdapter.getItem(_viewPager.getCurrentItem());
+                        renderer.render();
                         writeCurrentState();
                     }
                 }
@@ -483,6 +463,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             // TODO: Show Error
             _processing = false;
             _spinner.setVisibility(View.GONE);
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in refresh.", t);
+            }
         }
     }
 
@@ -493,15 +476,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<String> result) {
                     if (result.getThrowable() != null) {
-                        _discussionFragment.render("Discussion not available.");
+                        _discussionFragment.setDiscussion(null);
                     } else {
-                        _discussionFragment.render(result.getResult());
+                        _discussionFragment.setDiscussion(result.getResult());
                     }
                 }
             });
             task.execute((Void[]) null);
         } catch (Throwable t) {
             // TODO: Show Error
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in refresh discussion.", t);
+            }
         }
     }
 
@@ -512,7 +498,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<List<StationDTO>> result) {
                     if (result.getThrowable() != null) {
-                        // TODO: Show error
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Error retrieving stations.", result.getThrowable());
+                        }
                     } else {
                         _stations = result.getResult();
                     }
@@ -521,66 +509,38 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             task.execute((Void[]) null);
         } catch (Throwable t) {
             // TODO: Show Error
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in refresh stations.", t);
+            }
         }
     }
 
     private void actionSendError() {
-        String zipFileName = null;
-        ZipOutputStream zipOutputStream = null;
-        FileInputStream fileInputStream = null;
         try {
+            _processing = true;
+            _spinner.setVisibility(View.VISIBLE);
+
+            //ActivityManager.getCurrentUser();
             File intPath = getFilesDir();
             String logPath = intPath.getAbsolutePath();
-
-            zipFileName = MessageFormat.format("{0}/logs.zip", logPath);
-            File zipFile = new File(zipFileName);
-            if (zipFile.exists()) {
-                zipFile.delete();
-            }
-            zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile));
-
-            File logDirectory = new File(logPath);
-            if (logDirectory.exists()) {
-                File[] logFiles = logDirectory.listFiles();
-                if (logFiles != null) {
-                    byte[] buffer = new byte[1024];
-                    int bytesRead = 0;
-                    for (int ii = 0; ii < logFiles.length; ii++) {
-                        if (logFiles[ii].getName().contains("NOAAWeatherWidget")) {
-                            // We want this file
-                            ZipEntry zipEntry = new ZipEntry(logFiles[ii].getName());
-                            zipOutputStream.putNextEntry(zipEntry);
-                            fileInputStream = new FileInputStream(logFiles[ii]);
-                            while ((bytesRead = fileInputStream.read(buffer, 0, buffer.length)) > 0) {
-                                zipOutputStream.write(buffer, 0, bytesRead);
-                            }
-                            zipOutputStream.closeEntry();
-                            fileInputStream.close();
-                            fileInputStream = null;
-                        }
-                    }
+            String mailFrom = "no-reply@datamagic.ca";
+            String mailSubject = "NOAAWeatherWidget Error";
+            String mailBody = "Error logs";
+            SendErrorTask task = new SendErrorTask(logPath, mailFrom, mailSubject, mailBody);
+            task.addListener(new AsyncTaskListener<Void>() {
+                @Override
+                public void completed(AsyncTaskResult<Void> result) {
+                    _processing = false;
+                    _spinner.setVisibility(View.GONE);
                 }
-            }
-
-            zipOutputStream.close();
-            zipOutputStream = null;
+            });
+            task.execute((Void[]) null);
         } catch (Throwable t) {
             // TODO: Show Error
-        }
-
-        if (fileInputStream != null) {
-            try {
-                fileInputStream.close();
-            } catch (Throwable t) {
-                _logger.warn("Exception", t);
-            }
-        }
-
-        if (zipOutputStream != null) {
-            try {
-                zipOutputStream.close();
-            } catch (Throwable t) {
-                _logger.warn("Exception", t);
+            _processing = false;
+            _spinner.setVisibility(View.GONE);
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             }
         }
     }

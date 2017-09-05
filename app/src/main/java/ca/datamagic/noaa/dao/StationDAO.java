@@ -1,7 +1,5 @@
 package ca.datamagic.noaa.dao;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -14,20 +12,23 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dto.CityDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.ZipDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.ThreadEx;
 
 /**
  * Created by Greg on 12/14/2016.
  */
 public class StationDAO {
-    private Logger _logger = LogManager.getLogger(StationDAO.class);
+    private Logger _logger = LogFactory.getLogger(StationDAO.class);
     private static int _maxTries = 5;
 
     public List<StationDTO> list(String city, String zip) throws Throwable {
+        HttpURLConnection connection = null;
         Throwable lastError = null;
         StringBuffer queryString = new StringBuffer();
         if ((city != null) && (city.length() > 0)) {
@@ -44,18 +45,16 @@ public class StationDAO {
             queryString.append("zip=");
             queryString.append(URLEncoder.encode(zip, "UTF-8"));
         }
-        StringBuffer urlSpec = new StringBuffer("http://datamagic.ca/WFO/api/station/list");
+        StringBuffer urlSpec = new StringBuffer("http://datamagic.ca/Station/api/list");
         if (queryString.length() > 0) {
             urlSpec.append("?");
             urlSpec.append(queryString.toString());
         }
         URL url = new URL(urlSpec.toString());
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -69,6 +68,7 @@ public class StationDAO {
                     buffer.append(currentLine);
                 }
                 String json = buffer.toString();
+                _logger.info("json: " + json);
                 JSONArray array = new JSONArray(json);
                 ArrayList<StationDTO> items = new ArrayList<StationDTO>();
                 for (int jj = 0; jj < array.length(); jj++) {
@@ -78,8 +78,16 @@ public class StationDAO {
                 return items;
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)
@@ -88,14 +96,13 @@ public class StationDAO {
     }
 
     public List<CityDTO> cities() throws Throwable {
+        HttpURLConnection connection = null;
         Throwable lastError = null;
-        URL url = new URL("http://datamagic.ca/WFO/api/cities");
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        URL url = new URL("http://datamagic.ca/Station/api/cities");
+        _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -117,8 +124,16 @@ public class StationDAO {
                 return items;
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)
@@ -127,14 +142,13 @@ public class StationDAO {
     }
 
     public List<ZipDTO> zips() throws Throwable {
+        HttpURLConnection connection = null;
         Throwable lastError = null;
-        URL url = new URL("http://datamagic.ca/WFO/api/zips");
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        URL url = new URL("http://datamagic.ca/Station/api/zips");
+        _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -156,8 +170,16 @@ public class StationDAO {
                 return items;
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)
@@ -166,14 +188,13 @@ public class StationDAO {
     }
 
     public StationDTO nearestWithRadiosonde(double latitude, double longitude) throws Throwable {
+        HttpURLConnection connection = null;
         Throwable lastError = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/station/{0}/{1}/nearestWithRadiosonde", Double.toString(latitude), Double.toString(longitude)));
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearestWithRadiosonde", Double.toString(latitude), Double.toString(longitude)));
+        _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -191,8 +212,16 @@ public class StationDAO {
                 return new StationDTO(obj);
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)
@@ -201,14 +230,13 @@ public class StationDAO {
     }
 
     public StationDTO nearest(double latitude, double longitude) throws Throwable {
+        HttpURLConnection connection = null;
         Throwable lastError = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/station/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
+        _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -226,8 +254,16 @@ public class StationDAO {
                 return new StationDTO(obj);
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)
@@ -236,14 +272,13 @@ public class StationDAO {
     }
 
     public StationDTO read(String id) throws Throwable {
+        HttpURLConnection connection = null;
         Throwable lastError = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/station/{0}", id));
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}", id));
+        _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -261,8 +296,16 @@ public class StationDAO {
                 return new StationDTO(obj);
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)

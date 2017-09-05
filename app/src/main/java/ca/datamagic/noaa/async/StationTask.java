@@ -1,20 +1,19 @@
 package ca.datamagic.noaa.async;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.StationDAO;
 import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.StationDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 12/14/2016.
  */
 public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
+    private Logger _logger = LogFactory.getLogger(StationTask.class);
     private static Hashtable<PointDTO, StationDTO> _cachedItems = new Hashtable<PointDTO, StationDTO>();
-    private Logger _logger = LogManager.getLogger(StationTask.class);
     private StationDAO _dao = null;
     private PointDTO _point = null;
     private double _latitude = 0.0;
@@ -40,9 +39,7 @@ public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
 
     @Override
     protected AsyncTaskResult<StationDTO> doInBackground(Void... params) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("Retrieving station...");
         try {
             StationDTO station = getCachedItem(_point);
             if (station == null) {
@@ -56,9 +53,7 @@ public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<StationDTO> result) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Completed Task");
-        }
+        _logger.info("...station retrieved.");
         if (result.getResult() != null) {
             setCachedItem(_point, result.getResult());
         }

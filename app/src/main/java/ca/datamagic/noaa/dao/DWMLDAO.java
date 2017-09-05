@@ -1,15 +1,14 @@
 package ca.datamagic.noaa.dao;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dom.DWMLHandler;
 import ca.datamagic.noaa.dto.DWMLDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.ThreadEx;
 
 /**
@@ -17,7 +16,7 @@ import ca.datamagic.noaa.util.ThreadEx;
  */
 
 public class DWMLDAO {
-    private Logger _logger = LogManager.getLogger(DWMLDAO.class);
+    private Logger _logger = LogFactory.getLogger(DWMLDAO.class);
     private static int _maxTries = 5;
 
     /**
@@ -33,12 +32,11 @@ public class DWMLDAO {
             intUnit = 1;
         }
         URL url = new URL(MessageFormat.format("http://forecast.weather.gov/MapClick.php?lat={0}&lon={1}&unit={2}&lg=english&FcstType=dwml", Double.toString(latitude), Double.toString(longitude), Integer.toString(intUnit)));
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("url: " + url.toString());
-        }
+        _logger.info("url: " + url.toString());
+        HttpURLConnection connection = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -53,12 +51,21 @@ public class DWMLDAO {
                     response.append(new String(buffer, 0, bytesRead));
                 }
                 reader.close();
+                _logger.info("response: " + response.toString());
                 DWMLHandler handler = new DWMLHandler();
                 return handler.parse(response.toString());
             } catch (Throwable t) {
                 lastError = t;
-                _logger.warn("Exception", t);
+                _logger.warning("Exception: " + t.getMessage());
                 ThreadEx.sleep(500);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
             }
         }
         if (lastError != null)

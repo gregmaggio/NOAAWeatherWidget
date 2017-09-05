@@ -2,21 +2,12 @@ package ca.datamagic.noaa.widget;
 
 import android.content.Context;
 import android.support.annotation.NonNull;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
-
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,7 +19,6 @@ import ca.datamagic.noaa.dto.StationDTO;
  */
 
 public class StationsAdapter extends BaseAdapter implements View.OnClickListener {
-    private static Logger _logger = LogManager.getLogger(StationsAdapter.class);
     private LayoutInflater _inflater = null;
     private List<StationDTO> _stations = null;
     private List<StationsAdapterListener> _listeners = new ArrayList<StationsAdapterListener>();
@@ -51,7 +41,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
             try {
                 _listeners.get(ii).onStationSelect(station);
             } catch (Throwable t) {
-                _logger.warn("Exception", t);
+                // TODO
             }
         }
     }
@@ -61,7 +51,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
             try {
                 _listeners.get(ii).onStationRemove(station);
             } catch (Throwable t) {
-                _logger.warn("Exception", t);
+                // TODO
             }
         }
     }

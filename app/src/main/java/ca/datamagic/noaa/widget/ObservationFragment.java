@@ -37,7 +37,7 @@ import ca.datamagic.noaa.util.WindDirectionConverter;
 /**
  * Created by Greg on 1/10/2016.
  */
-public class ObservationFragment extends Fragment {
+public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _coordinatesFormat = new DecimalFormat("0.0");
     private static DecimalFormat _elevationFormat = new DecimalFormat("0.0");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
@@ -54,8 +54,15 @@ public class ObservationFragment extends Fragment {
         View view = inflater.inflate(R.layout.observation_main, container, false);
         _observationTable = (TableLayout) view.findViewById(R.id.observationTable);
         _inflater = inflater;
-        render(_dwml);
         return view;
+    }
+
+    public DWMLDTO getDWML(){
+        return _dwml;
+    }
+
+    public void setDWML(DWMLDTO newVal){
+        _dwml = newVal;
     }
 
     private String getAreaDescription() {
@@ -303,14 +310,18 @@ public class ObservationFragment extends Fragment {
                     WeatherDTO weather = parameters.getWeather();
                     if (weather != null) {
                         List<WeatherConditionsDTO> weatherConditionsList = weather.getWeatherConditions();
-                        if ((weatherConditionsList != null) && (weatherConditionsList.size() > 0)) {
-                            WeatherConditionsDTO weatherConditions = weatherConditionsList.get(0);
-                            List<ValueDTO> values = weatherConditions.getValues();
-                            if ((values != null) && (values.size() > 0)) {
-                                ValueDTO value = values.get(0);
-                                VisibilityDTO visibility = value.getVisibility();
-                                if (visibility != null) {
-                                    return visibility.getValue();
+                        if (weatherConditionsList != null) {
+                            for (int ii = 0; ii < weatherConditionsList.size(); ii++) {
+                                WeatherConditionsDTO weatherConditions = weatherConditionsList.get(ii);
+                                List<ValueDTO> values = weatherConditions.getValues();
+                                if (values != null) {
+                                    for (int jj = 0; jj < values.size(); jj++) {
+                                        ValueDTO value = values.get(jj);
+                                        VisibilityDTO visibility = value.getVisibility();
+                                        if (visibility != null) {
+                                            return visibility.getValue();
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -330,14 +341,18 @@ public class ObservationFragment extends Fragment {
                     WeatherDTO weather = parameters.getWeather();
                     if (weather != null) {
                         List<WeatherConditionsDTO> weatherConditionsList = weather.getWeatherConditions();
-                        if ((weatherConditionsList != null) && (weatherConditionsList.size() > 0)) {
-                            WeatherConditionsDTO weatherConditions = weatherConditionsList.get(0);
-                            List<ValueDTO> values = weatherConditions.getValues();
-                            if ((values != null) && (values.size() > 0)) {
-                                ValueDTO value = values.get(0);
-                                VisibilityDTO visibility = value.getVisibility();
-                                if (visibility != null) {
-                                    return visibility.getUnits();
+                        if (weatherConditionsList != null) {
+                            for (int ii = 0; ii < weatherConditionsList.size(); ii++) {
+                                WeatherConditionsDTO weatherConditions = weatherConditionsList.get(ii);
+                                List<ValueDTO> values = weatherConditions.getValues();
+                                if (values != null) {
+                                    for (int jj = 0; jj < values.size(); jj++) {
+                                        ValueDTO value = values.get(jj);
+                                        VisibilityDTO visibility = value.getVisibility();
+                                        if (visibility != null) {
+                                            return visibility.getUnits();
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -348,8 +363,8 @@ public class ObservationFragment extends Fragment {
         return null;
     }
 
-    public void render(DWMLDTO dwml) {
-        _dwml = dwml;
+    @Override
+    public void render() {
         _observationTable.removeAllViews();
         if (_dwml != null) {
             String locationText = getAreaDescription();

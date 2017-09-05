@@ -1,17 +1,17 @@
 package ca.datamagic.noaa.async;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.DWMLDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 2/18/2017.
  */
 
 public class DWMLTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
-    private Logger _logger = LogManager.getLogger(DWMLTask.class);
+    private Logger _logger = LogFactory.getLogger(DWMLTask.class);
     private DWMLDAO _dao = null;
     private double _latitude = 0.0;
     private double _longitude = 0.0;
@@ -26,9 +26,7 @@ public class DWMLTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
 
     @Override
     protected AsyncTaskResult<DWMLDTO> doInBackground(Void... params) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("Loading DWML...");
         try {
             return new AsyncTaskResult<DWMLDTO>(_dao.load(_latitude, _longitude, _unit));
         } catch (Throwable t) {
@@ -38,9 +36,7 @@ public class DWMLTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<DWMLDTO> result) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Completed Task");
-        }
+        _logger.info("...DWML loaded.");
         fireCompleted(result);
     }
 }

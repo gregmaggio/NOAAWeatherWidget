@@ -3,19 +3,18 @@ package ca.datamagic.noaa.async;
 import android.graphics.Bitmap;
 import android.widget.ImageView;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
 import java.util.Hashtable;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.ImageDAO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 1/1/2016.
  */
 public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
+    private Logger _logger = LogFactory.getLogger(ImageTask.class);
     private static Hashtable<String, Bitmap> _cachedImages = new Hashtable<String, Bitmap>();
-    private Logger _logger = LogManager.getLogger(ImageTask.class);
     private ImageDAO _dao = null;
     private String _imageUrl = null;
     private ImageView _imageView = null;
@@ -41,9 +40,7 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
 
     @Override
     protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Running Task");
-        }
+        _logger.info("Loading image...");
         try {
             Bitmap bitmap = null;
             if ((_imageUrl != null) && (_imageUrl.length() > 0)) {
@@ -63,9 +60,7 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
 
     @Override
     protected void onPostExecute(AsyncTaskResult<Bitmap> result) {
-        if (_logger.isDebugEnabled()) {
-            _logger.debug("Completed Task");
-        }
+        _logger.info("...image loaded.");
         if (result.getResult() != null) {
             _imageView.setImageBitmap(result.getResult());
         }
