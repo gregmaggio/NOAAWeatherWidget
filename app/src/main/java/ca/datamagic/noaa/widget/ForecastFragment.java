@@ -90,7 +90,7 @@ public class ForecastFragment extends Fragment implements Renderer {
         return null;
     }
 
-    private TemperatureDTO getDayTimeMaxTemperature() {
+    private TemperatureDTO getTemperature(String timeLayout) {
         if (_dwml != null) {
             DataDTO data = _dwml.getForecast();
             if (data != null) {
@@ -99,27 +99,7 @@ public class ForecastFragment extends Fragment implements Renderer {
                     List<TemperatureDTO> temperatures = parameters.getTemperatures();
                     if (temperatures != null) {
                         for (int ii = 0; ii < temperatures.size(); ii++) {
-                            if (temperatures.get(ii).getType().compareToIgnoreCase("maximum") == 0) {
-                                return temperatures.get(ii);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private TemperatureDTO getNightTimeMinTemperature() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getForecast();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    List<TemperatureDTO> temperatures = parameters.getTemperatures();
-                    if (temperatures != null) {
-                        for (int ii = 0; ii < temperatures.size(); ii++) {
-                            if (temperatures.get(ii).getType().compareToIgnoreCase("minimum") == 0) {
+                            if (temperatures.get(ii).getTimeLayout().compareToIgnoreCase(timeLayout) == 0){
                                 return temperatures.get(ii);
                             }
                         }
@@ -146,8 +126,8 @@ public class ForecastFragment extends Fragment implements Renderer {
                 TimeLayoutDTO detailedTimeLayout = getDetailedTimeLayout();
                 TimeLayoutDTO timeLayout1 = getTimeLayout1();
                 TimeLayoutDTO timeLayout2 = getTimeLayout2();
-                TemperatureDTO dayTimeMaxTemperature = getDayTimeMaxTemperature();
-                TemperatureDTO nightTimeMinTemperature = getNightTimeMinTemperature();
+                TemperatureDTO temperature1 = getTemperature(timeLayout1.getLayoutKey());
+                TemperatureDTO temperature2 = getTemperature(timeLayout2.getLayoutKey());
 
                 if (detailedTimeLayout != null) {
                     List<ValidTimeDTO> forecastDays = detailedTimeLayout.getStartTimes();
@@ -169,28 +149,24 @@ public class ForecastFragment extends Fragment implements Renderer {
                                 imageUrl = data.getParameters().getConditionsIcon().getIconLink().get(ii);
 
                             String temperatureString = "";
-                            TimeLayoutDTO dayTimeLayout = null;
-                            TimeLayoutDTO nightTimeLayout = null;
-                            if (dayTimeMaxTemperature.getTimeLayout().compareToIgnoreCase(timeLayout1.getLayoutKey()) == 0) {
-                                dayTimeLayout = timeLayout1;
-                                nightTimeLayout = timeLayout2;
-                            } else if (dayTimeMaxTemperature.getTimeLayout().compareToIgnoreCase(timeLayout1.getLayoutKey()) == 0) {
-                                dayTimeLayout = timeLayout2;
-                                nightTimeLayout = timeLayout1;
-                            }
-                            if (dayTimeLayout != null) {
-                                for (int jj = 0; jj < dayTimeLayout.getStartTimes().size(); jj++) {
-                                    if (startTime.getPeriodName().compareToIgnoreCase(dayTimeLayout.getStartTimes().get(jj).getPeriodName()) == 0) {
-                                        temperatureString = _temperatureFormat.format(dayTimeMaxTemperature.getValues().get(jj));
-                                        break;
+                            if (temperatureString.length() < 1) {
+                                if (temperature1 != null) {
+                                    for (int jj = 0; jj < timeLayout1.getStartTimes().size(); jj++) {
+                                        if (startTime.getPeriodName().compareToIgnoreCase(timeLayout1.getStartTimes().get(jj).getPeriodName()) == 0) {
+                                            temperatureString = _temperatureFormat.format(temperature1.getValues().get(jj));
+                                            break;
+                                        }
                                     }
                                 }
                             }
+
                             if (temperatureString.length() < 1) {
-                                for (int jj = 0; jj < nightTimeLayout.getStartTimes().size(); jj++) {
-                                    if (startTime.getPeriodName().compareToIgnoreCase(nightTimeLayout.getStartTimes().get(jj).getPeriodName()) == 0) {
-                                        temperatureString = _temperatureFormat.format(nightTimeMinTemperature.getValues().get(jj));
-                                        break;
+                                if (temperature2 != null) {
+                                    for (int jj = 0; jj < timeLayout2.getStartTimes().size(); jj++) {
+                                        if (startTime.getPeriodName().compareToIgnoreCase(timeLayout2.getStartTimes().get(jj).getPeriodName()) == 0) {
+                                            temperatureString = _temperatureFormat.format(temperature2.getValues().get(jj));
+                                            break;
+                                        }
                                     }
                                 }
                             }
