@@ -7,11 +7,17 @@ public final class FeelsLikeTemperatureCalculator {
     public static final Double computeFeelsLikeTemperature(Double temperatureFahrenheit, Double relativeHumidity, Double windSpeed) {
         Double feelsLikeTemperature = null;
 
+        //Wind Chill (degrees F) if temperatures are below 50 F and winds are greater than 5 mph,
+        //Heat Index (degrees F) if temperatures are above 80 F, or
+        //Current Temperature (degrees F) if neither wind chill or heat index is a factor.
+
         if ((temperatureFahrenheit != null) && !temperatureFahrenheit.isNaN()) {
             if (temperatureFahrenheit.doubleValue() >= 80) {
                 feelsLikeTemperature = computeHeatIndexTemperature(temperatureFahrenheit, relativeHumidity);
-            } else if (temperatureFahrenheit.doubleValue() <= 40) {
-                feelsLikeTemperature = computeWindChill(temperatureFahrenheit, windSpeed);
+            } else if (temperatureFahrenheit.doubleValue() < 50) {
+                if ((windSpeed != null) && (windSpeed.doubleValue() >= 5)) {
+                    feelsLikeTemperature = computeWindChill(temperatureFahrenheit, windSpeed);
+                }
             }
         }
 
