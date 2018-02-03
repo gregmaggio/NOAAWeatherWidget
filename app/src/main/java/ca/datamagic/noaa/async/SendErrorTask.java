@@ -1,19 +1,11 @@
 package ca.datamagic.noaa.async;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
-import java.text.MessageFormat;
+import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import ca.datamagic.noaa.dao.ErrorDAO;
 import ca.datamagic.noaa.logging.LogFactory;
@@ -36,117 +28,92 @@ public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
         _mailBody = mailBody;
     }
 
-    private byte[] getFileContents(File file) throws IOException {
-        FileReader fileReader = null;
-        BufferedReader reader = null;
+    public static List<String> tailFile(String fileName, int linesToRead) throws IOException {
+        RandomAccessFile randomAccessFile = new RandomAccessFile(fileName, "r");
         try {
-            fileReader = new FileReader(file);
-            reader = new BufferedReader(fileReader);
+            long lengthOfFile = randomAccessFile.length();
+            long counterFromEnd = 1L;
+            long newlineCounterGoal = linesToRead;
+            int newlineCounter = 0;
+            long tailPosition = 0L; // start of the end ;-)
 
+            // If you want to get the last 10 lines,
+            // and the last line ends with a newline, then you need to count back 11 newlines
+            // if there is no trailing newline, then you only need to count back 10
+            randomAccessFile.seek(lengthOfFile - 1L);
+            char currentChar = (char) randomAccessFile.readByte();
+            if (currentChar == '\n') {
+                newlineCounterGoal++;
+            }
+
+            while (counterFromEnd <= lengthOfFile) {
+                if ((lengthOfFile - counterFromEnd) < 0) {
+                    break;
+                }
+                randomAccessFile.seek(lengthOfFile - counterFromEnd);
+                if (randomAccessFile.readByte() == '\n') {
+                    newlineCounter++;
+                }
+                tailPosition = randomAccessFile.getFilePointer();
+                if (newlineCounter == newlineCounterGoal) {
+                    break;
+                }
+                counterFromEnd++;
+            }
+            randomAccessFile.seek(tailPosition);
+
+            String line;
             List<String> lines = new ArrayList<String>();
-            String currentLine = null;
-            while ((currentLine = reader.readLine()) != null) {
-                lines.add(currentLine);
+            int nLine = 0;
+            while ((line = randomAccessFile.readLine()) != null) {
+                lines.add(line);
             }
-
-            List<Byte> bytes = new ArrayList<Byte>();
-            int startIndex = 0;
-            if (lines.size() > 200) {
-                startIndex = lines.size() - 200 - 1;
-            }
-            byte[] crlf = "\r\n".getBytes();
-            for (int ii = startIndex; ii < lines.size(); ii++) {
-                if (ii > startIndex) {
-                    for (int jj = 0; jj < crlf.length; jj++) {
-                        bytes.add(new Byte((crlf[jj])));
-                    }
-                }
-                byte[] lineBytes = lines.get(ii).getBytes();
-                for (int jj = 0; jj < lineBytes.length; jj++) {
-                    bytes.add(new Byte(lineBytes[jj]));
-                }
-            }
-
-            byte[] buffer = new byte[bytes.size()];
-            for (int ii = 0; ii < bytes.size(); ii++) {
-                buffer[ii] = bytes.get(ii).byteValue();
-            }
-            return buffer;
-        } catch (Throwable t) {
-            _logger.log(Level.WARNING, "Error retrieving file contents: " + file.getName(), t);
-            return null;
+            return lines;
         } finally {
-            if (reader != null) {
-                reader.close();
-            }
-            if (fileReader != null) {
-                fileReader.close();
-            }
+            randomAccessFile.close();
         }
     }
 
     @Override
     protected AsyncTaskResult<Void> doInBackground(Void... params) {
         _logger.info("Sending error...");
-        String zipFileName = null;
-        ZipOutputStream zipOutputStream = null;
-        FileInputStream fileInputStream = null;
         try {
-            zipFileName = MessageFormat.format("{0}/logs.zip", _logPath);
-            File zipFile = new File(zipFileName);
-            if (zipFile.exists()) {
-                zipFile.delete();
-            }
+            StringBuffer mailBody = new StringBuffer(_mailBody);
 
-            Calendar yesterday = Calendar.getInstance();
-            yesterday.add(Calendar.DAY_OF_MONTH, -1);
-
-            zipOutputStream = new ZipOutputStream(new FileOutputStream(zipFile));
+            File newestLogFile = null;
             File logDirectory = new File(_logPath);
             if (logDirectory.exists()) {
                 File[] logFiles = logDirectory.listFiles();
-                if (logFiles != null) {
+                if ((logFiles != null) && (logFiles.length > 0)) {
+                    mailBody.append("\n\nLog Files:\n");
                     for (int ii = 0; ii < logFiles.length; ii++) {
                         String fileName = logFiles[ii].getName();
                         if (fileName.toLowerCase().contains(".txt") && !fileName.toLowerCase().contains(".lck")) {
-                            if (logFiles[ii].lastModified() > yesterday.getTimeInMillis()) {
-                                byte[] fileContents = getFileContents(logFiles[ii]);
-                                if (fileContents != null) {
-                                    ZipEntry zipEntry = new ZipEntry(logFiles[ii].getName());
-                                    zipOutputStream.putNextEntry(zipEntry);
-                                    zipOutputStream.write(fileContents, 0, fileContents.length);
-                                    zipOutputStream.closeEntry();
+                            mailBody.append(fileName + "\n");
+                            if (newestLogFile != null) {
+                                if (newestLogFile.lastModified() < logFiles[ii].lastModified()) {
+                                    newestLogFile = logFiles[ii];
                                 }
+                            } else {
+                                newestLogFile = logFiles[ii];
                             }
                         }
                     }
                 }
             }
-
-            zipOutputStream.close();
-            zipOutputStream = null;
-
+            if (newestLogFile != null) {
+                List<String> lines = tailFile(newestLogFile.getAbsolutePath(), 100);
+                mailBody.append("\n\n" + newestLogFile.getName() + " Tail:\n");
+                for (String line : lines) {
+                    mailBody.append("\n" + line + "\n");
+                }
+            }
             ErrorDAO dao = new ErrorDAO();
-            dao.sendError(_mailFrom, _mailSubject, _mailBody, zipFileName);
+            dao.sendError(_mailFrom, _mailSubject, mailBody.toString());
 
             return new AsyncTaskResult<Void>();
         } catch (Throwable t) {
             return new AsyncTaskResult<Void>(t);
-        } finally {
-            if (fileInputStream != null) {
-                try {
-                    fileInputStream.close();
-                } catch (Throwable t) {
-                    _logger.log(Level.WARNING, "Error closing file input stream." , t);
-                }
-            }
-            if (zipOutputStream != null) {
-                try {
-                    zipOutputStream.close();
-                } catch (Throwable t) {
-                    _logger.log(Level.WARNING, "Error closing zip output stream." , t);
-                }
-            }
         }
     }
 

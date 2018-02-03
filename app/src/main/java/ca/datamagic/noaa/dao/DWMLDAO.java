@@ -51,7 +51,7 @@ public class DWMLDAO {
                     response.append(new String(buffer, 0, bytesRead));
                 }
                 reader.close();
-                _logger.info("response: " + response.toString());
+                _logger.info("responseLength: " + response.length());
                 DWMLHandler handler = new DWMLHandler();
                 return handler.parse(response.toString());
             } catch (Throwable t) {

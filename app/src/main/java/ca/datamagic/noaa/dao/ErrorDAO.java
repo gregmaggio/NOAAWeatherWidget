@@ -14,12 +14,11 @@ public class ErrorDAO {
     private Logger _logger = LogFactory.getLogger(ErrorDAO.class);
     private static int _maxTries = 5;
 
-    public void sendError(String mailFrom, String mailSubject, String mailBody, String zipFileName) throws Throwable {
+    public void sendError(String mailFrom, String mailSubject, String mailBody) throws Throwable {
         _logger.info("sendError");
         _logger.info("mailFrom: " + mailFrom);
         _logger.info("mailSubject: " + mailSubject);
         _logger.info("mailBody: " + mailBody);
-        _logger.info("zipFileName: " + zipFileName);
         Throwable lastError = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
@@ -27,7 +26,6 @@ public class ErrorDAO {
                 multipartUtility.addFormField("mailFrom", mailFrom);
                 multipartUtility.addFormField("mailSubject", mailSubject);
                 multipartUtility.addFormField("mailBody", mailBody);
-                multipartUtility.addFilePart("attachment", new File(zipFileName));
                 multipartUtility.finish();
                 break;
             } catch (Throwable t) {

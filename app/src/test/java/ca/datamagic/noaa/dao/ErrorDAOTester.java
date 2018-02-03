@@ -12,6 +12,6 @@ public class ErrorDAOTester {
     @Test
     public void test1() throws Throwable {
         ErrorDAO dao = new ErrorDAO();
-        dao.sendError("GregMaggio@HotMail.com", "Test", "Test", "C:/Temp/Logs/WFO/logs.zip");
+        dao.sendError("GregMaggio@HotMail.com", "Test", "Test");
     }
 }

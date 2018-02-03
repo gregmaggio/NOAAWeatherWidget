@@ -51,7 +51,7 @@ public class DiscussionDAO {
                     }
                 }
                 String responseText = buffer.toString();
-                _logger.info("responseText: " + responseText);
+                _logger.info("responseLength: " + responseText.length());
                 if ((responseText == null) || (responseText.length() < 1)) {
                     throw new Exception("Discussion was null");
                 }
