@@ -20,12 +20,10 @@ public class TimeLayoutDTO {
 	public static final String SummarizationAttribute = "summarization";
 	public static final String LayoutKeyNode = "layout-key";
 	public static final String StartValidTimeNode = "start-valid-time";
-	public static final String EndValidTimeNode = "end-valid-time";
 	private String _timeCoordinate = null;
 	private String _summarization = null;
 	private String _layoutKey = null;
 	private List<ValidTimeDTO> _startTimes = new ArrayList<ValidTimeDTO>();
-	private List<ValidTimeDTO> _endTimes = new ArrayList<ValidTimeDTO>();
 	
 	public String getTimeCoordinate() {
 		return _timeCoordinate;
@@ -57,13 +55,5 @@ public class TimeLayoutDTO {
 	
 	public void setStartTimes(List<ValidTimeDTO> newVal) {
 		_startTimes = newVal;
-	}
-	
-	public List<ValidTimeDTO> getEndTimes() {
-		return _endTimes;
-	}
-	
-	public void setEndTimes(List<ValidTimeDTO> newVal) {
-		_endTimes = newVal;
 	}
 }

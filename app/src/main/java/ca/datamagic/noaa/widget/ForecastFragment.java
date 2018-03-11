@@ -207,7 +207,7 @@ public class ForecastFragment extends Fragment implements Renderer {
                                 row.addView(item);
                                 _forecastTable.addView(row);
 
-                                ImageTask imageTask = new ImageTask(imageUrl, conditionsView);
+                                ImageTask imageTask = new ImageTask(imageUrl.replace("http", "https"), conditionsView);
                                 imageTask.execute((Void[]) null);
                             }
                         }

@@ -8,8 +8,8 @@ android {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 19
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "1.1"
     }
     buildTypes {
         release {
@@ -36,6 +36,7 @@ dependencies {
     testCompile 'org.robolectric:robolectric:3.0'
     testCompile 'org.json:json:20140107'
     testCompile group: 'commons-io', name: 'commons-io', version: '2.5'
+    testCompile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
     compile 'com.android.support:appcompat-v7:23.1.1'
     compile 'com.android.support:design:23.1.1'
     compile 'com.google.android.gms:play-services-appindexing:9.8.0'

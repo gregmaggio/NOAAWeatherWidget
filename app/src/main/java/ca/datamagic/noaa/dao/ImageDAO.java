@@ -4,8 +4,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.logging.LogFactory;
@@ -22,11 +22,13 @@ public class ImageDAO {
         Throwable lastError = null;
         URL url = new URL(imageUrl);
         _logger.info("url: " + url.toString());
+        //boolean isSecure = (url.getProtocol().compareToIgnoreCase("https") == 0) ? true : false;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
+                HttpURLConnection connection = null;
                 InputStream inputStream = null;
                 try {
-                    URLConnection connection = url.openConnection();
+                    connection = (HttpURLConnection)url.openConnection();
                     connection.setDoInput(true);
                     connection.setDoOutput(false);
                     connection.setConnectTimeout(5000);
@@ -35,7 +37,18 @@ public class ImageDAO {
                     return BitmapFactory.decodeStream(inputStream);
                 } finally {
                     if (inputStream != null) {
-                        inputStream.close();
+                        try {
+                            inputStream.close();
+                        } catch (Throwable t) {
+                            _logger.warning("Exception: " + t.getMessage());
+                        }
+                    }
+                    if (connection != null) {
+                        try {
+                            connection.disconnect();
+                        } catch (Throwable t) {
+                            _logger.warning("Exception: " + t.getMessage());
+                        }
                     }
                 }
             } catch (Throwable t) {

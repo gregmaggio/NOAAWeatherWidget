@@ -218,14 +218,6 @@ public class DWMLHandler {
                             timeLayout.getStartTimes().add(new ValidTimeDTO(XmlUtils.getText(child), periodName));
                             continue;
                         }
-                        if (child.getNodeName().toLowerCase().contains(TimeLayoutDTO.EndValidTimeNode.toLowerCase())) {
-                            String periodName = "";
-                            if (childElement.hasAttribute(ValidTimeDTO.PeriodNameAttribute)) {
-                                periodName = childElement.getAttribute(ValidTimeDTO.PeriodNameAttribute);
-                            }
-                            timeLayout.getEndTimes().add(new ValidTimeDTO(XmlUtils.getText(child), periodName));
-                            continue;
-                        }
                     }
                 }
             }

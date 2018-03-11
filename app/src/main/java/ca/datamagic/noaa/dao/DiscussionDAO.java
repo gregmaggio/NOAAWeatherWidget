@@ -2,10 +2,11 @@ package ca.datamagic.noaa.dao;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.ThreadEx;
@@ -21,12 +22,12 @@ public class DiscussionDAO {
 
     public String load(String issuedBy) throws Throwable {
         Throwable lastError = null;
-        URL url = new URL(MessageFormat.format("http://forecast.weather.gov/product.php?site={0}&issuedby={0}&product=AFD&format=txt&version=1&glossary=0", issuedBy));
+        URL url = new URL(MessageFormat.format("https://forecast.weather.gov/product.php?site={0}&issuedby={0}&product=AFD&format=txt&version=1&glossary=0", issuedBy));
         _logger.info("url: " + url.toString());
-        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpsURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");

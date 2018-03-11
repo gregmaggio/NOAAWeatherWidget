@@ -414,7 +414,7 @@ public class ObservationFragment extends Fragment implements Renderer {
 
             if (conditionsIcon != null) {
                 ImageView currentConditionsImage = (ImageView) item.findViewById(R.id.currentConditionsImage);
-                ImageTask imageTask = new ImageTask(conditionsIcon, currentConditionsImage);
+                ImageTask imageTask = new ImageTask(conditionsIcon.replace("http", "https"), currentConditionsImage);
                 imageTask.execute((Void[]) null);
             }
 

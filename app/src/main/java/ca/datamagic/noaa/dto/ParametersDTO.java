@@ -98,6 +98,7 @@ public class ParametersDTO {
 	private ProbabilityOfPrecipitationDTO _probabilityOfPrecipitation = null;
 	private WeatherDTO _weather = null;
 	private ConditionsIconDTO _conditionsIcon = null;
+	private WordedForecastDTO _wordedForecast = null;
 	private HazardsDTO _hazards = null;
 	private DirectionDTO _direction = null;
     private List<WindSpeedDTO> _windSpeeds = new ArrayList<WindSpeedDTO>();
@@ -150,7 +151,15 @@ public class ParametersDTO {
 	public void setConditionsIcon(ConditionsIconDTO newVal) {
 		_conditionsIcon = newVal;
 	}
-	
+
+	public WordedForecastDTO getWordedForecast() {
+		return _wordedForecast;
+	}
+
+	public void setWordedForecast(WordedForecastDTO newVal) {
+		_wordedForecast = newVal;
+	}
+
 	public HazardsDTO getHazards() {
 		return _hazards;
 	}

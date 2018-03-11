@@ -12,7 +12,7 @@ public class DiscussionDAOTester {
     @Test
     public void test1() throws Throwable {
         DiscussionDAO dao = new DiscussionDAO();
-        String discussion = dao.load("EAX");
+        String discussion = dao.load("LWX");
         System.out.println(discussion);
     }
 }

@@ -22,6 +22,10 @@ public class ValidTimeDTO {
 	private Calendar _timeStamp = null;
 	private String _periodName = null;
 
+	public ValidTimeDTO() {
+
+	}
+
 	public ValidTimeDTO(String timeStampText, String periodName) {
 		Matcher matcher = _timeStampRegex.matcher(timeStampText);
 		if (matcher.matches()) {
@@ -52,7 +56,11 @@ public class ValidTimeDTO {
 		return _timeStamp;
 	}
 
+	public void setTimeStamp(Calendar newVal) { _timeStamp = newVal; }
+
 	public String getPeriodName() {
 		return _periodName;
 	}
+
+	public void setPeriodName(String newVal) { _periodName = newVal; }
 }

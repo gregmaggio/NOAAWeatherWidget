@@ -1,5 +1,7 @@
 package ca.datamagic.noaa.dao;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -16,5 +18,8 @@ public class DWMLDAOTester extends BaseTester {
     public void test1() throws Throwable {
         DWMLDAO dao = new DWMLDAO();
         DWMLDTO dwml = dao.load(33.81167, -118.14639, "e");
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(dwml);
+        System.out.println("json: " + json);
     }
 }

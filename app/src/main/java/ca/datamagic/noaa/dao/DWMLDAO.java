@@ -1,10 +1,11 @@
 package ca.datamagic.noaa.dao;
 
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.dom.DWMLHandler;
 import ca.datamagic.noaa.dto.DWMLDTO;
@@ -31,12 +32,12 @@ public class DWMLDAO {
         if (unit.compareToIgnoreCase("m") == 0) {
             intUnit = 1;
         }
-        URL url = new URL(MessageFormat.format("http://forecast.weather.gov/MapClick.php?lat={0}&lon={1}&unit={2}&lg=english&FcstType=dwml", Double.toString(latitude), Double.toString(longitude), Integer.toString(intUnit)));
+        URL url = new URL(MessageFormat.format("https://forecast.weather.gov/MapClick.php?lat={0}&lon={1}&unit={2}&lg=english&FcstType=dwml", Double.toString(latitude), Double.toString(longitude), Integer.toString(intUnit)));
         _logger.info("url: " + url.toString());
-        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                connection = (HttpURLConnection)url.openConnection();
+                connection = (HttpsURLConnection)url.openConnection();
                 connection.setDoInput(true);
                 connection.setDoOutput(false);
                 connection.setRequestMethod("GET");
@@ -52,6 +53,7 @@ public class DWMLDAO {
                 }
                 reader.close();
                 _logger.info("responseLength: " + response.length());
+                _logger.info("response: " + response.toString());
                 DWMLHandler handler = new DWMLHandler();
                 return handler.parse(response.toString());
             } catch (Throwable t) {
