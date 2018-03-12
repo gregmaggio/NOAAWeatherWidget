@@ -1,14 +1,21 @@
 package ca.datamagic.noaa.async;
 
+import android.os.Build;
+
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.ErrorDAO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.util.IOUtils;
 
 /**
  * Created by Greg on 4/10/2017.
@@ -74,11 +81,43 @@ public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
         }
     }
 
+    public static String getSystemInformation() {
+        ByteArrayOutputStream outputStream = null;
+        PrintWriter writer = null;
+        try {
+            outputStream = new ByteArrayOutputStream();
+            writer = new PrintWriter(outputStream);
+            writer.println("Information:");
+            writer.println("OS Version: " + System.getProperty("os.version") + " (" + android.os.Build.VERSION.INCREMENTAL + ")");
+            writer.println("API Level: " + Build.VERSION.SDK_INT);
+            writer.println("Device: " + Build.DEVICE);
+            writer.println("Model (and Product): " + Build.MODEL + " (" + android.os.Build.PRODUCT + ")");
+            writer.println("Manufacturer: " + android.os.Build.MANUFACTURER);
+            writer.println("Other TAGS: " + android.os.Build.TAGS);
+            writer.println("System Properties:");
+            Properties properties = System.getProperties();
+            Enumeration<Object> keys = properties.keys();
+            String key = "";
+            while (keys.hasMoreElements()) {
+                key = (String) keys.nextElement();
+                writer.println(key + " = " + (String) properties.get(key));
+            }
+            writer.flush();
+            return outputStream.toString();
+        } finally {
+            if (writer != null) {
+                writer.close();
+            }
+            IOUtils.closeQuietly(outputStream);
+        }
+    }
+
     @Override
     protected AsyncTaskResult<Void> doInBackground(Void... params) {
         _logger.info("Sending error...");
         try {
             StringBuffer mailBody = new StringBuffer(_mailBody);
+            mailBody.append(getSystemInformation());
 
             File newestLogFile = null;
             File logDirectory = new File(_logPath);
@@ -102,7 +141,7 @@ public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
                 }
             }
             if (newestLogFile != null) {
-                List<String> lines = tailFile(newestLogFile.getAbsolutePath(), 100);
+                List<String> lines = tailFile(newestLogFile.getAbsolutePath(), 50);
                 mailBody.append("\n\n" + newestLogFile.getName() + " Tail:\n");
                 for (String line : lines) {
                     mailBody.append("\n" + line + "\n");
@@ -110,7 +149,6 @@ public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
             }
             ErrorDAO dao = new ErrorDAO();
             dao.sendError(_mailFrom, _mailSubject, mailBody.toString());
-
             return new AsyncTaskResult<Void>();
         } catch (Throwable t) {
             return new AsyncTaskResult<Void>(t);

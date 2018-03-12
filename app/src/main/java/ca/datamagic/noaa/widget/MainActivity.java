@@ -54,7 +54,7 @@ import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
-    private MainActivity _thisInstance = this;
+    private static  MainActivity _thisInstance;
     private double _latitude = 38.9967;
     private double _longitude = -76.9275;
     private double _savedlatitude = _latitude;
@@ -86,6 +86,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Menu _mainMenu = null;
     private boolean _processing = false;
     private ProgressBar _spinner = null;
+
+    public MainActivity() {
+        _thisInstance = this;
+    }
+
+    public static MainActivity getThisInstance() {
+        return _thisInstance;
+    }
 
     private void readPreferences() {
         if (_preferences != null) {
@@ -218,7 +226,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void initializeLogging() {
         try {
             File intPath = getFilesDir();
-            LogFactory.initialize(Level.ALL, intPath.getAbsolutePath(), true);
+            LogFactory.initialize(Level.WARNING, intPath.getAbsolutePath(), true);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
             // Do Nothing
