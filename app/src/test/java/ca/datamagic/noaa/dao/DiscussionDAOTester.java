@@ -1,18 +1,24 @@
 package ca.datamagic.noaa.dao;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
 
 /**
  * Created by Greg on 1/2/2016.
  */
 @RunWith(JUnit4.class)
-public class DiscussionDAOTester {
+public class DiscussionDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
+        DiscussionDAO.setFilesPath(getFilesPath());
         DiscussionDAO dao = new DiscussionDAO();
         String discussion = dao.load("LWX");
         System.out.println(discussion);
+        String readDiscussion = DiscussionDAO.read();
+        Assert.assertEquals(discussion, readDiscussion);
     }
 }

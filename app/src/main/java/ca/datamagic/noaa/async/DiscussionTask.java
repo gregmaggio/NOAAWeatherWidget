@@ -1,8 +1,11 @@
 package ca.datamagic.noaa.async;
 
+import java.util.List;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.DiscussionDAO;
+import ca.datamagic.noaa.dao.WFODAO;
+import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -10,19 +13,28 @@ import ca.datamagic.noaa.logging.LogFactory;
  */
 public class DiscussionTask extends AsyncTaskBase<Void, Void, String> {
     private Logger _logger = LogFactory.getLogger(DiscussionTask.class);
-    private DiscussionDAO _dao = null;
-    private String _wfo = null;
+    private WFODAO _wfoDAO = null;
+    private DiscussionDAO _discussionDAO = null;
+    private double _latitude = 0.0;
+    private double _longitude = 0.0;
 
-    public DiscussionTask(String wfo) {
-        _dao = new DiscussionDAO();
-        _wfo = wfo;
+    public DiscussionTask(double latitude, double longitude) {
+        _wfoDAO = new WFODAO();
+        _discussionDAO = new DiscussionDAO();
+        _latitude = latitude;
+        _longitude = longitude;
     }
 
     @Override
     protected AsyncTaskResult<String> doInBackground(Void... params) {
-        _logger.info("Loading discussion...");
         try {
-            return new AsyncTaskResult<String>(_dao.load(_wfo));
+            _logger.info("Loading WFO...");
+            List<WFODTO> wfo = _wfoDAO.read(_latitude, _longitude);
+            if ((wfo == null) || (wfo.size() < 1)) {
+                return new AsyncTaskResult<String>("");
+            }
+            _logger.info("Loading discussion...");
+            return new AsyncTaskResult<String>(_discussionDAO.load(wfo.get(0).getWFO()));
         } catch (Throwable t) {
             return new AsyncTaskResult<String>(t);
         }

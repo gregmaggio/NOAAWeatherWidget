@@ -44,9 +44,12 @@ import ca.datamagic.noaa.async.RefreshTask;
 import ca.datamagic.noaa.async.SendErrorTask;
 import ca.datamagic.noaa.async.StationSearchTask;
 import ca.datamagic.noaa.async.StationTask;
-import ca.datamagic.noaa.async.WFOTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
+import ca.datamagic.noaa.dao.DWMLDAO;
+import ca.datamagic.noaa.dao.DiscussionDAO;
+import ca.datamagic.noaa.dao.ImageDAO;
+import ca.datamagic.noaa.dao.WFODAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.WFODTO;
@@ -55,6 +58,7 @@ import ca.datamagic.noaa.logging.LogFactory;
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
+    private String _filesPath = null;
     private double _latitude = 38.9967;
     private double _longitude = -76.9275;
     private double _savedlatitude = _latitude;
@@ -93,6 +97,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public static MainActivity getThisInstance() {
         return _thisInstance;
+    }
+
+    public String getFilesPath() {
+        return _filesPath;
     }
 
     private void readPreferences() {
@@ -226,7 +234,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void initializeLogging() {
         try {
             File intPath = getFilesDir();
-            LogFactory.initialize(Level.WARNING, intPath.getAbsolutePath(), true);
+            _filesPath = intPath.getAbsolutePath();
+            LogFactory.initialize(Level.WARNING, _filesPath, true);
+            DiscussionDAO.setFilesPath(_filesPath);
+            DWMLDAO.setFilesPath(_filesPath);
+            ImageDAO.setFilesPath(_filesPath);
+            WFODAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
             // Do Nothing
@@ -238,8 +251,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         for (int ii = 0; ii < permissions.length; ii++) {
             if (permissions[ii].compareToIgnoreCase(Manifest.permission.ACCESS_COARSE_LOCATION) == 0) {
                 initializeGoogleApiClient();
-            } else if (permissions[ii].compareToIgnoreCase(Manifest.permission.WRITE_EXTERNAL_STORAGE) == 0) {
-                initializeLogging();
             } else if (permissions[ii].compareToIgnoreCase(Manifest.permission.WRITE_SETTINGS) == 0) {
 
             }
@@ -410,20 +421,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
             };
 
-            WFOTask wfoTask = new WFOTask(_latitude, _longitude);
-            AsyncTaskListener<List<WFODTO>> wfoListener = new AsyncTaskListener<List<WFODTO>>() {
+            DiscussionTask discussionTask = new DiscussionTask(_latitude, _longitude);
+            AsyncTaskListener<String> discussionListener = new AsyncTaskListener<String>() {
                 @Override
-                public void completed(AsyncTaskResult<List<WFODTO>> result) {
+                public void completed(AsyncTaskResult<String> result) {
                     if (result.getThrowable() != null) {
                         _discussionFragment.setDiscussion(null);
                         if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving WFO.", result.getThrowable());
+                            _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
                         }
                     } else {
-                        if (result.getResult().size() > 0) {
-                            _wfo = result.getResult().get(0);
-                            refreshDiscussion();
-                        }
+                        _discussionFragment.setDiscussion(result.getResult());
                     }
                 }
             };
@@ -447,7 +455,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(dwmlTask, dwmlListener));
-            refreshWorkflow.addStep(new WorkflowStep(wfoTask, wfoListener));
+            refreshWorkflow.addStep(new WorkflowStep(discussionTask, discussionListener));
             refreshWorkflow.addStep(new WorkflowStep(stationTask, stationListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
@@ -473,28 +481,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _spinner.setVisibility(View.GONE);
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in refresh.", t);
-            }
-        }
-    }
-
-    private void refreshDiscussion() {
-        try {
-            DiscussionTask task = new DiscussionTask(_wfo.getWFO());
-            task.addListener(new AsyncTaskListener<String>() {
-                @Override
-                public void completed(AsyncTaskResult<String> result) {
-                    if (result.getThrowable() != null) {
-                        _discussionFragment.setDiscussion(null);
-                    } else {
-                        _discussionFragment.setDiscussion(result.getResult());
-                    }
-                }
-            });
-            task.execute((Void[]) null);
-        } catch (Throwable t) {
-            // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in refresh discussion.", t);
             }
         }
     }

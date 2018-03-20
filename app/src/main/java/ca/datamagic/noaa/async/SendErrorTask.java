@@ -127,7 +127,7 @@ public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
                     mailBody.append("\n\nLog Files:\n");
                     for (int ii = 0; ii < logFiles.length; ii++) {
                         String fileName = logFiles[ii].getName();
-                        if (fileName.toLowerCase().contains(".txt") && !fileName.toLowerCase().contains(".lck")) {
+                        if (fileName.toLowerCase().contains("noaaweatherwidget.txt") && !fileName.toLowerCase().contains(".lck")) {
                             mailBody.append(fileName + "\n");
                             if (newestLogFile != null) {
                                 if (newestLogFile.lastModified() < logFiles[ii].lastModified()) {

@@ -1,10 +1,16 @@
 package ca.datamagic.noaa.dao;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.JSONException;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -14,66 +20,27 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.util.IOUtils;
 import ca.datamagic.noaa.util.ThreadEx;
 
 /**
  * Created by Greg on 1/3/2016.
  */
 public class WFODAO {
-    private Logger _logger = LogFactory.getLogger(WFODAO.class);
+    private static Logger _logger = LogFactory.getLogger(WFODAO.class);
     private static int _maxTries = 5;
+    private static int _retryTimeoutMillis = 500;
+    private static String _filesPath = null;
 
-    public List<WFODTO> list() throws Throwable {
-        Throwable lastError = null;
-        HttpURLConnection connection = null;
-        for (int ii = 0; ii < _maxTries; ii++) {
-            try {
-                URL url = new URL("http://datamagic.ca/WFO/api/list");
-                _logger.info("url: " + url.toString());
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setDoInput(true);
-                connection.setDoOutput(false);
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.connect();
+    public static String getFilesPath() {
+        return _filesPath;
+    }
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                _logger.info("json: " + json);
-                JSONArray array = new JSONArray(json);
-                ArrayList<WFODTO> items = new ArrayList<WFODTO>();
-                for (int jj = 0; jj < array.length(); jj++) {
-                    items.add(new WFODTO(array.getJSONObject(jj)));
-                }
-                connection.disconnect();
-                connection = null;
-                return items;
-            } catch (Throwable t) {
-                lastError = t;
-                _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + t.getMessage());
-                    }
-                }
-            }
-        }
-        if (lastError != null)
-            throw lastError;
-        return null;
+    public static void setFilesPath(String newVal) {
+        _filesPath = newVal;
     }
 
     public List<WFODTO> read(double latitude, double longitude) throws Throwable {
-        Throwable lastError = null;
         HttpURLConnection connection = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
@@ -93,18 +60,12 @@ public class WFODAO {
                     buffer.append(currentLine);
                 }
                 String json = buffer.toString();
-                JSONArray array = new JSONArray(json);
-                ArrayList<WFODTO> items = new ArrayList<WFODTO>();
-                for (int jj = 0; jj < array.length(); jj++) {
-                    items.add(new WFODTO(array.getJSONObject(jj)));
-                }
-                connection.disconnect();
-                connection = null;
-                return items;
+                List<WFODTO> wfoList = parseJSON(json);
+                write(json);
+                return wfoList;
             } catch (Throwable t) {
-                lastError = t;
                 _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
+                ThreadEx.sleep(_retryTimeoutMillis);
             } finally {
                 if (connection != null) {
                     try {
@@ -115,52 +76,63 @@ public class WFODAO {
                 }
             }
         }
-        if (lastError != null)
-            throw lastError;
+        String json = read();
+        if ((json != null) && (json.length() > 0)) {
+            return parseJSON(json);
+        }
         return null;
     }
 
-    public WFODTO read(String id) throws Throwable {
-        Throwable lastError = null;
-        HttpURLConnection connection = null;
-        for (int ii = 0; ii < _maxTries; ii++) {
-            try {
-                URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/{0}", id));
-                _logger.info("url: " + url.toString());
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setDoInput(true);
-                connection.setDoOutput(false);
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.connect();
+    private static List<WFODTO> parseJSON(String json) throws JSONException {
+        JSONArray array = new JSONArray(json);
+        ArrayList<WFODTO> items = new ArrayList<WFODTO>();
+        for (int jj = 0; jj < array.length(); jj++) {
+            items.add(new WFODTO(array.getJSONObject(jj)));
+        }
+        return  items;
+    }
 
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                JSONObject obj = new JSONObject(json);
-                connection.disconnect();
-                connection = null;
-                return new WFODTO(obj);
-            } catch (Throwable t) {
-                lastError = t;
-                _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + t.getMessage());
-                    }
+    public static void write(String json) throws IOException {
+        OutputStream output = null;
+        try {
+            if ((_filesPath == null) || (_filesPath.length() < 1)) {
+                return;
+            }
+            String fileName = MessageFormat.format("{0}/WFO.json", _filesPath);
+            File file = new File(fileName);
+            if (file.exists()) {
+                file.delete();
+            }
+            output = new FileOutputStream(file.getAbsolutePath());
+            output.write(json.getBytes());
+            output.flush();
+        } finally {
+            IOUtils.closeQuietly(output);
+        }
+    }
+
+    public static String read() throws IOException {
+        InputStream input = null;
+        try {
+            if ((_filesPath == null) || (_filesPath.length() < 1)) {
+                return null;
+            }
+            String fileName = MessageFormat.format("{0}/WFO.json", _filesPath);
+            File file = new File(fileName);
+            if (file.exists()) {
+                input = new FileInputStream(file.getAbsolutePath());
+                int inputBytes = (int)file.length();
+                _logger.info("inputBytes: " + Integer.toString(inputBytes));
+                byte[] inputBuffer = new byte[inputBytes];
+                int bytesRead = input.read(inputBuffer, 0, inputBuffer.length);
+                _logger.info("bytesRead: " + Integer.toString(bytesRead));
+                if (bytesRead > 0) {
+                    return new String(inputBuffer, 0, bytesRead);
                 }
             }
+            return null;
+        } finally {
+            IOUtils.closeQuietly(input);
         }
-        if (lastError != null)
-            throw lastError;
-        return null;
     }
 }

@@ -1,6 +1,5 @@
 package ca.datamagic.noaa.dao;
 
-import java.io.File;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.logging.LogFactory;
@@ -11,8 +10,9 @@ import ca.datamagic.noaa.util.ThreadEx;
  * Created by Greg on 4/11/2017.
  */
 public class ErrorDAO {
-    private Logger _logger = LogFactory.getLogger(ErrorDAO.class);
+    private static Logger _logger = LogFactory.getLogger(ErrorDAO.class);
     private static int _maxTries = 5;
+    private static int _retryTimeoutMillis = 500;
 
     public void sendError(String mailFrom, String mailSubject, String mailBody) throws Throwable {
         _logger.info("sendError");
@@ -31,7 +31,7 @@ public class ErrorDAO {
             } catch (Throwable t) {
                 lastError = t;
                 _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
+                ThreadEx.sleep(_retryTimeoutMillis);
             }
         }
         if (lastError != null)

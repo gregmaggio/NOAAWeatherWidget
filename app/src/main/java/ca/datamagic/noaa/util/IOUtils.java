@@ -1,5 +1,6 @@
 package ca.datamagic.noaa.util;
 
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.logging.Logger;
 
@@ -11,6 +12,16 @@ import ca.datamagic.noaa.logging.LogFactory;
 
 public class IOUtils {
     private static Logger _logger = LogFactory.getLogger(IOUtils.class);
+
+    public static void closeQuietly(InputStream inputStream) {
+        try {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        } catch (Throwable t) {
+            _logger.warning(t.getMessage());
+        }
+    }
 
     public static void closeQuietly(OutputStream outputStream) {
         try {

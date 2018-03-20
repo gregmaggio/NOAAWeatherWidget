@@ -26,6 +26,16 @@ import ca.datamagic.noaa.util.ThreadEx;
 public class StationDAO {
     private Logger _logger = LogFactory.getLogger(StationDAO.class);
     private static int _maxTries = 5;
+    private static int _retryTimeoutMillis = 500;
+    private static String _filesPath = null;
+
+    public static String getFilesPath() {
+        return _filesPath;
+    }
+
+    public static void setFilesPath(String newVal) {
+        _filesPath = newVal;
+    }
 
     public List<StationDTO> list(String city, String zip) throws Throwable {
         HttpURLConnection connection = null;
@@ -79,99 +89,7 @@ public class StationDAO {
             } catch (Throwable t) {
                 lastError = t;
                 _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + t.getMessage());
-                    }
-                }
-            }
-        }
-        if (lastError != null)
-            throw lastError;
-        return null;
-    }
-
-    public List<CityDTO> cities() throws Throwable {
-        HttpURLConnection connection = null;
-        Throwable lastError = null;
-        URL url = new URL("http://datamagic.ca/Station/api/cities");
-        _logger.info("url: " + url.toString());
-        for (int ii = 0; ii < _maxTries; ii++) {
-            try {
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setDoInput(true);
-                connection.setDoOutput(false);
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                JSONArray array = new JSONArray(json);
-                ArrayList<CityDTO> items = new ArrayList<CityDTO>();
-                for (int jj = 0; jj < array.length(); jj++) {
-                    items.add(new CityDTO(array.getJSONObject(jj)));
-                }
-                return items;
-            } catch (Throwable t) {
-                lastError = t;
-                _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + t.getMessage());
-                    }
-                }
-            }
-        }
-        if (lastError != null)
-            throw lastError;
-        return null;
-    }
-
-    public List<ZipDTO> zips() throws Throwable {
-        HttpURLConnection connection = null;
-        Throwable lastError = null;
-        URL url = new URL("http://datamagic.ca/Station/api/zips");
-        _logger.info("url: " + url.toString());
-        for (int ii = 0; ii < _maxTries; ii++) {
-            try {
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setDoInput(true);
-                connection.setDoOutput(false);
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                JSONArray array = new JSONArray(json);
-                ArrayList<ZipDTO> items = new ArrayList<ZipDTO>();
-                for (int jj = 0; jj < array.length(); jj++) {
-                    items.add(new ZipDTO(array.getJSONObject(jj)));
-                }
-                return items;
-            } catch (Throwable t) {
-                lastError = t;
-                _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
+                ThreadEx.sleep(_retryTimeoutMillis);
             } finally {
                 if (connection != null) {
                     try {
@@ -213,91 +131,7 @@ public class StationDAO {
             } catch (Throwable t) {
                 lastError = t;
                 _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + t.getMessage());
-                    }
-                }
-            }
-        }
-        if (lastError != null)
-            throw lastError;
-        return null;
-    }
-
-    public StationDTO nearest(double latitude, double longitude) throws Throwable {
-        HttpURLConnection connection = null;
-        Throwable lastError = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
-        _logger.info("url: " + url.toString());
-        for (int ii = 0; ii < _maxTries; ii++) {
-            try {
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setDoInput(true);
-                connection.setDoOutput(false);
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                JSONObject obj = new JSONObject(json);
-                return new StationDTO(obj);
-            } catch (Throwable t) {
-                lastError = t;
-                _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
-            } finally {
-                if (connection != null) {
-                    try {
-                        connection.disconnect();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + t.getMessage());
-                    }
-                }
-            }
-        }
-        if (lastError != null)
-            throw lastError;
-        return null;
-    }
-
-    public StationDTO read(String id) throws Throwable {
-        HttpURLConnection connection = null;
-        Throwable lastError = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}", id));
-        _logger.info("url: " + url.toString());
-        for (int ii = 0; ii < _maxTries; ii++) {
-            try {
-                connection = (HttpURLConnection)url.openConnection();
-                connection.setDoInput(true);
-                connection.setDoOutput(false);
-                connection.setRequestMethod("GET");
-                connection.setConnectTimeout(5000);
-                connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                JSONObject obj = new JSONObject(json);
-                return new StationDTO(obj);
-            } catch (Throwable t) {
-                lastError = t;
-                _logger.warning("Exception: " + t.getMessage());
-                ThreadEx.sleep(500);
+                ThreadEx.sleep(_retryTimeoutMillis);
             } finally {
                 if (connection != null) {
                     try {
