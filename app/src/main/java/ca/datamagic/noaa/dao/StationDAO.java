@@ -3,8 +3,6 @@ package ca.datamagic.noaa.dao;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -14,10 +12,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.CityDTO;
 import ca.datamagic.noaa.dto.StationDTO;
-import ca.datamagic.noaa.dto.ZipDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.util.IOUtils;
 import ca.datamagic.noaa.util.ThreadEx;
 
 /**
@@ -37,30 +34,10 @@ public class StationDAO {
         _filesPath = newVal;
     }
 
-    public List<StationDTO> list(String city, String zip) throws Throwable {
+    public StationDTO nearest(double latitude, double longitude) throws Throwable {
         HttpURLConnection connection = null;
         Throwable lastError = null;
-        StringBuffer queryString = new StringBuffer();
-        if ((city != null) && (city.length() > 0)) {
-            if (queryString.length() > 0) {
-                queryString.append("&");
-            }
-            queryString.append("city=");
-            queryString.append(URLEncoder.encode(city, "UTF-8"));
-        }
-        if ((zip != null) && (zip.length() > 0)) {
-            if (queryString.length() > 0) {
-                queryString.append("&");
-            }
-            queryString.append("zip=");
-            queryString.append(URLEncoder.encode(zip, "UTF-8"));
-        }
-        StringBuffer urlSpec = new StringBuffer("http://datamagic.ca/Station/api/list");
-        if (queryString.length() > 0) {
-            urlSpec.append("?");
-            urlSpec.append(queryString.toString());
-        }
-        URL url = new URL(urlSpec.toString());
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
         _logger.info("url: " + url.toString());
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
@@ -70,22 +47,9 @@ public class StationDAO {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
-                _logger.info("json: " + json);
-                JSONArray array = new JSONArray(json);
-                ArrayList<StationDTO> items = new ArrayList<StationDTO>();
-                for (int jj = 0; jj < array.length(); jj++) {
-                    items.add(new StationDTO(array.getJSONObject(jj)));
-                }
-                Collections.sort(items);
-                return items;
+                String json = IOUtils.readEntireStream(connection.getInputStream());
+                JSONObject obj = new JSONObject(json);
+                return new StationDTO(obj);
             } catch (Throwable t) {
                 lastError = t;
                 _logger.warning("Exception: " + t.getMessage());
@@ -118,14 +82,7 @@ public class StationDAO {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
+                String json = IOUtils.readEntireStream(connection.getInputStream());
                 JSONObject obj = new JSONObject(json);
                 return new StationDTO(obj);
             } catch (Throwable t) {

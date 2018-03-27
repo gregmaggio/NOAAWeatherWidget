@@ -1,4 +1,4 @@
-package ca.datamagic.util;
+package ca.datamagic.noaa.util;
 
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;

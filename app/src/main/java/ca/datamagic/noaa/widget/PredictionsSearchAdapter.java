@@ -8,29 +8,21 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.List;
-
-import ca.datamagic.noaa.dto.StationDTO;
-
 /**
- * Created by Greg on 2/4/2017.
+ * Created by Greg on 3/24/2018.
  */
 
-public class StationsSearchAdapter extends CursorAdapter {
-    private List<StationDTO> _stations = null;
-
-    public StationsSearchAdapter(Context context, Cursor cursor, List<StationDTO> stations) {
+public class PredictionsSearchAdapter extends CursorAdapter {
+    public PredictionsSearchAdapter(Context context, Cursor cursor) {
         super(context, cursor, false);
-        _stations = stations;
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
         TextView textView = (TextView)view.findViewById(R.id.item);
-        int index = cursor.getColumnIndex("_id");
-        int id = cursor.getInt(index);
-        StationDTO station = _stations.get(id);
-        textView.setText(station.getStationName());
+        int index = cursor.getColumnIndex("description");
+        String text = cursor.getString(index);
+        textView.setText(text);
     }
 
     @Override

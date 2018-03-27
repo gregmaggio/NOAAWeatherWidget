@@ -36,7 +36,17 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         _listeners.remove(listener);
     }
 
-    private void FireStationSelect(StationDTO station) {
+    private void fireStationAdded(StationDTO station) {
+        for (int ii = 0; ii < _listeners.size(); ii++) {
+            try {
+                _listeners.get(ii).onStationAdded(station);
+            } catch (Throwable t) {
+                // TODO
+            }
+        }
+    }
+
+    private void fireStationSelect(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
                 _listeners.get(ii).onStationSelect(station);
@@ -46,7 +56,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
     }
 
-    private void FireStationRemove(StationDTO station) {
+    private void fireStationRemove(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
                 _listeners.get(ii).onStationRemove(station);
@@ -85,6 +95,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
         if (!exists) {
             _stations.add(station);
+            fireStationAdded(station);
         }
     }
 
@@ -135,15 +146,16 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         if (tag != null) {
             if (tag instanceof StationDTO) {
                 if (v instanceof TextView) {
-                    FireStationSelect((StationDTO) tag);
+                    fireStationSelect((StationDTO) tag);
                 } else  if (v instanceof ImageView) {
-                    FireStationRemove((StationDTO) tag);
+                    fireStationRemove((StationDTO) tag);
                 }
             }
         }
     }
 
     public interface StationsAdapterListener {
+        public void onStationAdded(StationDTO station);
         public void onStationSelect(StationDTO station);
         public void onStationRemove(StationDTO station);
     }

@@ -1,4 +1,4 @@
-package ca.datamagic.util;
+package ca.datamagic.noaa.util;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;

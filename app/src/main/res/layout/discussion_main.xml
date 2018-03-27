@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#FFFFFF"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent">
     <LinearLayout
@@ -14,6 +15,8 @@
             <TextView
                 android:layout_width="fill_parent"
                 android:layout_height="fill_parent"
+                android:paddingLeft="8px"
+                android:paddingRight="8px"
                 android:scrollbars="vertical"
                 android:scrollbarStyle="insideOverlay"
                 android:text=""

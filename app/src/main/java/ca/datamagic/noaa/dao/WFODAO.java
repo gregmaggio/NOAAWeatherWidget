@@ -3,13 +3,11 @@ package ca.datamagic.noaa.dao;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -52,14 +50,7 @@ public class WFODAO {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.connect();
-
-                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-                StringBuffer buffer = new StringBuffer();
-                String currentLine = null;
-                while ((currentLine = reader.readLine()) != null) {
-                    buffer.append(currentLine);
-                }
-                String json = buffer.toString();
+                String json = IOUtils.readEntireStream(connection.getInputStream());
                 List<WFODTO> wfoList = parseJSON(json);
                 write(json);
                 return wfoList;

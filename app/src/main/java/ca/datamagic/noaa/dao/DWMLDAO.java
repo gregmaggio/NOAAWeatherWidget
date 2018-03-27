@@ -5,7 +5,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -59,16 +58,7 @@ public class DWMLDAO {
                 connection.setRequestMethod("GET");
                 connection.setConnectTimeout(5000);
                 connection.connect();
-
-                InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-                char[] buffer = new char[255];
-                int bytesRead = 0;
-                StringBuffer response = new StringBuffer();
-                while ((bytesRead = reader.read(buffer, 0, buffer.length)) > 0) {
-                    response.append(new String(buffer, 0, bytesRead));
-                }
-                reader.close();
-                String responseText = response.toString();
+                String responseText = IOUtils.readEntireStream(connection.getInputStream());
                 _logger.info("responseLength: " + responseText.length());
                 _logger.info("responseText: " + responseText);
                 DWMLHandler handler = new DWMLHandler();

@@ -4,4 +4,6 @@
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
     <color name="divider_color">#000000</color>
+    <color name="actionbar_title_text">#FFFFFF</color>
+    <color name="actionbar_control_color">#FFFFFF</color>
 </resources>

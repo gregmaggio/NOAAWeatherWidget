@@ -36,7 +36,8 @@ import ca.datamagic.noaa.dto.VisibilityDTO;
 import ca.datamagic.noaa.dto.WeatherConditionsDTO;
 import ca.datamagic.noaa.dto.WeatherDTO;
 import ca.datamagic.noaa.dto.WindSpeedDTO;
-import ca.datamagic.util.XmlUtils;
+import ca.datamagic.noaa.util.NumberUtils;
+import ca.datamagic.noaa.util.XmlUtils;
 
 /**
  * Created by Greg on 2/18/2017.
@@ -169,7 +170,7 @@ public class DWMLHandler {
             height.setHeightUnits(element.getAttribute(HeightDTO.HeightUnitsAttribute));
             String value = XmlUtils.getText(element);
             if ((value != null) && (value.length() > 0)) {
-                height.setValue(new Double(value));
+                height.setValue(NumberUtils.toDouble(value));
             }
         }
     }
@@ -179,8 +180,8 @@ public class DWMLHandler {
             location.setPoint(new PointDTO());
 
             PointDTO point = location.getPoint();
-            point.setLatitude(new Double(element.getAttribute(PointDTO.LatitudeAttribute)));
-            point.setLongitude(new Double(element.getAttribute(PointDTO.LongitudeAttribute)));
+            point.setLatitude(NumberUtils.toDouble(element.getAttribute(PointDTO.LatitudeAttribute)));
+            point.setLongitude(NumberUtils.toDouble(element.getAttribute(PointDTO.LongitudeAttribute)));
         }
     }
 
@@ -296,7 +297,12 @@ public class DWMLHandler {
                         if (child.getNodeName().toLowerCase().contains(TemperatureDTO.ValueNode.toLowerCase())) {
                             String text = XmlUtils.getText(child);
                             if ((text != null) && (text.length() > 0)) {
-                                temperature.getValues().add(new Double(text));
+                                Double value = NumberUtils.toDouble(text);
+                                if (value != null) {
+                                    temperature.getValues().add(value);
+                                } else {
+                                    temperature.getValues().add(Double.NaN);
+                                }
                             }
                             continue;
                         }
@@ -325,7 +331,12 @@ public class DWMLHandler {
                         if (child.getNodeName().toLowerCase().contains(ProbabilityOfPrecipitationDTO.ValueNode.toLowerCase())) {
                             String text = XmlUtils.getText(child);
                             if ((text != null) && (text.length() > 0)) {
-                                probabilityOfPrecipitation.getValues().add(new Double(text));
+                                Double value = NumberUtils.toDouble(text);
+                                if (value != null) {
+                                    probabilityOfPrecipitation.getValues().add(value);
+                                } else {
+                                    probabilityOfPrecipitation.getValues().add(Double.NaN);
+                                }
                             }
                             continue;
                         }
@@ -349,10 +360,14 @@ public class DWMLHandler {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
                         if (child.getNodeName().toLowerCase().contains(HumidityDTO.ValueNode.toLowerCase())) {
-                            try {
-                                humidity.setValue(new Double(XmlUtils.getText(child)));
-                            } catch (Throwable t) {
-                                humidity.setValue(null);
+                            String text = XmlUtils.getText(child);
+                            if ((text != null) && (text.length() > 0)) {
+                                Double value = NumberUtils.toDouble(text);
+                                if (value != null) {
+                                    humidity.setValue(value);
+                                } else {
+                                    humidity.setValue(Double.NaN);
+                                }
                             }
                             continue;
                         }
@@ -423,7 +438,12 @@ public class DWMLHandler {
                             visibility.setUnits(child.getAttribute(VisibilityDTO.UnitsAttribute));
                             String text = XmlUtils.getText(child);
                             if ((text != null) && (text.length() > 0)) {
-                                visibility.setValue(new Double(text));
+                                Double doubleValue = NumberUtils.toDouble(text);
+                                if (doubleValue != null) {
+                                    visibility.setValue(doubleValue);
+                                } else {
+                                    visibility.setValue(Double.NaN);
+                                }
                             }
                             value.setVisibility(visibility);
                         }
@@ -474,10 +494,14 @@ public class DWMLHandler {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
                         if (child.getNodeName().toLowerCase().contains(DirectionDTO.ValueNode.toLowerCase())) {
-                            try {
-                                direction.setValue(new Double(XmlUtils.getText(child)));
-                            } catch (Throwable t) {
-                                direction.setValue(null);
+                            String text = XmlUtils.getText(child);
+                            if ((text != null) && (text.length() > 0)) {
+                                Double value = NumberUtils.toDouble(text);
+                                if (value != null) {
+                                    direction.setValue(value);
+                                } else {
+                                    direction.setValue(Double.NaN);
+                                }
                             }
                             continue;
                         }
@@ -501,10 +525,14 @@ public class DWMLHandler {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
                         if (child.getNodeName().toLowerCase().contains(WindSpeedDTO.ValueNode.toLowerCase())) {
-                            try {
-                                windSpeed.setValue(new Double(XmlUtils.getText(child)));
-                            } catch (Throwable t) {
-                                windSpeed.setValue(null);
+                            String text = XmlUtils.getText(child);
+                            if ((text != null) && (text.length() > 0)) {
+                                Double value = NumberUtils.toDouble(text);
+                                if (value != null) {
+                                    windSpeed.setValue(value);
+                                } else {
+                                    windSpeed.setValue(Double.NaN);
+                                }
                             }
                             continue;
                         }
@@ -528,10 +556,14 @@ public class DWMLHandler {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
                         if (child.getNodeName().toLowerCase().contains(PressureDTO.ValueNode.toLowerCase())) {
-                            try {
-                                pressure.setValue(new Double(XmlUtils.getText(child)));
-                            } catch (Throwable t) {
-                                pressure.setValue(null);
+                            String text = XmlUtils.getText(child);
+                            if ((text != null) && (text.length() > 0)) {
+                                Double value = NumberUtils.toDouble(text);
+                                if (value != null) {
+                                    pressure.setValue(value);
+                                } else {
+                                    pressure.setValue(Double.NaN);
+                                }
                             }
                         }
                     }

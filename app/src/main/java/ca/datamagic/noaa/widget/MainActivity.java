@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -40,17 +41,20 @@ import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.DWMLTask;
 import ca.datamagic.noaa.async.DiscussionTask;
+import ca.datamagic.noaa.async.GooglePlaceTask;
+import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.RefreshTask;
 import ca.datamagic.noaa.async.SendErrorTask;
-import ca.datamagic.noaa.async.StationSearchTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dao.DWMLDAO;
 import ca.datamagic.noaa.dao.DiscussionDAO;
+import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.WFODAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
+import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
@@ -87,6 +91,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private StationsAdapter _stationsAdapter = null;
     private SearchManager _manager = null;
     private SearchView _search = null;
+    private GooglePredictionsTask _googlePredictionsTask = null;
+    private GooglePlaceTask _googlePlaceTask = null;
     private Menu _mainMenu = null;
     private boolean _processing = false;
     private ProgressBar _spinner = null;
@@ -147,6 +153,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
+
         initializeLogging();
 
         _spinner = (ProgressBar)findViewById(R.id.progressBar);
@@ -198,6 +206,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _discussionFragment = (DiscussionFragment) _mainPageAdapter.getItem(MainPageAdapter.DiscussionIndex);
         _skewTFragment = (SkewTFragment) _mainPageAdapter.getItem(MainPageAdapter.SkewTIndex);
         _viewPager = (ViewPager) findViewById(R.id.viewpager);
+        PagerTitleStrip titleStrip = (PagerTitleStrip)_viewPager.findViewById(R.id.pagerTitle);
         _viewPager.setAdapter(_mainPageAdapter);
         _viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -219,7 +228,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         readPreferences();
         actionRefresh();
-        refreshStations();
     }
 
     private void initializeGoogleApiClient() {
@@ -235,7 +243,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.WARNING, _filesPath, true);
+            LogFactory.initialize(Level.ALL, _filesPath, true);
             DiscussionDAO.setFilesPath(_filesPath);
             DWMLDAO.setFilesPath(_filesPath);
             ImageDAO.setFilesPath(_filesPath);
@@ -296,41 +304,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _search.setOnSuggestionListener(this);
         _search.setOnCloseListener(this);
         return true;
-    }
-
-    private void loadStations(String query) {
-        if (_stations != null) {
-            String[] columns = new String[] { "_id", "text" };
-            MatrixCursor cursor = new MatrixCursor(columns);
-            for (int ii = 0; ii < _stations.size(); ii++) {
-                StationDTO station = _stations.get(ii);
-                String stationName = station.getStationName();
-                if ((stationName != null) && (stationName.length() > 0)) {
-                    if (stationName.toLowerCase().startsWith(query.toLowerCase())) {
-                        Object[] temp = new Object[] { ii, stationName };
-                        cursor.addRow(temp);
-                        continue;
-                    }
-                }
-                String city = station.getCity();
-                if ((city != null) && (city.length() > 0)) {
-                    if (city.toLowerCase().startsWith(query.toLowerCase())) {
-                        Object[] temp = new Object[] { ii, stationName };
-                        cursor.addRow(temp);
-                        continue;
-                    }
-                }
-                String zip = station.getZip();
-                if ((zip != null) && (zip.length() > 0)) {
-                    if (zip.toLowerCase().startsWith(query.toLowerCase())) {
-                        Object[] temp = new Object[] { ii, stationName };
-                        cursor.addRow(temp);
-                        continue;
-                    }
-                }
-            }
-            _search.setSuggestionsAdapter(new StationsSearchAdapter(this, cursor, _stations));
-        }
     }
 
     @Override
@@ -485,36 +458,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private void refreshStations() {
-        try {
-            StationSearchTask task = new StationSearchTask(null, null);
-            task.addListener(new AsyncTaskListener<List<StationDTO>>() {
-                @Override
-                public void completed(AsyncTaskResult<List<StationDTO>> result) {
-                    if (result.getThrowable() != null) {
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving stations.", result.getThrowable());
-                        }
-                    } else {
-                        _stations = result.getResult();
-                    }
-                }
-            });
-            task.execute((Void[]) null);
-        } catch (Throwable t) {
-            // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in refresh stations.", t);
-            }
-        }
-    }
-
     private void actionSendError() {
         try {
             _processing = true;
             _spinner.setVisibility(View.VISIBLE);
 
-            //ActivityManager.getCurrentUser();
             File intPath = getFilesDir();
             String logPath = intPath.getAbsolutePath();
             String mailFrom = "no-reply@datamagic.ca";
@@ -566,7 +514,41 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public boolean onQueryTextChange(String newText) {
-        loadStations(newText);
+        if ((newText == null) || (newText.length() < 1)) {
+            return true;
+        }
+        if (_googlePredictionsTask != null) {
+            return true;
+        }
+        _googlePredictionsTask = new GooglePredictionsTask(newText);
+        _googlePredictionsTask.addListener(new AsyncTaskListener<List<PredictionDTO>>() {
+            @Override
+            public void completed(AsyncTaskResult<List<PredictionDTO>> result) {
+                if (result.getThrowable() != null) {
+                    if (_logger != null) {
+                        _logger.log(Level.WARNING, "Error retrieving predictions for text.", result.getThrowable());
+                    }
+                } else {
+                    List<PredictionDTO> predictions = result.getResult();
+                    _logger.info("predictions: " + predictions.size());
+                    String[] columns = new String[]{"_id", "placeId", "description"};
+                    MatrixCursor cursor = new MatrixCursor(columns);
+                    for (int ii = 0; ii < predictions.size(); ii++) {
+                        PredictionDTO prediction = predictions.get(ii);
+                        Object[] temp = new Object[]
+                                {
+                                        ii,
+                                        prediction.getPlaceId(),
+                                        prediction.getDescription()
+                                };
+                        cursor.addRow(temp);
+                    }
+                    _search.setSuggestionsAdapter(new PredictionsSearchAdapter(getBaseContext(), cursor));
+                }
+                _googlePredictionsTask = null;
+            }
+        });
+        _googlePredictionsTask.execute((Void)null);
         return true;
     }
 
@@ -577,24 +559,47 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public boolean onSuggestionClick(int position) {
+        if (_googlePlaceTask != null) {
+            return true;
+        }
         Object suggestion = _search.getSuggestionsAdapter().getItem(position);
         Cursor cursor = (Cursor)suggestion;
-        int index = cursor.getColumnIndex("_id");
-        int id = cursor.getInt(index);
-        _selectedStation = _stations.get(id);
-        _savedlatitude = _latitude;
-        _savedLongitude = _longitude;
-        _latitude = _selectedStation.getLatitude();
-        _longitude = _selectedStation.getLongitude();
-        _mainMenu.findItem(R.id.search).collapseActionView();
-        _mainMenu.close();
-        _search.setIconified(true);
-        _search.setQuery("", false);
-        _search.clearFocus();
-        _search.onActionViewCollapsed();
-        _stationsAdapter.add(_selectedStation);
-        actionRefresh();
+        int index = cursor.getColumnIndex("placeId");
+        String placeId = cursor.getString(index);
+
+        _googlePlaceTask = new GooglePlaceTask(placeId);
+        _googlePlaceTask.addListener(new AsyncTaskListener<StationDTO>() {
+            @Override
+            public void completed(AsyncTaskResult<StationDTO> result) {
+                if (result.getThrowable() != null) {
+                    if (_logger != null) {
+                        _logger.log(Level.WARNING, "Error retrieving station for suggestion.", result.getThrowable());
+                    }
+                } else {
+                    _selectedStation = result.getResult();
+                    _savedlatitude = _latitude;
+                    _savedLongitude = _longitude;
+                    _latitude = _selectedStation.getLatitude();
+                    _longitude = _selectedStation.getLongitude();
+                    _mainMenu.findItem(R.id.search).collapseActionView();
+                    _mainMenu.close();
+                    _search.setIconified(true);
+                    _search.setQuery("", false);
+                    _search.clearFocus();
+                    _search.onActionViewCollapsed();
+                    _stationsAdapter.add(_selectedStation);
+                    actionRefresh();
+                }
+                _googlePlaceTask = null;
+            }
+        });
+        _googlePlaceTask.execute((Void)null);
         return true;
+    }
+
+    @Override
+    public void onStationAdded(StationDTO station) {
+        _stationsHelper.writeStations(_stationsAdapter.getStations());
     }
 
     @Override

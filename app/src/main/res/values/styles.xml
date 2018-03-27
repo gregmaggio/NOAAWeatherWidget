@@ -6,6 +6,8 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <item name="android:textColorPrimary">@color/actionbar_title_text</item>
+        <item name="colorControlNormal">@color/actionbar_control_color</item>
     </style>
 
     <style name="AppTheme.NoActionBar">

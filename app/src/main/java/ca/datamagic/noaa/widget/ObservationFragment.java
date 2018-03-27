@@ -397,7 +397,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView coordinates = (TextView) item.findViewById(R.id.coordinates);
-            if ((latitude != null) && (longitude != null)) {
+            if ((latitude != null) && (longitude != null) && (latitude != Double.NaN) && (longitude != Double.NaN)) {
                 coordinates.setVisibility(View.VISIBLE);
                 coordinates.setText("(" + _coordinatesFormat.format(latitude.doubleValue()) + ", " + _coordinatesFormat.format(longitude.doubleValue()) + ")");
             } else {
@@ -405,7 +405,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView elevationText = (TextView) item.findViewById(R.id.elevation);
-            if ((elevation != null) && (elevationUnits != null)) {
+            if ((elevation != null) && (elevationUnits != null) && (elevation != Double.NaN)) {
                 elevationText.setVisibility(View.VISIBLE);
                 elevationText.setText(_elevationFormat.format(elevation.doubleValue()) + " " + elevationUnits);
             } else {
@@ -426,74 +426,98 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView feelsLikeTemperatureText = (TextView)item.findViewById(R.id.feelsLikeTemperature);
+            String feelsLikeFormatted = null;
             if (feelsLike != null) {
+                feelsLikeFormatted = _temperatureFormat.format(feelsLike.doubleValue());
+            }
+            if ((feelsLikeFormatted != null) && (feelsLikeFormatted.length() > 0) && (feelsLikeFormatted.compareToIgnoreCase("NaN") != 0)) {
                 feelsLikeTemperatureText.setVisibility(View.VISIBLE);
-                feelsLikeTemperatureText.setText("(Feels Like " + _temperatureFormat.format(feelsLike.doubleValue()) + ")");
+                feelsLikeTemperatureText.setText("(Feels Like " + feelsLikeFormatted + ")");
             } else {
                 feelsLikeTemperatureText.setVisibility(View.GONE);
             }
 
+            TextView dewPointLabel = (TextView) item.findViewById(R.id.dewPointLabel);
+            TextView dewPointText = (TextView) item.findViewById(R.id.dewPoint);
+            dewPointLabel.setVisibility(View.VISIBLE);
+            dewPointText.setVisibility(View.VISIBLE);
+            String dewPointFormatted = null;
+            if (dewPointTemperature != null) {
+                dewPointFormatted = _temperatureFormat.format(dewPointTemperature);
+            }
+            if ((dewPointFormatted != null) && (dewPointFormatted.length() > 0) && (dewPointFormatted.compareToIgnoreCase("NaN") != 0)) {
+                dewPointText.setText(dewPointFormatted);
+            } else {
+                dewPointText.setText("N/A");
+            }
+
             TextView humidityLabel = (TextView) item.findViewById(R.id.humidityLabel);
             TextView humidityText = (TextView) item.findViewById(R.id.humidity);
+            String humidityFormatted = null;
             if (humidity != null) {
-                humidityLabel.setVisibility(View.VISIBLE);
-                humidityText.setVisibility(View.VISIBLE);
-                humidityText.setText(_humidityFormat.format(humidity));
+                humidityFormatted = _humidityFormat.format(humidity);
+            }
+            humidityLabel.setVisibility(View.VISIBLE);
+            humidityText.setVisibility(View.VISIBLE);
+            if ((humidityFormatted != null) && (humidityFormatted.length() > 0) && (humidityFormatted.compareToIgnoreCase("NaN") != 0)) {
+                humidityText.setText(humidityFormatted);
             } else {
-                humidityLabel.setVisibility(View.GONE);
-                humidityText.setVisibility(View.GONE);
+                humidityText.setText("N/A");
             }
 
             TextView windLabel = (TextView)item.findViewById(R.id.windLabel);
             TextView windText = (TextView)item.findViewById(R.id.wind);
+            String windSpeedFormatted = null;
             if (windSpeed != null) {
-                StringBuffer buffer = new StringBuffer();
-                buffer.append(_windFormat.format(windSpeed));
-                if (windSpeed.doubleValue() > 0) {
-                    if (windDirection != null) {
-                        String compass = WindDirectionConverter.degreesToCompass(windDirection);
-                        buffer.append(" " + compass);
-                    }
-                }
-                windLabel.setVisibility(View.VISIBLE);
-                windText.setVisibility(View.VISIBLE);
-                windText.setText(buffer.toString());
-            } else {
-                windLabel.setVisibility(View.GONE);
-                windText.setVisibility(View.GONE);
+                windSpeedFormatted = _windFormat.format(windSpeed.doubleValue());
             }
-
-            TextView dewPointLabel = (TextView) item.findViewById(R.id.dewPointLabel);
-            TextView dewPointText = (TextView) item.findViewById(R.id.dewPoint);
-            if (dewPointTemperature != null) {
-                dewPointLabel.setVisibility(View.VISIBLE);
-                dewPointText.setVisibility(View.VISIBLE);
-                dewPointText.setText(_temperatureFormat.format(dewPointTemperature));
+            if ((windSpeedFormatted != null) && (windSpeedFormatted.length() > 0) && (windSpeedFormatted.compareToIgnoreCase("NaN") != 0)) {
+                if ((windDirection != null) && !Double.isNaN(windDirection.doubleValue())) {
+                    String compass = WindDirectionConverter.degreesToCompass(windDirection);
+                    StringBuffer buffer = new StringBuffer();
+                    buffer.append(windSpeedFormatted);
+                    buffer.append(" " + compass);
+                    windSpeedFormatted = buffer.toString();
+                }
+            }
+            windLabel.setVisibility(View.VISIBLE);
+            windText.setVisibility(View.VISIBLE);
+            if ((windSpeedFormatted != null) && (windSpeedFormatted.length() > 0) && (windSpeedFormatted.compareToIgnoreCase("NaN") != 0)) {
+                windText.setText(windSpeedFormatted);
             } else {
-                dewPointLabel.setVisibility(View.GONE);
-                dewPointText.setVisibility(View.GONE);
+                windText.setText("N/A");
             }
 
             TextView visibilityLabel = (TextView)item.findViewById(R.id.visibilityLabel);
             TextView visibilityText = (TextView)item.findViewById(R.id.visibility);
-            if ((visibility != null) && (visibilityUnits != null)) {
-                visibilityLabel.setVisibility(View.VISIBLE);
-                visibilityText.setVisibility(View.VISIBLE);
-                visibilityText.setText(_visibilityFormat.format(visibility) + " " + visibilityUnits);
+            visibilityLabel.setVisibility(View.VISIBLE);
+            visibilityText.setVisibility(View.VISIBLE);
+            String visibilityFormatted = null;
+            if (visibility != null) {
+                visibilityFormatted = _visibilityFormat.format(visibility);
+            }
+            if ((visibilityFormatted != null) && (visibilityFormatted.length() > 0) && (visibilityFormatted.compareToIgnoreCase("NaN") != 0)) {
+                if ((visibilityUnits != null) && (visibilityUnits.length() > 0)) {
+                    visibilityText.setText(visibilityFormatted + " " + visibilityUnits);
+                } else {
+                    visibilityText.setText(visibilityFormatted);
+                }
             } else {
-                visibilityLabel.setVisibility(View.GONE);
-                visibilityText.setVisibility(View.GONE);
+                visibilityText.setText("N/A");
             }
 
             TextView pressureLabel = (TextView) item.findViewById(R.id.pressureLabel);
             TextView pressureText = (TextView) item.findViewById(R.id.pressure);
+            pressureLabel.setVisibility(View.VISIBLE);
+            pressureText.setVisibility(View.VISIBLE);
+            String pressureFormatted = null;
             if (pressure != null) {
-                pressureLabel.setVisibility(View.VISIBLE);
-                pressureText.setVisibility(View.VISIBLE);
-                pressureText.setText(_pressureFormat.format(pressure));
+                pressureFormatted = _pressureFormat.format(pressure);
+            }
+            if ((pressureFormatted != null) && (pressureFormatted.length() > 0) && (pressureFormatted.compareToIgnoreCase("NaN") != 0)) {
+                pressureText.setText(pressureFormatted);
             } else {
-                pressureLabel.setVisibility(View.GONE);
-                pressureText.setVisibility(View.GONE);
+                pressureText.setText("N/A");
             }
 
             row.addView(item);

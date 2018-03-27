@@ -3,7 +3,6 @@ package ca.datamagic.noaa.dao;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +17,6 @@ import javax.net.ssl.HttpsURLConnection;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 import ca.datamagic.noaa.util.ThreadEx;
-import ca.datamagic.noaa.widget.MainActivity;
 
 /**
  * Created by Greg on 1/2/2016.

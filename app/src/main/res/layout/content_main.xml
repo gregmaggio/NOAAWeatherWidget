@@ -8,14 +8,19 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:background="?attr/colorPrimary"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="ca.datamagic.noaa.widget.MainActivity"
     tools:showIn="@layout/activity_main">
     <android.support.v4.view.ViewPager
         android:id="@+id/viewpager"
+        android:background="?attr/colorPrimary"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent">
         <android.support.v4.view.PagerTitleStrip
+            android:id="@+id/pagerTitle"
+            android:background="?attr/colorPrimary"
+            android:textColor="@color/actionbar_title_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="top" />

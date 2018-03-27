@@ -153,7 +153,9 @@ public class ForecastFragment extends Fragment implements Renderer {
                                 if (temperature1 != null) {
                                     for (int jj = 0; jj < timeLayout1.getStartTimes().size(); jj++) {
                                         if (startTime.getPeriodName().compareToIgnoreCase(timeLayout1.getStartTimes().get(jj).getPeriodName()) == 0) {
-                                            temperatureString = _temperatureFormat.format(temperature1.getValues().get(jj));
+                                            if (temperature1.getValues().get(jj) != Double.NaN) {
+                                                temperatureString = _temperatureFormat.format(temperature1.getValues().get(jj));
+                                            }
                                             break;
                                         }
                                     }
@@ -164,7 +166,9 @@ public class ForecastFragment extends Fragment implements Renderer {
                                 if (temperature2 != null) {
                                     for (int jj = 0; jj < timeLayout2.getStartTimes().size(); jj++) {
                                         if (startTime.getPeriodName().compareToIgnoreCase(timeLayout2.getStartTimes().get(jj).getPeriodName()) == 0) {
-                                            temperatureString = _temperatureFormat.format(temperature2.getValues().get(jj));
+                                            if (temperature2.getValues().get(jj) != Double.NaN) {
+                                                temperatureString = _temperatureFormat.format(temperature2.getValues().get(jj));
+                                            }
                                             break;
                                         }
                                     }
