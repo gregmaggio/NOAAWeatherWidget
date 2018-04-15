@@ -6,10 +6,19 @@ package ca.datamagic.noaa.dto;
 public class DWMLDTO {
     public static final String NodeName = "dwml";
     public static final String VersionAttribute = "version";
+    private boolean _cached = false;
     private String _version = null;
     private HeadDTO _head = null;
     private DataDTO _forecast = null;
     private DataDTO _observation = null;
+
+    public boolean isCached() {
+        return _cached;
+    }
+
+    public void setCached(boolean newVal) {
+        _cached = newVal;
+    }
 
     public String getVersion() {
         return _version;

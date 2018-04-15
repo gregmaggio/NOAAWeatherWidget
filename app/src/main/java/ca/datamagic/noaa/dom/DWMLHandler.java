@@ -36,6 +36,7 @@ import ca.datamagic.noaa.dto.VisibilityDTO;
 import ca.datamagic.noaa.dto.WeatherConditionsDTO;
 import ca.datamagic.noaa.dto.WeatherDTO;
 import ca.datamagic.noaa.dto.WindSpeedDTO;
+import ca.datamagic.noaa.dto.WordedForecastDTO;
 import ca.datamagic.noaa.util.NumberUtils;
 import ca.datamagic.noaa.util.XmlUtils;
 
@@ -257,6 +258,10 @@ public class DWMLHandler {
                             traverseConditionsIcon(parameters, (Element) child);
                             continue;
                         }
+                        if (child.getNodeName().toLowerCase().contains(WordedForecastDTO.NodeName.toLowerCase())) {
+                            traverseWordedForecast(parameters, (Element) child);
+                            continue;
+                        }
                         if (child.getNodeName().toLowerCase().contains(DirectionDTO.NodeName.toLowerCase())) {
                             traverseDirection(parameters, (Element) child);
                             continue;
@@ -472,6 +477,34 @@ public class DWMLHandler {
                         }
                         if (child.getNodeName().toLowerCase().contains(ConditionsIconDTO.IconLinkNode.toLowerCase())) {
                             conditionsIcon.getIconLink().add(XmlUtils.getText(child));
+                            continue;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void traverseWordedForecast(ParametersDTO parameters, Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(WordedForecastDTO.NodeName.toLowerCase())) {
+            parameters.setWordedForecast(new WordedForecastDTO());
+
+            WordedForecastDTO wordedForecast = parameters.getWordedForecast();
+            wordedForecast.setTimeLayout(element.getAttribute(WordedForecastDTO.TimeLayoutAttribute));
+            wordedForecast.setDataSource(element.getAttribute(WordedForecastDTO.DataSourceAttribute));
+            wordedForecast.setWordGenerator(element.getAttribute(WordedForecastDTO.WordGeneratorAttribute));
+
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int index = 0; index < childNodes.getLength(); index++) {
+                    Node child = childNodes.item(index);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        if (child.getNodeName().toLowerCase().contains(WordedForecastDTO.NameNode.toLowerCase())) {
+                            wordedForecast.setName(XmlUtils.getText(child));
+                            continue;
+                        }
+                        if (child.getNodeName().toLowerCase().contains(WordedForecastDTO.TextNode.toLowerCase())) {
+                            wordedForecast.getText().add(XmlUtils.getText(child));
                             continue;
                         }
                     }

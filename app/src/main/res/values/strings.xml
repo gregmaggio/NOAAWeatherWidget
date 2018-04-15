@@ -13,4 +13,8 @@
     <string name="search_hint">Search by city...</string>
     <string name="title_activity_searchable">SearchableActivity</string>
     <string name="search">Search</string>
+    <string name="cached_forecast">Forecast read from local cache</string>
+    <string name="cached_observation">Observation read from local cache</string>
+    <string name="not_available">N/A</string>
+    <string name="wind_gust">Gusting to {0} {1}</string>
 </resources>

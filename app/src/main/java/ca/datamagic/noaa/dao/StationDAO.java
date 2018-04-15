@@ -34,6 +34,45 @@ public class StationDAO {
         _filesPath = newVal;
     }
 
+    public List<StationDTO> list() throws  Throwable {
+        HttpURLConnection connection = null;
+        Throwable lastError = null;
+        URL url = new URL("http://datamagic.ca/Station/api/list");
+        _logger.info("url: " + url.toString());
+        for (int ii = 0; ii < _maxTries; ii++) {
+            try {
+                connection = (HttpURLConnection)url.openConnection();
+                connection.setDoInput(true);
+                connection.setDoOutput(false);
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000);
+                connection.connect();
+                String json = IOUtils.readEntireStream(connection.getInputStream());
+                JSONArray array = new JSONArray(json);
+                List<StationDTO> list = new ArrayList<StationDTO>();
+                for (int jj = 0; jj < array.length(); jj++) {
+                    list.add(new StationDTO(array.getJSONObject(jj)));
+                }
+                return list;
+            } catch (Throwable t) {
+                lastError = t;
+                _logger.warning("Exception: " + t.getMessage());
+                ThreadEx.sleep(_retryTimeoutMillis);
+            } finally {
+                if (connection != null) {
+                    try {
+                        connection.disconnect();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + t.getMessage());
+                    }
+                }
+            }
+        }
+        if (lastError != null)
+            throw lastError;
+        return null;
+    }
+
     public StationDTO nearest(double latitude, double longitude) throws Throwable {
         HttpURLConnection connection = null;
         Throwable lastError = null;

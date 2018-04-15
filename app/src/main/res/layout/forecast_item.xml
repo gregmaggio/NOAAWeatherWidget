@@ -12,17 +12,17 @@
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="D/M"
+            android:text="Day"
             android:textAlignment="center"
-            android:id="@+id/dayMonth" />
+            android:id="@+id/dayOfWeek" />
         <TextView
             android:padding="2dip"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Day"
+            android:text="D/M"
             android:textAlignment="center"
-            android:id="@+id/dayOfWeek" />
+            android:id="@+id/dayMonth" />
     </LinearLayout>
     <ImageView
         android:padding="6dip"

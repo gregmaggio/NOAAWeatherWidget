@@ -30,4 +30,19 @@ public class DWMLDAOTester extends BaseTester {
         String readJSON = mapper.writeValueAsString(readDWML);
         Assert.assertEquals(json, readJSON);
     }
+
+    @Test
+    public void test2() throws Throwable {
+        DWMLDAO.setFilesPath(getFilesPath());
+        DWMLDAO dao = new DWMLDAO();
+        DWMLDTO dwml = dao.load(67.1, -157.85, "e");
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(dwml);
+        System.out.println("json: " + json);
+        String xml = DWMLDAO.read();
+        DWMLHandler handler = new DWMLHandler();
+        DWMLDTO readDWML = handler.parse(xml);
+        String readJSON = mapper.writeValueAsString(readDWML);
+        Assert.assertEquals(json, readJSON);
+    }
 }

@@ -1,6 +1,8 @@
 package ca.datamagic.noaa.widget;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,25 +14,10 @@ import android.widget.TableRow;
 import android.widget.TextView;
 
 import java.text.DecimalFormat;
-import java.util.List;
+import java.text.MessageFormat;
 
 import ca.datamagic.noaa.async.ImageTask;
-import ca.datamagic.noaa.dto.ConditionsIconDTO;
-import ca.datamagic.noaa.dto.DWMLDTO;
-import ca.datamagic.noaa.dto.DataDTO;
-import ca.datamagic.noaa.dto.DirectionDTO;
-import ca.datamagic.noaa.dto.HeightDTO;
-import ca.datamagic.noaa.dto.HumidityDTO;
-import ca.datamagic.noaa.dto.LocationDTO;
-import ca.datamagic.noaa.dto.ParametersDTO;
-import ca.datamagic.noaa.dto.PointDTO;
-import ca.datamagic.noaa.dto.PressureDTO;
-import ca.datamagic.noaa.dto.TemperatureDTO;
-import ca.datamagic.noaa.dto.ValueDTO;
-import ca.datamagic.noaa.dto.VisibilityDTO;
-import ca.datamagic.noaa.dto.WeatherConditionsDTO;
-import ca.datamagic.noaa.dto.WeatherDTO;
-import ca.datamagic.noaa.dto.WindSpeedDTO;
+import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.util.FeelsLikeTemperatureCalculator;
 import ca.datamagic.noaa.util.WindDirectionConverter;
 
@@ -45,359 +32,88 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _pressureFormat = new DecimalFormat("0");
     private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
-    private TableLayout _observationTable = null;
-    private LayoutInflater _inflater = null;
-    private DWMLDTO _dwml = null;
+    private ObservationDTO _observation = null;
+
+    public void setObservation(ObservationDTO newVal) {
+        _observation = newVal;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.observation_main, container, false);
-        _observationTable = (TableLayout) view.findViewById(R.id.observationTable);
-        _inflater = inflater;
+        render(view, inflater);
         return view;
     }
 
-    public DWMLDTO getDWML(){
-        return _dwml;
-    }
-
-    public void setDWML(DWMLDTO newVal){
-        _dwml = newVal;
-    }
-
-    private String getAreaDescription() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                LocationDTO location = data.getLocation();
-                if (location != null) {
-                    return  location.getAreaDescription();
-                }
-            }
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        try {
+            ObservationDTO observation = (ObservationDTO) savedInstanceState.getParcelable("observation");
+            _observation = observation;
+        } catch (NullPointerException ex) {
+            // Do Nothing
         }
-        return null;
     }
 
-    private Double getLatitude() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                LocationDTO location = data.getLocation();
-                if (location != null) {
-                    PointDTO point = location.getPoint();
-                    if (point != null) {
-                        return point.getLatitude();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getLongitude() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                LocationDTO location = data.getLocation();
-                if (location != null) {
-                    PointDTO point = location.getPoint();
-                    if (point != null) {
-                        return point.getLongitude();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getElevation() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                LocationDTO location = data.getLocation();
-                if (location != null) {
-                    HeightDTO height = location.getHeight();
-                    if (height != null) {
-                        return height.getValue();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getElevationUnits() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                LocationDTO location = data.getLocation();
-                if (location != null) {
-                    HeightDTO height = location.getHeight();
-                    if (height != null) {
-                        return height.getHeightUnits();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getApparentTemperature() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    List<TemperatureDTO> temperatures = parameters.getTemperatures();
-                    if (temperatures != null) {
-                        for (int ii = 0; ii < temperatures.size(); ii++) {
-                            TemperatureDTO temperature = temperatures.get(ii);
-                            String type = temperature.getType();
-                            if (type.compareToIgnoreCase("apparent") == 0) {
-                                if ((temperature.getValues() != null) && (temperature.getValues().size() > 0)) {
-                                    return temperature.getValues().get(0);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getDewPointTemperature() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    List<TemperatureDTO> temperatures = parameters.getTemperatures();
-                    if (temperatures != null) {
-                        for (int ii = 0; ii < temperatures.size(); ii++) {
-                            TemperatureDTO temperature = temperatures.get(ii);
-                            String type = temperature.getType();
-                            if (type.compareToIgnoreCase("dew point") == 0) {
-                                if ((temperature.getValues() != null) && (temperature.getValues().size() > 0)) {
-                                    return temperature.getValues().get(0);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getWindDirection() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    DirectionDTO direction = parameters.getDirection();
-                    if (direction != null) {
-                        return direction.getValue();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getWindSpeed() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    List<WindSpeedDTO> windSpeeds = parameters.getWindSpeeds();
-                    if (windSpeeds != null) {
-                        for (int ii = 0; ii < windSpeeds.size(); ii++) {
-                            WindSpeedDTO windSpeed = windSpeeds.get(ii);
-                            String type = windSpeed.getType();
-                            if (type.compareToIgnoreCase("sustained") == 0) {
-                                return windSpeed.getValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getWindGust() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    List<WindSpeedDTO> windSpeeds = parameters.getWindSpeeds();
-                    if (windSpeeds != null) {
-                        for (int ii = 0; ii < windSpeeds.size(); ii++) {
-                            WindSpeedDTO windSpeed = windSpeeds.get(ii);
-                            String type = windSpeed.getType();
-                            if (type.compareToIgnoreCase("gust") == 0) {
-                                return windSpeed.getValue();
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getHumidity() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    HumidityDTO humidity = parameters.getHumidity();
-                    if (humidity != null) {
-                        return humidity.getValue();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getPressure() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    PressureDTO pressure = parameters.getPressure();
-                    if (pressure != null) {
-                        return pressure.getValue();
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getConditionsIcon() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    ConditionsIconDTO conditionsIcon = parameters.getConditionsIcon();
-                    if (conditionsIcon != null) {
-                        List<String> iconLink = conditionsIcon.getIconLink();
-                        if ((iconLink != null) && (iconLink.size() > 0)) {
-                            return iconLink.get(0);
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private Double getVisibility() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    WeatherDTO weather = parameters.getWeather();
-                    if (weather != null) {
-                        List<WeatherConditionsDTO> weatherConditionsList = weather.getWeatherConditions();
-                        if (weatherConditionsList != null) {
-                            for (int ii = 0; ii < weatherConditionsList.size(); ii++) {
-                                WeatherConditionsDTO weatherConditions = weatherConditionsList.get(ii);
-                                List<ValueDTO> values = weatherConditions.getValues();
-                                if (values != null) {
-                                    for (int jj = 0; jj < values.size(); jj++) {
-                                        ValueDTO value = values.get(jj);
-                                        VisibilityDTO visibility = value.getVisibility();
-                                        if (visibility != null) {
-                                            return visibility.getValue();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
-    }
-
-    private String getVisibilityUnits() {
-        if (_dwml != null) {
-            DataDTO data = _dwml.getObservation();
-            if (data != null) {
-                ParametersDTO parameters = data.getParameters();
-                if (parameters != null) {
-                    WeatherDTO weather = parameters.getWeather();
-                    if (weather != null) {
-                        List<WeatherConditionsDTO> weatherConditionsList = weather.getWeatherConditions();
-                        if (weatherConditionsList != null) {
-                            for (int ii = 0; ii < weatherConditionsList.size(); ii++) {
-                                WeatherConditionsDTO weatherConditions = weatherConditionsList.get(ii);
-                                List<ValueDTO> values = weatherConditions.getValues();
-                                if (values != null) {
-                                    for (int jj = 0; jj < values.size(); jj++) {
-                                        ValueDTO value = values.get(jj);
-                                        VisibilityDTO visibility = value.getVisibility();
-                                        if (visibility != null) {
-                                            return visibility.getUnits();
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        return null;
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelable("observation", ((_observation == null) ? (new ObservationDTO()) : _observation));
     }
 
     @Override
     public void render() {
-        _observationTable.removeAllViews();
-        if (_dwml != null) {
-            String locationText = getAreaDescription();
-            Double latitude = getLatitude();
-            Double longitude = getLongitude();
-            Double elevation = getElevation();
-            String elevationUnits = getElevationUnits();
-            Double apparentTemperature = getApparentTemperature();
-            Double dewPointTemperature = getDewPointTemperature();
-            Double windDirection = getWindDirection();
-            Double windSpeed = getWindSpeed();
-            Double windGust = getWindGust();
-            Double humidity = getHumidity();
-            Double feelsLike = FeelsLikeTemperatureCalculator.computeFeelsLikeTemperature(apparentTemperature, humidity, windSpeed);
-            Double pressure = getPressure();
-            String conditionsIcon = getConditionsIcon();
-            Double visibility = getVisibility();
-            String visibilityUnits = getVisibilityUnits();
+        View view = getView();
+        LayoutInflater inflater = getLayoutInflater();
+        if ((view != null) && (inflater != null)) {
+            render(view, inflater);
+        }
+    }
+
+    private void render(View view, LayoutInflater inflater) {
+        TableLayout observationTable = (TableLayout)view.findViewById(R.id.observationTable);
+        observationTable.removeAllViews();
+        if (_observation != null) {
+            String locationText = _observation.getLocationText();
+            Double latitude = _observation.getLatitude();
+            Double longitude = _observation.getLongitude();
+            Double elevation = _observation.getElevation();
+            String elevationUnits = _observation.getElevationUnits();
+            Double temperature = _observation.getTemperature();
+            Double dewPoint = _observation.getDewPoint();
+            Double windDirection = _observation.getWindDirection();
+            Double windSpeed = _observation.getWindSpeed();
+            String windSpeedUnits = _observation.getWindSpeedUnits();
+            Double windGust = _observation.getWindGust();
+            String windGustUnits = _observation.getWindGustUnits();
+            Double humidity = _observation.getRelativeHumidity();
+            Double feelsLike = FeelsLikeTemperatureCalculator.computeFeelsLikeTemperature(temperature, humidity, windSpeed);
+            Double pressure = _observation.getPressure();
+            String pressureUnits = _observation.getPressureUnits();
+            String conditionsIcon = _observation.getIconUrl();
+            Double visibility = _observation.getVisibility();
+            String visibilityUnits = _observation.getVisibilityUnits();
 
             TableRow row = new TableRow(getContext());
             row.setVisibility(View.VISIBLE);
             row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
-            LinearLayout item = (LinearLayout) _inflater.inflate(R.layout.observation_item, null);
+            LinearLayout item = (LinearLayout)inflater.inflate(R.layout.observation_item, null);
             item.setVisibility(View.VISIBLE);
 
-            if (locationText != null) {
+            if (_observation.isCached()) {
+                LinearLayout cached = (LinearLayout)item.findViewById(R.id.cached);
+                cached.setVisibility(View.VISIBLE);
+            }
+
+            if ((locationText != null) && (locationText.length() > 0)) {
                 TextView location = (TextView) item.findViewById(R.id.location);
                 location.setText(locationText);
             }
 
             TextView coordinates = (TextView) item.findViewById(R.id.coordinates);
-            if ((latitude != null) && (longitude != null) && (latitude != Double.NaN) && (longitude != Double.NaN)) {
+            if ((latitude != null) && (longitude != null)) {
                 coordinates.setVisibility(View.VISIBLE);
                 coordinates.setText("(" + _coordinatesFormat.format(latitude.doubleValue()) + ", " + _coordinatesFormat.format(longitude.doubleValue()) + ")");
             } else {
@@ -405,7 +121,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView elevationText = (TextView) item.findViewById(R.id.elevation);
-            if ((elevation != null) && (elevationUnits != null) && (elevation != Double.NaN)) {
+            if ((elevation != null) && (elevationUnits != null)) {
                 elevationText.setVisibility(View.VISIBLE);
                 elevationText.setText(_elevationFormat.format(elevation.doubleValue()) + " " + elevationUnits);
             } else {
@@ -414,15 +130,15 @@ public class ObservationFragment extends Fragment implements Renderer {
 
             if (conditionsIcon != null) {
                 ImageView currentConditionsImage = (ImageView) item.findViewById(R.id.currentConditionsImage);
-                ImageTask imageTask = new ImageTask(conditionsIcon.replace("http", "https"), currentConditionsImage);
+                ImageTask imageTask = new ImageTask(conditionsIcon, currentConditionsImage);
                 imageTask.execute((Void[]) null);
             }
 
             TextView temperatureText = (TextView) item.findViewById(R.id.temperature);
-            if (apparentTemperature != null) {
-                temperatureText.setText(_temperatureFormat.format(apparentTemperature));
+            if (temperature != null) {
+                temperatureText.setText(_temperatureFormat.format(temperature));
             } else {
-                temperatureText.setText("");
+                temperatureText.setText(R.string.not_available);
             }
 
             TextView feelsLikeTemperatureText = (TextView)item.findViewById(R.id.feelsLikeTemperature);
@@ -437,91 +153,60 @@ public class ObservationFragment extends Fragment implements Renderer {
                 feelsLikeTemperatureText.setVisibility(View.GONE);
             }
 
-            TextView dewPointLabel = (TextView) item.findViewById(R.id.dewPointLabel);
             TextView dewPointText = (TextView) item.findViewById(R.id.dewPoint);
-            dewPointLabel.setVisibility(View.VISIBLE);
-            dewPointText.setVisibility(View.VISIBLE);
-            String dewPointFormatted = null;
-            if (dewPointTemperature != null) {
-                dewPointFormatted = _temperatureFormat.format(dewPointTemperature);
-            }
-            if ((dewPointFormatted != null) && (dewPointFormatted.length() > 0) && (dewPointFormatted.compareToIgnoreCase("NaN") != 0)) {
-                dewPointText.setText(dewPointFormatted);
+            if (dewPoint != null) {
+                dewPointText.setText(_temperatureFormat.format(dewPoint.doubleValue()));
             } else {
-                dewPointText.setText("N/A");
+                dewPointText.setText(R.string.not_available);
             }
 
-            TextView humidityLabel = (TextView) item.findViewById(R.id.humidityLabel);
             TextView humidityText = (TextView) item.findViewById(R.id.humidity);
-            String humidityFormatted = null;
             if (humidity != null) {
-                humidityFormatted = _humidityFormat.format(humidity);
-            }
-            humidityLabel.setVisibility(View.VISIBLE);
-            humidityText.setVisibility(View.VISIBLE);
-            if ((humidityFormatted != null) && (humidityFormatted.length() > 0) && (humidityFormatted.compareToIgnoreCase("NaN") != 0)) {
-                humidityText.setText(humidityFormatted);
+                humidityText.setText(_humidityFormat.format(humidity.doubleValue()));
             } else {
-                humidityText.setText("N/A");
+                humidityText.setText(R.string.not_available);
             }
 
-            TextView windLabel = (TextView)item.findViewById(R.id.windLabel);
-            TextView windText = (TextView)item.findViewById(R.id.wind);
-            String windSpeedFormatted = null;
-            if (windSpeed != null) {
-                windSpeedFormatted = _windFormat.format(windSpeed.doubleValue());
-            }
-            if ((windSpeedFormatted != null) && (windSpeedFormatted.length() > 0) && (windSpeedFormatted.compareToIgnoreCase("NaN") != 0)) {
-                if ((windDirection != null) && !Double.isNaN(windDirection.doubleValue())) {
+            TextView wind = (TextView)item.findViewById(R.id.wind);
+            if ((windSpeed != null) && (windSpeedUnits != null) && (windSpeedUnits.length() > 0)) {
+                StringBuffer windBuffer = new StringBuffer();
+                windBuffer.append(_windFormat.format(windSpeed.doubleValue()));
+                windBuffer.append(" ");
+                windBuffer.append(windSpeedUnits);
+                if (windDirection != null) {
                     String compass = WindDirectionConverter.degreesToCompass(windDirection);
-                    StringBuffer buffer = new StringBuffer();
-                    buffer.append(windSpeedFormatted);
-                    buffer.append(" " + compass);
-                    windSpeedFormatted = buffer.toString();
+                    windBuffer.append(" ");
+                    windBuffer.append(compass);
                 }
-            }
-            windLabel.setVisibility(View.VISIBLE);
-            windText.setVisibility(View.VISIBLE);
-            if ((windSpeedFormatted != null) && (windSpeedFormatted.length() > 0) && (windSpeedFormatted.compareToIgnoreCase("NaN") != 0)) {
-                windText.setText(windSpeedFormatted);
+                wind.setText(windBuffer.toString());
             } else {
-                windText.setText("N/A");
+                wind.setText(R.string.not_available);
             }
 
-            TextView visibilityLabel = (TextView)item.findViewById(R.id.visibilityLabel);
+            if ((windGust != null) && (windGustUnits != null) && (windGustUnits.length() > 0)) {
+                LinearLayout windGustView = (LinearLayout)item.findViewById(R.id.windGustView);
+                TextView windGustText = (TextView)item.findViewById(R.id.windGust);
+                String windGustFormat = getResources().getString(R.string.wind_gust);
+                windGustText.setText(MessageFormat.format(windGustFormat, _windFormat.format(windGust.doubleValue()), windGustUnits));
+                windGustView.setVisibility(View.VISIBLE);
+            }
+
             TextView visibilityText = (TextView)item.findViewById(R.id.visibility);
-            visibilityLabel.setVisibility(View.VISIBLE);
-            visibilityText.setVisibility(View.VISIBLE);
-            String visibilityFormatted = null;
-            if (visibility != null) {
-                visibilityFormatted = _visibilityFormat.format(visibility);
-            }
-            if ((visibilityFormatted != null) && (visibilityFormatted.length() > 0) && (visibilityFormatted.compareToIgnoreCase("NaN") != 0)) {
-                if ((visibilityUnits != null) && (visibilityUnits.length() > 0)) {
-                    visibilityText.setText(visibilityFormatted + " " + visibilityUnits);
-                } else {
-                    visibilityText.setText(visibilityFormatted);
-                }
+            if ((visibility != null) && (visibilityUnits != null)) {
+                visibilityText.setText(_visibilityFormat.format(visibility.doubleValue()) + " " + visibilityUnits);
             } else {
-                visibilityText.setText("N/A");
+                visibilityText.setText(R.string.not_available);
             }
 
-            TextView pressureLabel = (TextView) item.findViewById(R.id.pressureLabel);
             TextView pressureText = (TextView) item.findViewById(R.id.pressure);
-            pressureLabel.setVisibility(View.VISIBLE);
-            pressureText.setVisibility(View.VISIBLE);
-            String pressureFormatted = null;
-            if (pressure != null) {
-                pressureFormatted = _pressureFormat.format(pressure);
-            }
-            if ((pressureFormatted != null) && (pressureFormatted.length() > 0) && (pressureFormatted.compareToIgnoreCase("NaN") != 0)) {
-                pressureText.setText(pressureFormatted);
+            if ((pressure != null) && (pressureUnits != null)) {
+                pressureText.setText(_pressureFormat.format(pressure.doubleValue()) + " " + pressureUnits);
             } else {
-                pressureText.setText("N/A");
+                pressureText.setText(R.string.not_available);
             }
 
             row.addView(item);
-            _observationTable.addView(row);
+            observationTable.addView(row);
         }
     }
 }

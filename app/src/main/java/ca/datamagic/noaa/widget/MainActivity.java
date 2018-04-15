@@ -50,13 +50,16 @@ import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dao.DWMLDAO;
 import ca.datamagic.noaa.dao.DiscussionDAO;
+import ca.datamagic.noaa.dao.ForecastsDAO;
 import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
+import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.WFODAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
+import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.StationDTO;
-import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
@@ -73,9 +76,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
-    private WFODTO _wfo = null;
+    private DWMLDTO _dwml = null;
+    private ObservationDTO _obervation = null;
+    private ForecastsDTO _forecasts = null;
     private StationDTO _station = null;
-    private List<StationDTO> _stations = null;
     private StationsHelper _stationsHelper = null;
     private StationDTO _selectedStation = null;
     private SharedPreferences _preferences = null;
@@ -382,15 +386,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<DWMLDTO> result) {
                     if (result.getThrowable() != null) {
-                        _observationFragment.setDWML(null);
-                        _forecastFragment.setDWML(null);
+                        //_observationFragment.setDWML(null);
+                        //_forecastFragment.setDWML(null);
                         if (_logger != null) {
                             _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
                         }
                     } else {
-                        _observationFragment.setDWML(result.getResult());
-                        _forecastFragment.setDWML(result.getResult());
+                        _dwml = result.getResult();
+                        _obervation = ObservationDAO.getObservation(_dwml);
+                        _forecasts = ForecastsDAO.getForecasts(_dwml);
                     }
+                    _observationFragment.setObservation(_obervation);
+                    _forecastFragment.setForecasts(_forecasts);
                 }
             };
 
