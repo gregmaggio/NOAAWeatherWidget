@@ -86,10 +86,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
     private MainPageAdapter _mainPageAdapter = null;
-    private ObservationFragment _observationFragment = null;
-    private ForecastFragment _forecastFragment = null;
-    private DiscussionFragment _discussionFragment = null;
-    private SkewTFragment _skewTFragment = null;
     private ViewPager _viewPager = null;
     private GoogleApiClient _googleApiClient = null;
     private StationsAdapter _stationsAdapter = null;
@@ -204,11 +200,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         _preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager());
-        _observationFragment = (ObservationFragment) _mainPageAdapter.getItem(MainPageAdapter.ObservationIndex);
-        _forecastFragment = (ForecastFragment) _mainPageAdapter.getItem(MainPageAdapter.ForecastIndex);
-        _discussionFragment = (DiscussionFragment) _mainPageAdapter.getItem(MainPageAdapter.DiscussionIndex);
-        _skewTFragment = (SkewTFragment) _mainPageAdapter.getItem(MainPageAdapter.SkewTIndex);
+        _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager(), getBaseContext());
         _viewPager = (ViewPager) findViewById(R.id.viewpager);
         PagerTitleStrip titleStrip = (PagerTitleStrip)_viewPager.findViewById(R.id.pagerTitle);
         _viewPager.setAdapter(_mainPageAdapter);
@@ -220,8 +212,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             @Override
             public void onPageSelected(int position) {
-                Renderer renderer = (Renderer)_mainPageAdapter.getItem(position);
-                renderer.render();
+                _mainPageAdapter.refreshPage(getSupportFragmentManager(), position);
             }
 
             @Override
@@ -247,7 +238,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.ALL, _filesPath, true);
+            LogFactory.initialize(Level.WARNING, _filesPath, true);
             DiscussionDAO.setFilesPath(_filesPath);
             DWMLDAO.setFilesPath(_filesPath);
             ImageDAO.setFilesPath(_filesPath);
@@ -386,8 +377,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<DWMLDTO> result) {
                     if (result.getThrowable() != null) {
-                        //_observationFragment.setDWML(null);
-                        //_forecastFragment.setDWML(null);
                         if (_logger != null) {
                             _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
                         }
@@ -396,8 +385,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         _obervation = ObservationDAO.getObservation(_dwml);
                         _forecasts = ForecastsDAO.getForecasts(_dwml);
                     }
-                    _observationFragment.setObservation(_obervation);
-                    _forecastFragment.setForecasts(_forecasts);
+                    _mainPageAdapter.setObservation(_obervation);
+                    _mainPageAdapter.setForecasts(_forecasts);
                 }
             };
 
@@ -406,12 +395,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<String> result) {
                     if (result.getThrowable() != null) {
-                        _discussionFragment.setDiscussion(null);
+                        _mainPageAdapter.setDiscussion(null);
                         if (_logger != null) {
                             _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
                         }
                     } else {
-                        _discussionFragment.setDiscussion(result.getResult());
+                        _mainPageAdapter.setDiscussion(result.getResult());
                     }
                 }
             };
@@ -421,14 +410,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 @Override
                 public void completed(AsyncTaskResult<StationDTO> result) {
                     if (result.getThrowable() != null) {
-                        _skewTFragment.setSkewTUrl(null);
+                        _mainPageAdapter.setSkewTUrl(null);
                         if (_logger != null) {
                             _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
                         }
                     } else {
                         _station = result.getResult();
                         String skewTUrl = MessageFormat.format("http://weather.unisys.com/upper_air/skew/skew_{0}.gif", _station.getStationId());
-                        _skewTFragment.setSkewTUrl(skewTUrl);
+                        _mainPageAdapter.setSkewTUrl(skewTUrl);
                     }
                 }
             };
@@ -448,8 +437,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         RefreshTask refreshTask = new RefreshTask(_thisInstance);
                         refreshTask.execute((Void)null);
                     } else {
-                        Renderer renderer = (Renderer)_mainPageAdapter.getItem(_viewPager.getCurrentItem());
-                        renderer.render();
+                        _mainPageAdapter.refreshPage(getSupportFragmentManager(), _viewPager.getCurrentItem());
                         writeCurrentState();
                     }
                 }

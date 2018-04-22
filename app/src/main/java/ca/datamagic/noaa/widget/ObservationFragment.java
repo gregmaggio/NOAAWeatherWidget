@@ -15,9 +15,11 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dto.ObservationDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.FeelsLikeTemperatureCalculator;
 import ca.datamagic.noaa.util.WindDirectionConverter;
 
@@ -25,6 +27,7 @@ import ca.datamagic.noaa.util.WindDirectionConverter;
  * Created by Greg on 1/10/2016.
  */
 public class ObservationFragment extends Fragment implements Renderer {
+    private static Logger _logger = LogFactory.getLogger(ObservationFragment.class);
     private static DecimalFormat _coordinatesFormat = new DecimalFormat("0.0");
     private static DecimalFormat _elevationFormat = new DecimalFormat("0.0");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
@@ -32,10 +35,36 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _pressureFormat = new DecimalFormat("0");
     private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
-    private ObservationDTO _observation = null;
+
+    public ObservationDTO getObservation() {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            return arguments.getParcelable("observation");
+        }
+        return null;
+    }
 
     public void setObservation(ObservationDTO newVal) {
-        _observation = newVal;
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            arguments.putParcelable("observation", newVal);
+        }
+    }
+
+    public static ObservationFragment newInstance() {
+        return newInstance(null);
+    }
+
+    public static ObservationFragment newInstance(ObservationDTO observation) {
+        ObservationFragment fragment = new ObservationFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("observation", observation);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
+    public static int getLayoutId() {
+        return R.layout.observation_main;
     }
 
     @Override
@@ -47,19 +76,16 @@ public class ObservationFragment extends Fragment implements Renderer {
 
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        _logger.info("onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
-        try {
-            ObservationDTO observation = (ObservationDTO) savedInstanceState.getParcelable("observation");
-            _observation = observation;
-        } catch (NullPointerException ex) {
-            // Do Nothing
-        }
+        ObservationDTO observation = getObservation();
+        _logger.info("observation: " + observation);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
+        _logger.info("onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        outState.putParcelable("observation", ((_observation == null) ? (new ObservationDTO()) : _observation));
     }
 
     @Override
@@ -74,26 +100,27 @@ public class ObservationFragment extends Fragment implements Renderer {
     private void render(View view, LayoutInflater inflater) {
         TableLayout observationTable = (TableLayout)view.findViewById(R.id.observationTable);
         observationTable.removeAllViews();
-        if (_observation != null) {
-            String locationText = _observation.getLocationText();
-            Double latitude = _observation.getLatitude();
-            Double longitude = _observation.getLongitude();
-            Double elevation = _observation.getElevation();
-            String elevationUnits = _observation.getElevationUnits();
-            Double temperature = _observation.getTemperature();
-            Double dewPoint = _observation.getDewPoint();
-            Double windDirection = _observation.getWindDirection();
-            Double windSpeed = _observation.getWindSpeed();
-            String windSpeedUnits = _observation.getWindSpeedUnits();
-            Double windGust = _observation.getWindGust();
-            String windGustUnits = _observation.getWindGustUnits();
-            Double humidity = _observation.getRelativeHumidity();
+        ObservationDTO observation = getObservation();
+        if (observation != null) {
+            String locationText = observation.getLocationText();
+            Double latitude = observation.getLatitude();
+            Double longitude = observation.getLongitude();
+            Double elevation = observation.getElevation();
+            String elevationUnits = observation.getElevationUnits();
+            Double temperature = observation.getTemperature();
+            Double dewPoint = observation.getDewPoint();
+            Double windDirection = observation.getWindDirection();
+            Double windSpeed = observation.getWindSpeed();
+            String windSpeedUnits = observation.getWindSpeedUnits();
+            Double windGust = observation.getWindGust();
+            String windGustUnits = observation.getWindGustUnits();
+            Double humidity = observation.getRelativeHumidity();
             Double feelsLike = FeelsLikeTemperatureCalculator.computeFeelsLikeTemperature(temperature, humidity, windSpeed);
-            Double pressure = _observation.getPressure();
-            String pressureUnits = _observation.getPressureUnits();
-            String conditionsIcon = _observation.getIconUrl();
-            Double visibility = _observation.getVisibility();
-            String visibilityUnits = _observation.getVisibilityUnits();
+            Double pressure = observation.getPressure();
+            String pressureUnits = observation.getPressureUnits();
+            String conditionsIcon = observation.getIconUrl();
+            Double visibility = observation.getVisibility();
+            String visibilityUnits = observation.getVisibilityUnits();
 
             TableRow row = new TableRow(getContext());
             row.setVisibility(View.VISIBLE);
@@ -102,7 +129,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             LinearLayout item = (LinearLayout)inflater.inflate(R.layout.observation_item, null);
             item.setVisibility(View.VISIBLE);
 
-            if (_observation.isCached()) {
+            if (observation.isCached()) {
                 LinearLayout cached = (LinearLayout)item.findViewById(R.id.cached);
                 cached.setVisibility(View.VISIBLE);
             }

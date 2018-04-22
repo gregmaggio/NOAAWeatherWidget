@@ -1,15 +1,16 @@
 package ca.datamagic.noaa.widget;
 
+import android.content.Context;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -21,31 +22,110 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
     public static final int SkewTIndex = 3;
-    public static final int DebugIndex = 4;
-    private List<Fragment> _fragments = new ArrayList<Fragment>();
+    private ObservationDTO _observation = null;
+    private ForecastsDTO _forecasts = null;
+    private String _discussion = null;
+    private String _skewTUrl = null;
+    private String[] _pageTitles = new String[4];
+    private Fragment[] _fragments = new Fragment[4];
 
-    public MainPageAdapter(FragmentManager manager) {
+    public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
-        _fragments.add(new ObservationFragment());
-        _fragments.add(new ForecastFragment());
-        _fragments.add(new DiscussionFragment());
-        _fragments.add(new SkewTFragment());
+        _pageTitles[ObservationIndex] = context.getResources().getString(R.string.observation_page_title);
+        _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
+        _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
+        _pageTitles[SkewTIndex] = context.getResources().getString(R.string.skewt_page_title);
+    }
+
+    public ObservationDTO getObservation() {
+        return _observation;
+    }
+
+    public void  setObservation(ObservationDTO newVal) {
+        _observation = newVal;
+    }
+
+    public ForecastsDTO getForecasts() {
+        return _forecasts;
+    }
+
+    public void  setForecasts(ForecastsDTO newVal) {
+        _forecasts = newVal;
+    }
+
+    public String getDiscussion() {
+        return _discussion;
+    }
+
+    public void setDiscussion(String newVal) {
+        _discussion = newVal;
+    }
+
+    public String getSkewTUrl() {
+        return _skewTUrl;
+    }
+
+    public void setSkewTUrl(String newVal) {
+        _skewTUrl = newVal;
+    }
+
+    public void refreshPage(FragmentManager manager, int position) {
+        Fragment currentFragment = getItem(position);
+        if (currentFragment != null) {
+            Renderer renderer = (Renderer)currentFragment;
+            renderer.render();
+        }
     }
 
     @Override
     public CharSequence getPageTitle(int position) {
+        return _pageTitles[position];
+    }
+
+    public int getLayoutId(int position) {
         switch (position) {
-            case ObservationIndex: return  "Current";
-            case ForecastIndex: return  "Forecast";
-            case DiscussionIndex: return  "Discussion";
-            case SkewTIndex: return "SkewT";
+            case ObservationIndex: return R.layout.observation_main;
+            case ForecastIndex: return R.layout.forecast_main;
+            case DiscussionIndex: return R.layout.discussion_main;
+            case SkewTIndex: return R.layout.skewt_main;
         }
-        return "";
+        return -1;
     }
 
     @Override
     public Fragment getItem(int position) {
-        return _fragments.get(position);
+        if (_fragments[position] == null) {
+            switch (position) {
+                case ObservationIndex:
+                    _fragments[position] = ObservationFragment.newInstance(getObservation());
+                    break;
+                case ForecastIndex:
+                    _fragments[position] = ForecastFragment.newInstance(getForecasts());
+                    break;
+                case DiscussionIndex:
+                    _fragments[position] = DiscussionFragment.newInstance(getDiscussion());
+                    break;
+                case SkewTIndex:
+                    _fragments[position] = SkewTFragment.newInstance(getSkewTUrl());
+                    break;
+            }
+        } else {
+            switch (position) {
+                case ObservationIndex:
+                    ((ObservationFragment)_fragments[position]).setObservation(getObservation());
+                    break;
+                case ForecastIndex:
+                    ((ForecastFragment)_fragments[position]).setForecasts(getForecasts());
+                    break;
+                case DiscussionIndex:
+                    ((DiscussionFragment)_fragments[position]).setDiscussion(getDiscussion());
+                    break;
+                case SkewTIndex:
+                    ((SkewTFragment)_fragments[position]).setSkewTUrl(getSkewTUrl());
+                    break;
+            }
+        }
+        return _fragments[position];
     }
 
     @Override
@@ -56,13 +136,22 @@ public class MainPageAdapter extends FragmentPagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        _logger.info("instantiateItem");
-        return super.instantiateItem(container, position);
+        _logger.info("instantiateItem. position: " + position);
+        Object item = super.instantiateItem(container, position);
+        if (item == null) {
+            _logger.info("item is null");
+            _fragments[position] = null;
+        } else {
+            _logger.info("item type: " + item.getClass().getName());
+            _fragments[position] = (Fragment)item;
+        }
+        return item;
     }
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-        _logger.info("destroyItem");
+        _logger.info("destroyItem. position: " + position);
+        _fragments[position] = null;
         super.destroyItem(container, position, object);
     }
 
@@ -86,6 +175,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return _fragments.size();
+        return _fragments.length;
     }
 }

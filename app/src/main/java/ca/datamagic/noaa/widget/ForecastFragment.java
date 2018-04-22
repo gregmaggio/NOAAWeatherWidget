@@ -15,22 +15,48 @@ import android.widget.TextView;
 
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 1/10/2016.
  */
 public class ForecastFragment extends Fragment implements Renderer {
+    private static Logger _logger = LogFactory.getLogger(ForecastFragment.class);
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
     private static char _degrees = (char)0x00B0;
-    private ForecastsDTO _forecasts = null;
+
+    public ForecastsDTO getForecasts() {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            return arguments.getParcelable("forecasts");
+        }
+        return null;
+    }
 
     public void setForecasts(ForecastsDTO newVal) {
-        _forecasts = newVal;
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            arguments.putParcelable("forecasts", newVal);
+        }
     }
+
+    public static ForecastFragment newInstance() {
+        return newInstance(null);
+    }
+
+    public static ForecastFragment newInstance(ForecastsDTO forecasts) {
+        ForecastFragment fragment = new ForecastFragment();
+        Bundle bundle = new Bundle();
+        bundle.putParcelable("forecasts", forecasts);
+        fragment.setArguments(bundle);
+        return fragment;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.forecast_main, container, false);
@@ -40,19 +66,16 @@ public class ForecastFragment extends Fragment implements Renderer {
 
     @Override
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        _logger.info("onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
-        try {
-            ForecastsDTO forecasts = (ForecastsDTO) savedInstanceState.getParcelable("forecasts");
-            _forecasts = forecasts;
-        } catch (NullPointerException ex) {
-            // Do Nothing
-        }
+        ForecastsDTO forecasts = getForecasts();
+        _logger.info("forecasts: " + forecasts);
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
+        _logger.info("onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        outState.putParcelable("forecasts", ((_forecasts == null) ? (new ForecastsDTO()) : _forecasts));
     }
 
     @Override
@@ -68,10 +91,11 @@ public class ForecastFragment extends Fragment implements Renderer {
         TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         forecastTable.removeAllViews();
         if (forecastTable != null) {
-            if (_forecasts != null) {
-                List<ForecastDTO> items = _forecasts.getItems();
+            ForecastsDTO forecasts = getForecasts();
+            if (forecasts != null) {
+                List<ForecastDTO> items = forecasts.getItems();
                 if (items != null) {
-                    if (_forecasts.isCached()) {
+                    if (forecasts.isCached()) {
                         TableRow row = new TableRow(getContext());
                         row.setVisibility(View.VISIBLE);
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));

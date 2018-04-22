@@ -17,4 +17,8 @@
     <string name="cached_observation">Observation read from local cache</string>
     <string name="not_available">N/A</string>
     <string name="wind_gust">Gusting to {0} {1}</string>
+    <string name="observation_page_title">Current</string>
+    <string name="forecast_page_title">Forecast</string>
+    <string name="discussion_page_title">Discussion</string>
+    <string name="skewt_page_title">SkewT</string>
 </resources>

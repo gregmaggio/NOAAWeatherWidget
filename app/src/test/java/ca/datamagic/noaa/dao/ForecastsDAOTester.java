@@ -6,13 +6,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.List;
-
 import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
 import ca.datamagic.noaa.dto.DWMLDTO;
-import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
-import ca.datamagic.noaa.dto.StationDTO;
 
 /**
  * Created by Greg on 4/8/2018.
