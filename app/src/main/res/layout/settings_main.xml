@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:id="@+id/temperatureUnitsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:text="@string/temperatureUnits" />
+    <RadioGroup
+        android:id="@+id/temperatureUnits"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+        <RadioButton
+            android:id="@+id/temperatureUnitsFahrenheit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fahrenheit" />
+        <RadioButton
+            android:id="@+id/temperatureUnitsCelsius"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/celsius" />
+    </RadioGroup>
+    <TextView
+        android:id="@+id/windSpeedUnitsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:text="@string/windSpeedUnits" />
+    <RadioGroup
+        android:id="@+id/windSpeedUnits"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+        <RadioButton
+            android:id="@+id/windSpeedUnitsKnots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/knots" />
+        <RadioButton
+            android:id="@+id/windSpeedUnitsMilesPerHour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/milesPerHour" />
+        <RadioButton
+            android:id="@+id/windSpeedUnitsKilometersPerHour"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/kilometersPerHour" />
+    </RadioGroup>
+    <TextView
+        android:id="@+id/pressureUnitsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:text="@string/pressureUnits" />
+    <RadioGroup
+        android:id="@+id/pressureUnits"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+        <RadioButton
+            android:id="@+id/pressureUnitsInchesOfMercury"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/inchesOfMercury" />
+        <RadioButton
+            android:id="@+id/pressureUnitsKiloPascals"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/kiloPascals" />
+    </RadioGroup>
+    <TextView
+        android:id="@+id/visibilityUnitsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:text="@string/visibilityUnits" />
+    <RadioGroup
+        android:id="@+id/visibilityUnits"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+        <RadioButton
+            android:id="@+id/visibilityUnitsStatuteMiles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/statuteMiles" />
+        <RadioButton
+            android:id="@+id/visibilityUnitsMiles"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/miles" />
+        <RadioButton
+            android:id="@+id/visibilityUnitsKilometers"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/kilometers" />
+    </RadioGroup>
+    <TextView
+        android:id="@+id/heightUnitsLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:text="@string/heightUnits" />
+    <RadioGroup
+        android:id="@+id/heightUnits"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1">
+        <RadioButton
+            android:id="@+id/heightUnitsFeet"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/feet" />
+        <RadioButton
+            android:id="@+id/heightUnitsMeters"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/meters" />
+    </RadioGroup>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:orientation="horizontal">
+        <Button
+            android:id="@+id/saveSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/save_settings" />
+        <Button
+            android:id="@+id/cancelSettings"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/cancel_settings" />
+    </LinearLayout>
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/saveSettingsProgress"
+        android:progressDrawable="@drawable/circular_progress_bar"
+        android:layout_gravity="center"
+        android:visibility="gone"
+        />
+</LinearLayout>

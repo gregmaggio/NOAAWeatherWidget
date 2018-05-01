@@ -18,8 +18,11 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
+import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.dto.PreferencesDTO;
+import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -95,6 +98,9 @@ public class ForecastFragment extends Fragment implements Renderer {
             if (forecasts != null) {
                 List<ForecastDTO> items = forecasts.getItems();
                 if (items != null) {
+                    PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
+                    PreferencesDTO preferencesDTO = preferencesDAO.read();
+
                     if (forecasts.isCached()) {
                         TableRow row = new TableRow(getContext());
                         row.setVisibility(View.VISIBLE);
@@ -147,7 +153,10 @@ public class ForecastFragment extends Fragment implements Renderer {
                             dayOfWeekView.setText(items.get(ii).getDayOfWeek());
                         }
                         if (items.get(ii).getTemperature() != null) {
-                            temperatureView.setText(_temperatureFormat.format(items.get(ii).getTemperature().doubleValue()) + _degrees);
+                            Double temperature = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), preferencesDTO.getTemperatureUnits());
+                            if (temperature != null) {
+                                temperatureView.setText(_temperatureFormat.format(temperature.doubleValue()) + _degrees);
+                            }
                         }
 
                         row.addView(item);

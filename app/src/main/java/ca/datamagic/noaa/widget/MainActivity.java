@@ -44,7 +44,6 @@ import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.RefreshTask;
-import ca.datamagic.noaa.async.SendErrorTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
@@ -54,11 +53,13 @@ import ca.datamagic.noaa.dao.ForecastsDAO;
 import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
+import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dao.WFODAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
+import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
@@ -109,29 +110,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _filesPath;
     }
 
-    private void readPreferences() {
-        if (_preferences != null) {
-            _latitude = _preferences.getFloat("latitude", 38.9967f);
-            _longitude = _preferences.getFloat("longitude", -76.9275f);
-            _numDays = (int) _preferences.getLong("numDays", 7);
-            _unit = _preferences.getString("unit", "e");
-            _format = _preferences.getString("format", "24 hourly");
-        }
+    public void readPreferences() {
+        PreferencesDAO dao = new PreferencesDAO(getBaseContext());
+        PreferencesDTO dto = dao.read();
+        _latitude = dto.getLatitude();
+        _longitude = dto.getLongitude();
+        _numDays = dto.getNumDays();
+        _unit = dto.getUnit();
+        _format = dto.getFormat();
     }
 
-    private void writePreferences() {
-        if (_preferences != null) {
-            _numDays = (int) _preferences.getLong("numDays", 7);
-            _unit = _preferences.getString("unit", "e");
-            _format = _preferences.getString("format", "24 hourly");
-            SharedPreferences.Editor editor = _preferences.edit();
-            editor.putFloat("latitude", (float)_latitude);
-            editor.putFloat("longitude", (float)_longitude);
-            editor.putLong("editor", _numDays);
-            editor.putString("unit", _unit);
-            editor.putString("format", _format);
-            editor.commit();
-        }
+    public void writePreferences() {
+        PreferencesDAO dao = new PreferencesDAO(getBaseContext());
+        PreferencesDTO dto = dao.read();
+        dto.setLatitude(_latitude);
+        dto.setLongitude(_longitude);
+        dto.setNumDays(_numDays);
+        dto.setUnit(_unit);
+        dto.setFormat(_format);
+        dao.write(dto);
     }
 
     private void readCurrentState() {
@@ -322,7 +319,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 actionRefresh();
                 return true;
             case R.id.action_settings:
-                // TODO
+                actionSettings();
                 return true;
             case R.id.action_senderror:
                 actionSendError();
@@ -453,29 +450,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private void actionSendError() {
+    private void actionSettings() {
         try {
-            _processing = true;
-            _spinner.setVisibility(View.VISIBLE);
-
-            File intPath = getFilesDir();
-            String logPath = intPath.getAbsolutePath();
-            String mailFrom = "no-reply@datamagic.ca";
-            String mailSubject = "NOAAWeatherWidget Error";
-            String mailBody = "Error logs";
-            SendErrorTask task = new SendErrorTask(logPath, mailFrom, mailSubject, mailBody);
-            task.addListener(new AsyncTaskListener<Void>() {
-                @Override
-                public void completed(AsyncTaskResult<Void> result) {
-                    _processing = false;
-                    _spinner.setVisibility(View.GONE);
-                }
-            });
-            task.execute((Void[]) null);
+            SettingsDialog dialog = new SettingsDialog(this);
+            dialog.show();
         } catch (Throwable t) {
             // TODO: Show Error
-            _processing = false;
-            _spinner.setVisibility(View.GONE);
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in settings.", t);
+            }
+        }
+    }
+
+    private void actionSendError() {
+        try {
+            SendErrorDialog dialog = new SendErrorDialog(this);
+            dialog.show();
+        } catch (Throwable t) {
+            // TODO: Show Error
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             }

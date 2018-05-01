@@ -60,14 +60,17 @@ public class ObservationDAO {
                         for (int ii = 0; ii < temperatures.size(); ii++) {
                             TemperatureDTO temperature = temperatures.get(ii);
                             String type = temperature.getType();
+                            String units = temperature.getUnits();
                             List<Double> values = temperature.getValues();
                             if ((type != null) && (values != null) && (values.size() > 0)) {
                                 Double value = values.get(0);
                                 if ((value != null) && (!Double.isNaN(value.doubleValue()))) {
                                     if (type.compareToIgnoreCase("apparent") == 0) {
                                         observation.setTemperature(value);
+                                        observation.setTemperatureUnits(units);
                                     } else if (type.compareToIgnoreCase("dew point") == 0) {
                                         observation.setDewPoint(value);
+                                        observation.setDewPointUnits(units);
                                     }
                                 }
                             }

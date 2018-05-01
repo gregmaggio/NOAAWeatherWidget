@@ -49,7 +49,9 @@ public class ForecastsDAO {
                         dayOfMonth = _dayMonthFormat.format(startTime.getTimeStamp().getTime());
                     }
                     Double temperature = null;
+                    String temperatureUnits = null;
                     if ((temperature == null) && (maxTemperatureTimeLayout != null)) {
+                        String units = maxTemperature.getUnits();
                         List<Double> values = maxTemperature.getValues();
                         List<ValidTimeDTO> startTimes = maxTemperatureTimeLayout.getStartTimes();
                         if ((startTimes != null) && (values != null)) {
@@ -59,6 +61,7 @@ public class ForecastsDAO {
                                     if (dayOfWeek.compareToIgnoreCase(periodName) == 0) {
                                         if (jj < values.size()) {
                                             temperature = values.get(jj);
+                                            temperatureUnits = units;
                                         }
                                         break;
                                     }
@@ -67,6 +70,7 @@ public class ForecastsDAO {
                         }
                     }
                     if ((temperature == null) && (minTemperatureTimeLayout != null)) {
+                        String units = minTemperature.getUnits();
                         List<Double> values = minTemperature.getValues();
                         List<ValidTimeDTO> startTimes = minTemperatureTimeLayout.getStartTimes();
                         if ((startTimes != null) && (values != null)) {
@@ -76,6 +80,7 @@ public class ForecastsDAO {
                                     if (dayOfWeek.compareToIgnoreCase(periodName) == 0) {
                                         if (jj < values.size()) {
                                             temperature = values.get(jj);
+                                            temperatureUnits = units;
                                         }
                                         break;
                                     }
@@ -93,6 +98,7 @@ public class ForecastsDAO {
                     forecast.setDayOfMonth(dayOfMonth);
                     forecast.setDayOfWeek(dayOfWeek);
                     forecast.setTemperature(temperature);
+                    forecast.setTemperatureUnits(temperatureUnits);
                     forecast.setPOP(pop);
                     forecast.setSummary(weatherSummary);
                     forecast.setImageUrl(imageUrl);

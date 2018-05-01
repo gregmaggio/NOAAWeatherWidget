@@ -9,6 +9,7 @@ public class ForecastDTO {
     private String _dayOfWeek = null;
     private String _summary = null;
     private Double _temperature = null;
+    private String _temperatureUnits = null;
     private Double _pop = null;
     private String _imageUrl = null;
     private String _wordedForecast = null;
@@ -27,6 +28,10 @@ public class ForecastDTO {
 
     public Double getTemperature() {
         return _temperature;
+    }
+
+    public String getTemperatureUnits() {
+        return _temperatureUnits;
     }
 
     public Double getPOP() {
@@ -55,6 +60,10 @@ public class ForecastDTO {
 
     public void setTemperature(Double newVal) {
         _temperature = newVal;
+    }
+
+    public void setTemperatureUnits(String newVal) {
+        _temperatureUnits = newVal;
     }
 
     public void setPOP(Double newVal) {

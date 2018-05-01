@@ -15,7 +15,9 @@ public class ObservationDTO implements Parcelable {
     private Double _elevation = null;
     private String _elevationUnits = null;
     private Double _temperature = null;
+    private String _temperatureUnits = null;
     private Double _dewPoint = null;
+    private String _dewPointUnits = null;
     private Double _relativeHumidity = null;
     private String _summary = null;
     private String _iconUrl = null;
@@ -42,7 +44,9 @@ public class ObservationDTO implements Parcelable {
         _elevation = in.readDouble();
         _elevationUnits = in.readString();
         _temperature = in.readDouble();
+        _temperatureUnits = in.readString();
         _dewPoint = in.readDouble();
+        _dewPointUnits = in.readString();
         _relativeHumidity = in.readDouble();
         _summary = in.readString();
         _iconUrl = in.readString();
@@ -114,12 +118,28 @@ public class ObservationDTO implements Parcelable {
         _temperature = newVal;
     }
 
+    public String getTemperatureUnits() {
+        return _temperatureUnits;
+    }
+
+    public void setTemperatureUnits(String newVal) {
+        _temperatureUnits = newVal;
+    }
+
     public Double getDewPoint() {
         return _dewPoint;
     }
 
     public void setDewPoint(Double newVal) {
         _dewPoint = newVal;
+    }
+
+    public String getDewPointUnits() {
+        return _dewPointUnits;
+    }
+
+    public void setDewPointUnits(String newVal) {
+        _dewPointUnits = newVal;
     }
 
     public Double getRelativeHumidity() {
@@ -240,7 +260,9 @@ public class ObservationDTO implements Parcelable {
         out.writeDouble(((_elevation == null) ? Double.NaN : _elevation));
         out.writeString(((_elevationUnits == null) ? "" : _elevationUnits));
         out.writeDouble(((_temperature == null) ? Double.NaN : _temperature));
+        out.writeString(((_temperatureUnits == null) ? "" : _temperatureUnits));
         out.writeDouble(((_dewPoint == null) ? Double.NaN : _dewPoint));
+        out.writeString(((_dewPointUnits == null) ? "" : _dewPointUnits));
         out.writeDouble(((_relativeHumidity == null) ? Double.NaN : _relativeHumidity));
         out.writeString(((_summary == null) ? "" : _summary));
         out.writeString(((_iconUrl == null) ? "" : _iconUrl));

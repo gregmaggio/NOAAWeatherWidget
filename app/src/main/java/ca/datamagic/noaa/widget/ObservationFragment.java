@@ -18,7 +18,19 @@ import java.text.MessageFormat;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
+import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dto.HeightCalculatorDTO;
+import ca.datamagic.noaa.dto.HeightUnitsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
+import ca.datamagic.noaa.dto.PreferencesDTO;
+import ca.datamagic.noaa.dto.PressureCalculatorDTO;
+import ca.datamagic.noaa.dto.PressureUnitsDTO;
+import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
+import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
+import ca.datamagic.noaa.dto.VisibilityCalculatorDTO;
+import ca.datamagic.noaa.dto.VisibilityUnitsDTO;
+import ca.datamagic.noaa.dto.WindSpeedCalculatorDTO;
+import ca.datamagic.noaa.dto.WindSpeedUnitsDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.FeelsLikeTemperatureCalculator;
 import ca.datamagic.noaa.util.WindDirectionConverter;
@@ -28,10 +40,11 @@ import ca.datamagic.noaa.util.WindDirectionConverter;
  */
 public class ObservationFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(ObservationFragment.class);
+    private static char _degrees = (char)0x00B0;;
     private static DecimalFormat _coordinatesFormat = new DecimalFormat("0.0");
     private static DecimalFormat _elevationFormat = new DecimalFormat("0.0");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
-    private static DecimalFormat _humidityFormat = new DecimalFormat("0");
+    private static DecimalFormat _humidityFormat = new DecimalFormat("0%");
     private static DecimalFormat _pressureFormat = new DecimalFormat("0");
     private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
@@ -102,13 +115,18 @@ public class ObservationFragment extends Fragment implements Renderer {
         observationTable.removeAllViews();
         ObservationDTO observation = getObservation();
         if (observation != null) {
+            PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
+            PreferencesDTO preferencesDTO = preferencesDAO.read();
+
             String locationText = observation.getLocationText();
             Double latitude = observation.getLatitude();
             Double longitude = observation.getLongitude();
             Double elevation = observation.getElevation();
             String elevationUnits = observation.getElevationUnits();
             Double temperature = observation.getTemperature();
+            String temperatureUnits = observation.getTemperatureUnits();
             Double dewPoint = observation.getDewPoint();
+            String dewPointUnits = observation.getDewPointUnits();
             Double windDirection = observation.getWindDirection();
             Double windSpeed = observation.getWindSpeed();
             String windSpeedUnits = observation.getWindSpeedUnits();
@@ -140,19 +158,13 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView coordinates = (TextView) item.findViewById(R.id.coordinates);
-            if ((latitude != null) && (longitude != null)) {
+            String formattedCoordinates = getFormattedCoordinates(latitude, longitude, elevation, elevationUnits, preferencesDTO);
+            if (formattedCoordinates.length() > 0) {
                 coordinates.setVisibility(View.VISIBLE);
-                coordinates.setText("(" + _coordinatesFormat.format(latitude.doubleValue()) + ", " + _coordinatesFormat.format(longitude.doubleValue()) + ")");
+                coordinates.setText(formattedCoordinates);
             } else {
                 coordinates.setVisibility(View.GONE);
-            }
-
-            TextView elevationText = (TextView) item.findViewById(R.id.elevation);
-            if ((elevation != null) && (elevationUnits != null)) {
-                elevationText.setVisibility(View.VISIBLE);
-                elevationText.setText(_elevationFormat.format(elevation.doubleValue()) + " " + elevationUnits);
-            } else {
-                elevationText.setVisibility(View.GONE);
+                coordinates.setText("");
             }
 
             if (conditionsIcon != null) {
@@ -162,72 +174,69 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView temperatureText = (TextView) item.findViewById(R.id.temperature);
-            if (temperature != null) {
-                temperatureText.setText(_temperatureFormat.format(temperature));
+            String formattedTemperature = getFormattedTemperature(temperature, temperatureUnits, preferencesDTO);
+            if (formattedTemperature.length() > 0) {
+                temperatureText.setText(formattedTemperature);
             } else {
                 temperatureText.setText(R.string.not_available);
             }
 
             TextView feelsLikeTemperatureText = (TextView)item.findViewById(R.id.feelsLikeTemperature);
-            String feelsLikeFormatted = null;
-            if (feelsLike != null) {
-                feelsLikeFormatted = _temperatureFormat.format(feelsLike.doubleValue());
-            }
-            if ((feelsLikeFormatted != null) && (feelsLikeFormatted.length() > 0) && (feelsLikeFormatted.compareToIgnoreCase("NaN") != 0)) {
+            String formattedFeelsLikeTemperature = getFormattedFeelsLikeTemperature(temperature, temperatureUnits, humidity, windSpeed, preferencesDTO);
+            if (formattedFeelsLikeTemperature.length() > 0) {
                 feelsLikeTemperatureText.setVisibility(View.VISIBLE);
-                feelsLikeTemperatureText.setText("(Feels Like " + feelsLikeFormatted + ")");
+                feelsLikeTemperatureText.setText(MessageFormat.format(getContext().getResources().getString(R.string.feelsLikeTemperatureFormat), formattedFeelsLikeTemperature));
             } else {
                 feelsLikeTemperatureText.setVisibility(View.GONE);
+                feelsLikeTemperatureText.setText("");
             }
 
             TextView dewPointText = (TextView) item.findViewById(R.id.dewPoint);
-            if (dewPoint != null) {
-                dewPointText.setText(_temperatureFormat.format(dewPoint.doubleValue()));
+            String formattedDewPointTemperature = getFormattedTemperature(dewPoint, dewPointUnits, preferencesDTO);
+            if (formattedDewPointTemperature.length() > 0) {
+                dewPointText.setText(formattedDewPointTemperature);
             } else {
                 dewPointText.setText(R.string.not_available);
             }
 
             TextView humidityText = (TextView) item.findViewById(R.id.humidity);
             if (humidity != null) {
-                humidityText.setText(_humidityFormat.format(humidity.doubleValue()));
+                humidityText.setText(_humidityFormat.format(humidity.doubleValue() / 100.0));
             } else {
                 humidityText.setText(R.string.not_available);
             }
 
             TextView wind = (TextView)item.findViewById(R.id.wind);
-            if ((windSpeed != null) && (windSpeedUnits != null) && (windSpeedUnits.length() > 0)) {
-                StringBuffer windBuffer = new StringBuffer();
-                windBuffer.append(_windFormat.format(windSpeed.doubleValue()));
-                windBuffer.append(" ");
-                windBuffer.append(windSpeedUnits);
-                if (windDirection != null) {
-                    String compass = WindDirectionConverter.degreesToCompass(windDirection);
-                    windBuffer.append(" ");
-                    windBuffer.append(compass);
-                }
-                wind.setText(windBuffer.toString());
+            String formattedWind = getFormattedWind(windSpeed, windSpeedUnits, windDirection, preferencesDTO);
+            if (formattedWind.length() > 0) {
+                wind.setText(formattedWind);
             } else {
                 wind.setText(R.string.not_available);
             }
 
-            if ((windGust != null) && (windGustUnits != null) && (windGustUnits.length() > 0)) {
-                LinearLayout windGustView = (LinearLayout)item.findViewById(R.id.windGustView);
-                TextView windGustText = (TextView)item.findViewById(R.id.windGust);
-                String windGustFormat = getResources().getString(R.string.wind_gust);
-                windGustText.setText(MessageFormat.format(windGustFormat, _windFormat.format(windGust.doubleValue()), windGustUnits));
+            LinearLayout windGustView = (LinearLayout)item.findViewById(R.id.windGustView);
+            TextView windGustText = (TextView)item.findViewById(R.id.windGust);
+            String formattedWindGusts = getFormattedWindGusts(windGust, windGustUnits, preferencesDTO);
+            if (formattedWindGusts.length() > 0) {
                 windGustView.setVisibility(View.VISIBLE);
+                windGustText.setText(formattedWindGusts);
+            } else {
+                windGustView.setVisibility(View.GONE);
+                windGustText.setText("");
             }
 
             TextView visibilityText = (TextView)item.findViewById(R.id.visibility);
-            if ((visibility != null) && (visibilityUnits != null)) {
-                visibilityText.setText(_visibilityFormat.format(visibility.doubleValue()) + " " + visibilityUnits);
+            String formattedVisibility = getFormattedVisibility(visibility, visibilityUnits, preferencesDTO);
+            if (formattedVisibility.length() > 0) {
+                visibilityText.setText(formattedVisibility);
             } else {
                 visibilityText.setText(R.string.not_available);
             }
 
             TextView pressureText = (TextView) item.findViewById(R.id.pressure);
-            if ((pressure != null) && (pressureUnits != null)) {
-                pressureText.setText(_pressureFormat.format(pressure.doubleValue()) + " " + pressureUnits);
+            String formattedPressure = getFormattedPressure(pressure, pressureUnits, preferencesDTO);
+            if (formattedPressure.length() > 0) {
+                pressureText.setText(formattedPressure);
             } else {
                 pressureText.setText(R.string.not_available);
             }
@@ -235,5 +244,166 @@ public class ObservationFragment extends Fragment implements Renderer {
             row.addView(item);
             observationTable.addView(row);
         }
+    }
+
+    private String getFormattedCoordinates(Double latitude, Double longitude, Double elevation, String elevationUnits, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        if ((latitude != null) && (longitude != null)) {
+            buffer.append(getContext().getResources().getString(R.string.latitudeAbbreviation));
+            buffer.append(": ");
+            buffer.append(_coordinatesFormat.format(Math.abs(latitude.doubleValue())));
+            buffer.append(_degrees);
+            if (latitude.doubleValue() > 0) {
+                buffer.append(getContext().getResources().getString(R.string.latitudeN));
+            } else if (latitude.doubleValue() < 0){
+                buffer.append(getContext().getResources().getString(R.string.latitudeS));
+            }
+            buffer.append(", ");
+            buffer.append(getContext().getResources().getString(R.string.longitudeAbbreviation));
+            buffer.append(": ");
+            buffer.append(_coordinatesFormat.format(Math.abs(longitude.doubleValue())));
+            buffer.append(_degrees);
+            if (longitude.doubleValue() > 0) {
+                buffer.append(getContext().getResources().getString(R.string.longitudeE));
+            } else if (longitude.doubleValue() < 0) {
+                buffer.append(getContext().getResources().getString(R.string.longitudeW));
+            }
+            if ((elevation != null) && (elevationUnits != null)) {
+                elevation = HeightCalculatorDTO.compute(elevation, elevationUnits, preferencesDTO.getHeightUnits());
+                if (elevation != null) {
+                    buffer.append(", ");
+                    buffer.append(getContext().getResources().getString(R.string.elevationAbbreviation));
+                    buffer.append(": ");
+                    buffer.append(_elevationFormat.format(elevation.doubleValue()));
+                    if (preferencesDTO.getHeightUnits().compareToIgnoreCase(HeightUnitsDTO.Feet) == 0) {
+                        buffer.append(" ");
+                        buffer.append(getContext().getResources().getString(R.string.elevationFeet));
+                    } else if (preferencesDTO.getHeightUnits().compareToIgnoreCase(HeightUnitsDTO.Meters) == 0) {
+                        buffer.append(" ");
+                        buffer.append(getContext().getResources().getString(R.string.elevationMeters));
+                    }
+                }
+            }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedTemperature(Double temperature, String temperatureUnits, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        if ((temperature != null) && (temperatureUnits != null)) {
+            temperature = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, preferencesDTO.getTemperatureUnits());
+            if (temperature != null) {
+                buffer.append(_temperatureFormat.format(temperature));
+                buffer.append(_degrees);
+                if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Fahrenheit) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.temperatureFahrenheit));
+                } else if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Celsius) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.temperatureCelsius));
+                }
+            }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedFeelsLikeTemperature(Double temperature, String temperatureUnits, Double relativeHumidity, Double windSpeed, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        temperature = FeelsLikeTemperatureCalculator.computeFeelsLikeTemperature(temperature, relativeHumidity, windSpeed);
+        if ((temperature != null) && (temperatureUnits != null)) {
+            temperature = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, preferencesDTO.getTemperatureUnits());
+            if (temperature != null) {
+                buffer.append(_temperatureFormat.format(temperature));
+                buffer.append(_degrees);
+                if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Fahrenheit) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.temperatureFahrenheit));
+                } else if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Celsius) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.temperatureCelsius));
+                }
+            }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedWind(Double windSpeed, String windSpeedUnits, Double windDirection, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        if ((windSpeed != null) && (windSpeedUnits != null)) {
+            windSpeed = WindSpeedCalculatorDTO.compute(windSpeed, windSpeedUnits, preferencesDTO.getWindSpeedUnits());
+            if (windSpeed != null) {
+                buffer.append(_windFormat.format(windSpeed.doubleValue()));
+                buffer.append(" ");
+                if (preferencesDTO.getWindSpeedUnits().compareToIgnoreCase(WindSpeedUnitsDTO.Knots) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.knots));
+                } else if (preferencesDTO.getWindSpeedUnits().compareToIgnoreCase(WindSpeedUnitsDTO.MilesPerHour) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.milesPerHour));
+                } else if (preferencesDTO.getWindSpeedUnits().compareToIgnoreCase(WindSpeedUnitsDTO.KilometersPerHour) == 0) {
+                    buffer.append(getContext().getResources().getString(R.string.kilometersPerHour));
+                }
+                if (windDirection != null) {
+                    String compass = WindDirectionConverter.degreesToCompass(windDirection);
+                    if (compass != null) {
+                        buffer.append(" ");
+                        buffer.append(compass);
+                    }
+                }
+            }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedWindGusts(Double windGust, String windGustUnits, PreferencesDTO preferencesDTO) {
+        if ((windGust != null) && (windGustUnits != null)) {
+            windGust = WindSpeedCalculatorDTO.compute(windGust, windGustUnits, preferencesDTO.getWindSpeedUnits());
+            if (windGust != null) {
+                String units = "";
+                if (preferencesDTO.getWindSpeedUnits().compareToIgnoreCase(WindSpeedUnitsDTO.Knots) == 0) {
+                    units = getResources().getString(R.string.knots);
+                } else if (preferencesDTO.getWindSpeedUnits().compareToIgnoreCase(WindSpeedUnitsDTO.MilesPerHour) == 0) {
+                    units = getResources().getString(R.string.milesPerHour);
+                } else if (preferencesDTO.getWindSpeedUnits().compareToIgnoreCase(WindSpeedUnitsDTO.KilometersPerHour) == 0) {
+                    units = getResources().getString(R.string.kilometersPerHour);
+                }
+                String windGustFormat = getResources().getString(R.string.wind_gust);
+                return MessageFormat.format(windGustFormat, _windFormat.format(windGust.doubleValue()), units);
+            }
+        }
+        return "";
+    }
+
+    private String getFormattedVisibility(Double visibility, String visibilityUnits, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        if ((visibility != null) && (visibilityUnits != null)) {
+            visibility = VisibilityCalculatorDTO.compute(visibility, visibilityUnits, preferencesDTO.getVisibilityUnits());
+            if (visibility != null) {
+                buffer.append(_visibilityFormat.format(visibility.doubleValue()));
+                if (preferencesDTO.getVisibilityUnits().compareToIgnoreCase(VisibilityUnitsDTO.StatuteMiles) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getResources().getString(R.string.statuteMiles));
+                } else if (preferencesDTO.getVisibilityUnits().compareToIgnoreCase(VisibilityUnitsDTO.StatuteMiles) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getResources().getString(R.string.miles));
+                } else if (preferencesDTO.getVisibilityUnits().compareToIgnoreCase(VisibilityUnitsDTO.Kilometers) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getResources().getString(R.string.kilometers));
+                }
+            }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedPressure(Double pressure, String pressureUnits, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        if ((pressure != null) && (pressureUnits != null)) {
+            pressure = PressureCalculatorDTO.compute(pressure, pressureUnits, preferencesDTO.getPressureUnits());
+            if (pressure != null) {
+                buffer.append(_pressureFormat.format(pressure.doubleValue()));
+                if (preferencesDTO.getPressureUnits().compareToIgnoreCase(PressureUnitsDTO.InchesOfMercury) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getResources().getString(R.string.inchesOfMercury));
+                } else if (preferencesDTO.getPressureUnits().compareToIgnoreCase(PressureUnitsDTO.KiloPascals) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getResources().getString(R.string.kiloPascals));
+                }
+            }
+        }
+        return buffer.toString();
     }
 }
