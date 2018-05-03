@@ -21,12 +21,14 @@
             android:id="@+id/temperatureUnitsFahrenheit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/fahrenheit" />
+            android:text="@string/fahrenheit"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/temperatureUnitsCelsius"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/celsius" />
+            android:text="@string/celsius"
+            android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
     <TextView
         android:id="@+id/windSpeedUnitsLabel"
@@ -35,7 +37,8 @@
         android:layout_weight="1"
         android:paddingLeft="8px"
         android:paddingRight="8px"
-        android:text="@string/windSpeedUnits" />
+        android:text="@string/windSpeedUnits"
+        android:buttonTint="@color/colorPrimary"/>
     <RadioGroup
         android:id="@+id/windSpeedUnits"
         android:orientation="horizontal"
@@ -46,17 +49,20 @@
             android:id="@+id/windSpeedUnitsKnots"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/knots" />
+            android:text="@string/knots"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/windSpeedUnitsMilesPerHour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/milesPerHour" />
+            android:text="@string/milesPerHour"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/windSpeedUnitsKilometersPerHour"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/kilometersPerHour" />
+            android:text="@string/kilometersPerHour"
+            android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
     <TextView
         android:id="@+id/pressureUnitsLabel"
@@ -65,7 +71,8 @@
         android:layout_weight="1"
         android:paddingLeft="8px"
         android:paddingRight="8px"
-        android:text="@string/pressureUnits" />
+        android:text="@string/pressureUnits"
+        android:buttonTint="@color/colorPrimary"/>
     <RadioGroup
         android:id="@+id/pressureUnits"
         android:orientation="horizontal"
@@ -76,12 +83,14 @@
             android:id="@+id/pressureUnitsInchesOfMercury"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/inchesOfMercury" />
+            android:text="@string/inchesOfMercury"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/pressureUnitsKiloPascals"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/kiloPascals" />
+            android:text="@string/kiloPascals"
+            android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
     <TextView
         android:id="@+id/visibilityUnitsLabel"
@@ -101,17 +110,20 @@
             android:id="@+id/visibilityUnitsStatuteMiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/statuteMiles" />
+            android:text="@string/statuteMiles"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/visibilityUnitsMiles"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/miles" />
+            android:text="@string/miles"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/visibilityUnitsKilometers"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/kilometers" />
+            android:text="@string/kilometers"
+            android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
     <TextView
         android:id="@+id/heightUnitsLabel"
@@ -131,12 +143,14 @@
             android:id="@+id/heightUnitsFeet"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/feet" />
+            android:text="@string/feet"
+            android:buttonTint="@color/colorPrimary"/>
         <RadioButton
             android:id="@+id/heightUnitsMeters"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/meters" />
+            android:text="@string/meters"
+            android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
     <LinearLayout
         android:layout_width="match_parent"

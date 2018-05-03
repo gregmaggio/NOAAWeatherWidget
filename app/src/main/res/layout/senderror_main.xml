@@ -27,7 +27,8 @@
         android:singleLine="false"
         android:text="Text"
         android:textAlignment="gravity"
-        tools:text="Text" />
+        tools:text=""
+        android:textColor="@color/colorPrimaryDark"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
