@@ -166,6 +166,40 @@
                     android:text=""
                     android:id="@+id/pressure" />
             </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sunrise"
+                    android:id="@+id/sunriseLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/sunrise" />
+            </LinearLayout>
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sunset"
+                    android:id="@+id/sunsetLabel" />
+                <TextView
+                    android:padding="6dip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/sunset" />
+            </LinearLayout>
         </LinearLayout>
         <LinearLayout
             android:orientation="horizontal"

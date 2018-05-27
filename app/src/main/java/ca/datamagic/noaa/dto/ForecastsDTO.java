@@ -4,6 +4,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import ca.datamagic.noaa.dao.ForecastsDAO;

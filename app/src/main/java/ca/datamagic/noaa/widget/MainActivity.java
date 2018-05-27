@@ -45,6 +45,7 @@ import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.RefreshTask;
 import ca.datamagic.noaa.async.StationTask;
+import ca.datamagic.noaa.async.SunriseSunsetTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dao.DWMLDAO;
@@ -61,6 +62,7 @@ import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StationDTO;
+import ca.datamagic.noaa.dto.SunriseSunsetDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
@@ -77,6 +79,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
+    private SunriseSunsetDTO _sunriseSunset = null;
     private DWMLDTO _dwml = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
@@ -369,6 +372,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
 
+            SunriseSunsetTask sunriseSunsetTask = new SunriseSunsetTask(_latitude, _longitude);
+            AsyncTaskListener<SunriseSunsetDTO> sunriseSunsetListener = new AsyncTaskListener<SunriseSunsetDTO>() {
+                @Override
+                public void completed(AsyncTaskResult<SunriseSunsetDTO> result) {
+                    if (result.getThrowable() != null) {
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Error retrieving Sunrise/Sunset.", result.getThrowable());
+                        }
+                    } else {
+                        _sunriseSunset = result.getResult();
+                    }
+                    _mainPageAdapter.setSunriseSunset(_sunriseSunset);
+                }
+            };
+
             DWMLTask dwmlTask = new DWMLTask(_latitude, _longitude, _unit);
             AsyncTaskListener<DWMLDTO> dwmlListener = new AsyncTaskListener<DWMLDTO>() {
                 @Override
@@ -420,6 +438,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             };
 
             Workflow refreshWorkflow = new Workflow();
+            refreshWorkflow.addStep(new WorkflowStep(sunriseSunsetTask, sunriseSunsetListener));
             refreshWorkflow.addStep(new WorkflowStep(dwmlTask, dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(discussionTask, discussionListener));
             refreshWorkflow.addStep(new WorkflowStep(stationTask, stationListener));

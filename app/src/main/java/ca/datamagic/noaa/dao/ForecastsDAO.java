@@ -43,6 +43,7 @@ public class ForecastsDAO {
             if (forecastDays != null) {
                 for (int ii = 0; ii < forecastDays.size(); ii++) {
                     ValidTimeDTO startTime = forecastDays.get(ii);
+
                     String dayOfMonth = "";
                     String dayOfWeek = startTime.getPeriodName();
                     if (startTime.getTimeStamp() != null) {

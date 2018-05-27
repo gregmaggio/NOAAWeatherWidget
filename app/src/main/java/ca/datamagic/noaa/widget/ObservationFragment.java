@@ -25,6 +25,7 @@ import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.PressureCalculatorDTO;
 import ca.datamagic.noaa.dto.PressureUnitsDTO;
+import ca.datamagic.noaa.dto.SunriseSunsetDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.VisibilityCalculatorDTO;
@@ -64,14 +65,30 @@ public class ObservationFragment extends Fragment implements Renderer {
         }
     }
 
-    public static ObservationFragment newInstance() {
-        return newInstance(null);
+    public SunriseSunsetDTO getSunriseSunset() {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            return arguments.getParcelable("sunriseSunset");
+        }
+        return null;
     }
 
-    public static ObservationFragment newInstance(ObservationDTO observation) {
+    public void setSunriseSunset(SunriseSunsetDTO newVal) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            arguments.putParcelable("sunriseSunset", newVal);
+        }
+    }
+
+    public static ObservationFragment newInstance() {
+        return newInstance(null, null);
+    }
+
+    public static ObservationFragment newInstance(ObservationDTO observation, SunriseSunsetDTO sunriseSunset) {
         ObservationFragment fragment = new ObservationFragment();
         Bundle bundle = new Bundle();
         bundle.putParcelable("observation", observation);
+        bundle.putParcelable("sunriseSunset", sunriseSunset);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -241,6 +258,16 @@ public class ObservationFragment extends Fragment implements Renderer {
                 pressureText.setText(R.string.not_available);
             }
 
+            TextView sunriseText = (TextView) item.findViewById(R.id.sunrise);
+            TextView sunsetText = (TextView) item.findViewById(R.id.sunset);
+            SunriseSunsetDTO sunriseSunset = getSunriseSunset();
+            if (sunriseSunset != null) {
+                sunriseText.setText(sunriseSunset.getSunrise());
+                sunsetText.setText(sunriseSunset.getSunset());
+            } else {
+                sunriseText.setText("");
+                sunsetText.setText("");
+            }
             row.addView(item);
             observationTable.addView(row);
         }

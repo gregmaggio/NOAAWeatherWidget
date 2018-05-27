@@ -133,6 +133,7 @@ public class ForecastFragment extends Fragment implements Renderer {
                         TableRow row = new TableRow(getContext());
                         row.setVisibility(View.VISIBLE);
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                        row.setTag(ii);
 
                         LinearLayout item = (LinearLayout)inflater.inflate(R.layout.forecast_item, null);
                         item.setVisibility(View.VISIBLE);

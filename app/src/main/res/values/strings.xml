@@ -57,4 +57,11 @@
     <string name="longitudeAbbreviation">Lon</string>
     <string name="elevationAbbreviation">Elev</string>
     <string name="feelsLikeTemperatureFormat">(Feels Like {0})</string>
+    <string name="forecastDate">Day</string>
+    <string name="temperature">Temperature</string>
+    <string name="pop">Precipitation</string>
+    <string name="popMeaning">Percentage of the forecast area that will see at least some precipitation.</string>
+    <string name="sunrise">Sunrise</string>
+    <string name="sunset">Sunset</string>
+    <string name="back">Back</string>
 </resources>

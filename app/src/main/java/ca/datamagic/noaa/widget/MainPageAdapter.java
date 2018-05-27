@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
+import ca.datamagic.noaa.dto.SunriseSunsetDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -22,6 +23,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
     public static final int SkewTIndex = 3;
+    private SunriseSunsetDTO _sunriseSunset = null;
     private ObservationDTO _observation = null;
     private ForecastsDTO _forecasts = null;
     private String _discussion = null;
@@ -35,6 +37,14 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
         _pageTitles[SkewTIndex] = context.getResources().getString(R.string.skewt_page_title);
+    }
+
+    public SunriseSunsetDTO getSunriseSunset() {
+        return _sunriseSunset;
+    }
+
+    public void setSunriseSunset(SunriseSunsetDTO newVal) {
+        _sunriseSunset = newVal;
     }
 
     public ObservationDTO getObservation() {
@@ -97,7 +107,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         if (_fragments[position] == null) {
             switch (position) {
                 case ObservationIndex:
-                    _fragments[position] = ObservationFragment.newInstance(getObservation());
+                    _fragments[position] = ObservationFragment.newInstance(getObservation(), getSunriseSunset());
                     break;
                 case ForecastIndex:
                     _fragments[position] = ForecastFragment.newInstance(getForecasts());
@@ -113,6 +123,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
             switch (position) {
                 case ObservationIndex:
                     ((ObservationFragment)_fragments[position]).setObservation(getObservation());
+                    ((ObservationFragment)_fragments[position]).setSunriseSunset(getSunriseSunset());
                     break;
                 case ForecastIndex:
                     ((ForecastFragment)_fragments[position]).setForecasts(getForecasts());

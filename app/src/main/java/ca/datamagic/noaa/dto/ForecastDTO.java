@@ -77,4 +77,18 @@ public class ForecastDTO {
     public void setWordedForecast(String newVal) {
         _wordedForecast = newVal;
     }
+
+    @Override
+    public String toString() {
+        return "ForecastDTO{" +
+                "_dayOfMonth='" + _dayOfMonth + '\'' +
+                ", _dayOfWeek='" + _dayOfWeek + '\'' +
+                ", _summary='" + _summary + '\'' +
+                ", _temperature=" + _temperature +
+                ", _temperatureUnits='" + _temperatureUnits + '\'' +
+                ", _pop=" + _pop +
+                ", _imageUrl='" + _imageUrl + '\'' +
+                ", _wordedForecast='" + _wordedForecast + '\'' +
+                '}';
+    }
 }
