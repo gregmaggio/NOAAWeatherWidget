@@ -9,14 +9,17 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dto.StationDTO;
+import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 2/11/2017.
  */
 
 public class StationsHelper extends SQLiteOpenHelper {
+    private static Logger _logger = LogFactory.getLogger(StationsHelper.class);
     private static int _version = 1;
     private static String _dbName = "stations.db";
     private static String _createSQL = "CREATE TABLE station (station_id TEXT, station_name TEXT, street_number TEXT, street_name TEXT, city TEXT, state_code TEXT, state_name TEXT, zip TEXT, country_code TEXT, country_name TEXT, latitude NUMERIC, longitude NUMERIC, has_radiosonde TEXT)";
@@ -43,6 +46,7 @@ public class StationsHelper extends SQLiteOpenHelper {
     }
 
     public void writeStations(List<StationDTO> stations) {
+        _logger.info("writeStations: " + stations.size());
         SQLiteDatabase db = getWritableDatabase();
         db.delete("station", null, null);
         for (int ii = 0; ii < stations.size(); ii++) {

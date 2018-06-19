@@ -37,6 +37,15 @@ public class ImageDAO {
     private static int _retryTimeoutMillis = 500;
     private static int _bufferSize = 1024;
     private static String _filesPath = null;
+    private boolean _enableFileCache = true;
+
+    public ImageDAO() {
+
+    }
+
+    public ImageDAO(boolean enableFileCache) {
+        _enableFileCache = enableFileCache;
+    }
 
     public static String getFilesPath() {
         return _filesPath;
@@ -57,9 +66,12 @@ public class ImageDAO {
         File file = new File(path);
         _logger.info("file: " + file.getName());
 
-        byte[] imageBytes = read(file.getName());
-        if (imageBytes != null) {
-            return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+        byte[] imageBytes = null;
+        if (_enableFileCache) {
+            imageBytes = read(file.getName());
+            if (imageBytes != null) {
+                return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+            }
         }
 
         for (int ii = 0; ii < _maxTries; ii++) {
@@ -86,7 +98,9 @@ public class ImageDAO {
                     for (int jj = 0; jj < bytesArray.size(); jj++) {
                         imageBytes[jj] = bytesArray.get(jj).byteValue();
                     }
-                    write(file.getName(), imageBytes);
+                    if (_enableFileCache) {
+                        write(file.getName(), imageBytes);
+                    }
                     return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                 } finally {
                     if (inputStream != null) {

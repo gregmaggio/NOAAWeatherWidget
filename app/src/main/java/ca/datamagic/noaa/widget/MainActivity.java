@@ -83,7 +83,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private DWMLDTO _dwml = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private StationDTO _station = null;
+    private StationDTO _station1 = null;
+    private StationDTO _station2 = null;
     private StationsHelper _stationsHelper = null;
     private StationDTO _selectedStation = null;
     private SharedPreferences _preferences = null;
@@ -222,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         });
 
         readPreferences();
-        actionRefresh();
+        myLocation();
     }
 
     private void initializeGoogleApiClient() {
@@ -343,7 +344,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _savedLongitude = _longitude;
                     _latitude = lastLocation.getLatitude();
                     _longitude = lastLocation.getLongitude();
-                    actionRefresh();
                 } else {
                     // TODO
                 }
@@ -359,6 +359,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.log(Level.WARNING, "Unknown Exception in myLocation.", t);
             }
         }
+        actionRefresh();
     }
 
     public void actionRefresh() {
@@ -420,8 +421,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
             };
 
-            StationTask stationTask = new StationTask(_latitude, _longitude);
-            AsyncTaskListener<StationDTO> stationListener = new AsyncTaskListener<StationDTO>() {
+            StationTask stationTask1 = new StationTask(_latitude, _longitude, false);
+            AsyncTaskListener<StationDTO> stationListener1 = new AsyncTaskListener<StationDTO>() {
+                @Override
+                public void completed(AsyncTaskResult<StationDTO> result) {
+                    if (result.getThrowable() != null) {
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
+                        }
+                    } else {
+                        _station1 = result.getResult();
+                        _stationsAdapter.add(_station1);
+                    }
+                }
+            };
+
+            StationTask stationTask2 = new StationTask(_latitude, _longitude, true);
+            AsyncTaskListener<StationDTO> stationListener2 = new AsyncTaskListener<StationDTO>() {
                 @Override
                 public void completed(AsyncTaskResult<StationDTO> result) {
                     if (result.getThrowable() != null) {
@@ -430,8 +446,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                             _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
                         }
                     } else {
-                        _station = result.getResult();
-                        String skewTUrl = MessageFormat.format("http://weather.unisys.com/upper_air/skew/skew_{0}.gif", _station.getStationId());
+                        _station2 = result.getResult();
+                        String skewTUrl = MessageFormat.format("http://weather.unisys.com/sites/default/files/mnt/webdata/upper_air/skew/skew_{0}.gif", _station2.getStationId());
                         _mainPageAdapter.setSkewTUrl(skewTUrl);
                     }
                 }
@@ -441,7 +457,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             refreshWorkflow.addStep(new WorkflowStep(sunriseSunsetTask, sunriseSunsetListener));
             refreshWorkflow.addStep(new WorkflowStep(dwmlTask, dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(discussionTask, discussionListener));
-            refreshWorkflow.addStep(new WorkflowStep(stationTask, stationListener));
+            refreshWorkflow.addStep(new WorkflowStep(stationTask1, stationListener1));
+            refreshWorkflow.addStep(new WorkflowStep(stationTask2, stationListener2));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -606,6 +623,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onStationAdded(StationDTO station) {
         _stationsHelper.writeStations(_stationsAdapter.getStations());
+        _stationsAdapter.notifyDataSetChanged();
     }
 
     @Override

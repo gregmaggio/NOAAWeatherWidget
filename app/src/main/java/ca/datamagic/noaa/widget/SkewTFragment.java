@@ -59,7 +59,7 @@ public class SkewTFragment extends Fragment implements Renderer {
         ImageView skewTView = (ImageView)view.findViewById(R.id.skewTView);
         String skewTUrl = getSkewTUrl();
         if ((skewTUrl != null) && (skewTUrl.length() > 0)) {
-            ImageTask imageTask = new ImageTask(skewTUrl, skewTView);
+            ImageTask imageTask = new ImageTask(skewTUrl, skewTView, false);
             imageTask.execute((Void[]) null);
         } else {
             Bitmap blank = BitmapFactory.decodeResource(getResources(), R.drawable._blank);

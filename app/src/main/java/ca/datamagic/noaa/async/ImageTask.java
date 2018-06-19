@@ -3,7 +3,6 @@ package ca.datamagic.noaa.async;
 import android.graphics.Bitmap;
 import android.widget.ImageView;
 
-import java.util.Hashtable;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.ImageDAO;
@@ -14,10 +13,10 @@ import ca.datamagic.noaa.logging.LogFactory;
  */
 public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
     private Logger _logger = LogFactory.getLogger(ImageTask.class);
-    private static Hashtable<String, Bitmap> _cachedImages = new Hashtable<String, Bitmap>();
     private ImageDAO _dao = null;
     private String _imageUrl = null;
     private ImageView _imageView = null;
+    private boolean _enableFileCache = true;
 
     public ImageTask(String imageUrl, ImageView imageView) {
         _dao = new ImageDAO();
@@ -25,33 +24,17 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
         _imageView = imageView;
     }
 
-    private static synchronized Bitmap getBitmap(String imageUrl) {
-        String key = imageUrl.toLowerCase();
-        if (_cachedImages.containsKey(key)) {
-            return _cachedImages.get(key);
-        }
-        return null;
-    }
-
-    private static synchronized void setBitmap(String imageUrl, Bitmap newVal) {
-        String key = imageUrl.toLowerCase();
-        _cachedImages.put(key, newVal);
+    public ImageTask(String imageUrl, ImageView imageView, boolean enableFileCache) {
+        _dao = new ImageDAO(enableFileCache);
+        _imageUrl = imageUrl;
+        _imageView = imageView;
     }
 
     @Override
     protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
         _logger.info("Loading image...");
         try {
-            Bitmap bitmap = null;
-            if ((_imageUrl != null) && (_imageUrl.length() > 0)) {
-                bitmap = getBitmap(_imageUrl);
-                if (bitmap == null) {
-                    bitmap = _dao.load(_imageUrl);
-                    if (bitmap != null) {
-                        setBitmap(_imageUrl, bitmap);
-                    }
-                }
-            }
+            Bitmap bitmap = _dao.load(_imageUrl);
             return new AsyncTaskResult<Bitmap>(bitmap);
         } catch (Throwable t) {
             return new AsyncTaskResult<Bitmap>(t);
