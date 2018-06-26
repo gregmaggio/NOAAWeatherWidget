@@ -30,6 +30,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     private String _skewTUrl = null;
     private String[] _pageTitles = new String[4];
     private Fragment[] _fragments = new Fragment[4];
+    private ViewGroup _container = null;
 
     public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
@@ -82,7 +83,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public void refreshPage(FragmentManager manager, int position) {
         Fragment currentFragment = getItem(position);
         if (currentFragment != null) {
-            Renderer renderer = (Renderer)currentFragment;
+            Renderer renderer = (Renderer) currentFragment;
             renderer.render();
         }
     }
@@ -142,12 +143,14 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     @Override
     public void startUpdate(ViewGroup container) {
         _logger.info("startUpdate");
+        _container = container;
         super.startUpdate(container);
     }
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         _logger.info("instantiateItem. position: " + position);
+        _container = container;
         Object item = super.instantiateItem(container, position);
         if (item == null) {
             _logger.info("item is null");
@@ -162,6 +165,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         _logger.info("destroyItem. position: " + position);
+        _container = container;
         _fragments[position] = null;
         super.destroyItem(container, position, object);
     }
@@ -169,6 +173,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     @Override
     public void finishUpdate(ViewGroup container) {
         _logger.info("finishUpdate");
+        _container = container;
         super.finishUpdate(container);
     }
 

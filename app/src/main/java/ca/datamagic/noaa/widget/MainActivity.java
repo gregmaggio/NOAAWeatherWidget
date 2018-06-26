@@ -1,8 +1,10 @@
 package ca.datamagic.noaa.widget;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
@@ -213,7 +215,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             @Override
             public void onPageSelected(int position) {
-                _mainPageAdapter.refreshPage(getSupportFragmentManager(), position);
+                refreshView();
             }
 
             @Override
@@ -462,17 +464,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
+                    writeCurrentState();
                     _processing = false;
                     _spinner.setVisibility(View.GONE);
-                    if (!success) {
-                        _latitude = _savedlatitude;
-                        _longitude = _savedLongitude;
-                        RefreshTask refreshTask = new RefreshTask(_thisInstance);
-                        refreshTask.execute((Void)null);
-                    } else {
-                        _mainPageAdapter.refreshPage(getSupportFragmentManager(), _viewPager.getCurrentItem());
-                        writeCurrentState();
-                    }
+                    refreshView();
                 }
             });
             refreshWorkflow.start();
@@ -484,6 +479,37 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.log(Level.WARNING, "Unknown Exception in refresh.", t);
             }
         }
+    }
+
+    private void refreshView() {
+        try {
+            _mainPageAdapter.refreshPage(getSupportFragmentManager(), _viewPager.getCurrentItem());
+        } catch (Throwable t) {
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
+            }
+            showError("Some Android weirdness occurred when rendering the widget. Wait a second and try refresh or my location from the menu.");
+        }
+    }
+
+    private void showError(String message) {
+        // 1. Instantiate an AlertDialog.Builder with its constructor
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.ErrorDialogTheme);
+
+        // 2. Chain together various setter methods to set the dialog characteristics
+        builder.setMessage(message);
+        builder.setTitle("Error");
+
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User clicked OK button
+                dialog.dismiss();
+            }
+        });
+
+        // 3. Get the AlertDialog from create()
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     private void actionSettings() {
