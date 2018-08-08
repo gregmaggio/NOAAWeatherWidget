@@ -56,11 +56,7 @@ public class WorkflowStep<Params, Progress, Result> {
             @Override
             public void completed(AsyncTaskResult<Result> result) {
                 _listener.completed(result);
-                if (result.getThrowable() != null) {
-                    fireDrop();
-                } else {
-                    firePass();
-                }
+                firePass();
             }
         });
         _task.execute((Params[])null);

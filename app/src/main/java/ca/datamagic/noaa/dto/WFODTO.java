@@ -15,6 +15,8 @@ public class WFODTO {
     private String _cityState = null;
     private String _city = null;
     private String _state = null;
+    private String _stateAbbreviation = null;
+    private String _radar = null;
 
     public WFODTO() {
     }
@@ -28,7 +30,8 @@ public class WFODTO {
         _fullStationId = obj.optString("fullStationId", "");
         _cityState = obj.optString("cityState", "");
         _city = obj.optString("city", "");
-        _state = obj.optString("state", "");
+        _stateAbbreviation = obj.optString("stateAbbreviation", "");
+        _radar = obj.optString("radar", "");
     }
 
     public String getCWA() {
@@ -67,6 +70,14 @@ public class WFODTO {
         return _state;
     }
 
+    public String getStateAbbreviation() {
+        return _stateAbbreviation;
+    }
+
+    public String getRadar() {
+        return _radar;
+    }
+
     public void setCWA(String newVal) {
         _cwa = newVal;
     }
@@ -101,5 +112,13 @@ public class WFODTO {
 
     public void setState(String newVal) {
         _state = newVal;
+    }
+
+    public void setStateAbbreviation(String newVal) {
+        _stateAbbreviation = newVal;
+    }
+
+    public void setRadar(String newVal) {
+        _radar = newVal;
     }
 }

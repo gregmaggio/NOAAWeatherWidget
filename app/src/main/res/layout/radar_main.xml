@@ -2,9 +2,11 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="#FFFFFF"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent" >
-    <ca.datamagic.noaa.widget.SkewTView
+    android:layout_height="fill_parent"
+    android:fillViewport="true">
+    <ca.datamagic.noaa.widget.RadarView
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:id="@+id/skewTView" />
+        android:fillViewport="true"
+        android:id="@+id/radarView" />
 </RelativeLayout>

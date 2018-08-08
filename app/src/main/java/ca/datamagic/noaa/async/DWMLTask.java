@@ -11,17 +11,15 @@ import ca.datamagic.noaa.logging.LogFactory;
  */
 
 public class DWMLTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
-    private Logger _logger = LogFactory.getLogger(DWMLTask.class);
-    private DWMLDAO _dao = null;
+    private static Logger _logger = LogFactory.getLogger(DWMLTask.class);
+    private static DWMLDAO _dao = new DWMLDAO();
     private double _latitude = 0.0;
     private double _longitude = 0.0;
-    private String _unit = "e";
+    private static String _unit = "e";
 
-    public DWMLTask(double latitude, double longitude, String unit) {
-        _dao = new DWMLDAO();
+    public DWMLTask(double latitude, double longitude) {
         _latitude = latitude;
         _longitude = longitude;
-        _unit = unit;
     }
 
     @Override

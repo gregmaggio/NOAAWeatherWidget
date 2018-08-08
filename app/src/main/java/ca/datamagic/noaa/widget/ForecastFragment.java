@@ -63,7 +63,7 @@ public class ForecastFragment extends Fragment implements Renderer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.forecast_main, container, false);
-        render(view, inflater);
+        //render(view, inflater);
         return view;
     }
 

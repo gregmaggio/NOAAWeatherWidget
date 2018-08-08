@@ -11,13 +11,12 @@ import ca.datamagic.noaa.dto.SunriseSunsetDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class SunriseSunsetTask extends AsyncTaskBase<Void, Void, SunriseSunsetDTO> {
-    private Logger _logger = LogFactory.getLogger(DWMLTask.class);
-    private TimeZoneDAO _dao = null;
+    private static Logger _logger = LogFactory.getLogger(DWMLTask.class);
+    private static TimeZoneDAO _dao = new TimeZoneDAO();
     private double _latitude = 0.0;
     private double _longitude = 0.0;
 
     public SunriseSunsetTask(double latitude, double longitude) {
-        _dao = new TimeZoneDAO();
         _latitude = latitude;
         _longitude = longitude;
     }

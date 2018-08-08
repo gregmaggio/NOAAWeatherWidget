@@ -2,8 +2,6 @@ package ca.datamagic.noaa.dto;
 
 import org.json.JSONObject;
 
-import java.util.Comparator;
-
 public class StationDTO implements Comparable<StationDTO> {
     private String _stationId = null;
     private String _stationName = null;

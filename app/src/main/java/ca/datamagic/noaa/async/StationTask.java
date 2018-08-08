@@ -10,14 +10,13 @@ import ca.datamagic.noaa.logging.LogFactory;
  * Created by Greg on 12/14/2016.
  */
 public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
-    private Logger _logger = LogFactory.getLogger(StationTask.class);
-    private StationDAO _dao = null;
+    private static Logger _logger = LogFactory.getLogger(StationTask.class);
+    private static StationDAO _dao = new StationDAO();
     private double _latitude = 0.0;
     private double _longitude = 0.0;
     private boolean _includeRadiosonde = true;
 
     public StationTask(double latitude, double longitude, boolean includeRadiosonde) {
-        _dao = new StationDAO();
         _latitude = latitude;
         _longitude = longitude;
         _includeRadiosonde = includeRadiosonde;

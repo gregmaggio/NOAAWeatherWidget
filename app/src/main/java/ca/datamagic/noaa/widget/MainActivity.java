@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -45,9 +46,11 @@ import ca.datamagic.noaa.async.DWMLTask;
 import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
-import ca.datamagic.noaa.async.RefreshTask;
+import ca.datamagic.noaa.async.RadarTask;
+import ca.datamagic.noaa.async.SkewTTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.SunriseSunsetTask;
+import ca.datamagic.noaa.async.WFOTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dao.DWMLDAO;
@@ -63,8 +66,10 @@ import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
+import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.SunriseSunsetDTO;
+import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
@@ -81,12 +86,29 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
+    private SunriseSunsetTask _sunriseSunsetTask = null;
+    private DWMLTask _dwmlTask = null;
+    private WFOTask _wfoTask = null;
+    private RadarTask _radarTask = null;
+    private DiscussionTask _discussionTask = null;
+    private StationTask _stationTaskNearest = null;
+    private StationTask _stationTaskNearestWithRadisonde = null;
+    private SkewTTask _skewTTask = null;
+    private SunriseSunsetListener _sunriseSunsetListener = new SunriseSunsetListener();
+    private DWMLListener _dwmlListener = new DWMLListener();
+    private WFOListener _wfoListener = new WFOListener();
+    private RadarListener _radarListener = new RadarListener();
+    private DiscussionListener _discussionListener = new DiscussionListener();
+    private StationListenerNearest _stationListenerNearest = new StationListenerNearest();
+    private StationListenerNearestWithRadiosonde _stationListenerNearestWithRadiosonde = new StationListenerNearestWithRadiosonde();
     private SunriseSunsetDTO _sunriseSunset = null;
     private DWMLDTO _dwml = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private StationDTO _station1 = null;
-    private StationDTO _station2 = null;
+    private WFODTO _wfo = null;
+    private StationDTO _stationNearest = null;
+    private StationDTO _stationNearestWithRadiosonde = null;
+    private Bitmap _skewT = null;
     private StationsHelper _stationsHelper = null;
     private StationDTO _selectedStation = null;
     private SharedPreferences _preferences = null;
@@ -242,10 +264,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
             LogFactory.initialize(Level.WARNING, _filesPath, true);
-            DiscussionDAO.setFilesPath(_filesPath);
-            DWMLDAO.setFilesPath(_filesPath);
             ImageDAO.setFilesPath(_filesPath);
-            WFODAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
             // Do Nothing
@@ -369,98 +388,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             return;
         }
         try {
+            resetView();
+
             _processing = true;
+
             _spinner.setVisibility(View.VISIBLE);
             _year = Calendar.getInstance().get(Calendar.YEAR);
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-
-            SunriseSunsetTask sunriseSunsetTask = new SunriseSunsetTask(_latitude, _longitude);
-            AsyncTaskListener<SunriseSunsetDTO> sunriseSunsetListener = new AsyncTaskListener<SunriseSunsetDTO>() {
-                @Override
-                public void completed(AsyncTaskResult<SunriseSunsetDTO> result) {
-                    if (result.getThrowable() != null) {
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving Sunrise/Sunset.", result.getThrowable());
-                        }
-                    } else {
-                        _sunriseSunset = result.getResult();
-                    }
-                    _mainPageAdapter.setSunriseSunset(_sunriseSunset);
-                }
-            };
-
-            DWMLTask dwmlTask = new DWMLTask(_latitude, _longitude, _unit);
-            AsyncTaskListener<DWMLDTO> dwmlListener = new AsyncTaskListener<DWMLDTO>() {
-                @Override
-                public void completed(AsyncTaskResult<DWMLDTO> result) {
-                    if (result.getThrowable() != null) {
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
-                        }
-                    } else {
-                        _dwml = result.getResult();
-                        _obervation = ObservationDAO.getObservation(_dwml);
-                        _forecasts = ForecastsDAO.getForecasts(_dwml);
-                    }
-                    _mainPageAdapter.setObservation(_obervation);
-                    _mainPageAdapter.setForecasts(_forecasts);
-                }
-            };
-
-            DiscussionTask discussionTask = new DiscussionTask(_latitude, _longitude);
-            AsyncTaskListener<String> discussionListener = new AsyncTaskListener<String>() {
-                @Override
-                public void completed(AsyncTaskResult<String> result) {
-                    if (result.getThrowable() != null) {
-                        _mainPageAdapter.setDiscussion(null);
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
-                        }
-                    } else {
-                        _mainPageAdapter.setDiscussion(result.getResult());
-                    }
-                }
-            };
-
-            StationTask stationTask1 = new StationTask(_latitude, _longitude, false);
-            AsyncTaskListener<StationDTO> stationListener1 = new AsyncTaskListener<StationDTO>() {
-                @Override
-                public void completed(AsyncTaskResult<StationDTO> result) {
-                    if (result.getThrowable() != null) {
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
-                        }
-                    } else {
-                        _station1 = result.getResult();
-                        _stationsAdapter.add(_station1);
-                    }
-                }
-            };
-
-            StationTask stationTask2 = new StationTask(_latitude, _longitude, true);
-            AsyncTaskListener<StationDTO> stationListener2 = new AsyncTaskListener<StationDTO>() {
-                @Override
-                public void completed(AsyncTaskResult<StationDTO> result) {
-                    if (result.getThrowable() != null) {
-                        _mainPageAdapter.setSkewTUrl(null);
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
-                        }
-                    } else {
-                        _station2 = result.getResult();
-                        String skewTUrl = MessageFormat.format("http://weather.unisys.com/sites/default/files/mnt/webdata/upper_air/skew/skew_{0}.gif", _station2.getStationId());
-                        _mainPageAdapter.setSkewTUrl(skewTUrl);
-                    }
-                }
-            };
+            _sunriseSunsetTask = new SunriseSunsetTask(_latitude, _longitude);
+            _dwmlTask = new DWMLTask(_latitude, _longitude);
+            _wfoTask = new WFOTask(_latitude, _longitude);
+            _radarTask = new RadarTask();
+            _discussionTask = new DiscussionTask();
+            _stationTaskNearest = new StationTask(_latitude, _longitude, false);
+            _stationTaskNearestWithRadisonde = new StationTask(_latitude, _longitude, true);
 
             Workflow refreshWorkflow = new Workflow();
-            refreshWorkflow.addStep(new WorkflowStep(sunriseSunsetTask, sunriseSunsetListener));
-            refreshWorkflow.addStep(new WorkflowStep(dwmlTask, dwmlListener));
-            refreshWorkflow.addStep(new WorkflowStep(discussionTask, discussionListener));
-            refreshWorkflow.addStep(new WorkflowStep(stationTask1, stationListener1));
-            refreshWorkflow.addStep(new WorkflowStep(stationTask2, stationListener2));
+            refreshWorkflow.addStep(new WorkflowStep(_sunriseSunsetTask, _sunriseSunsetListener));
+            refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
+            refreshWorkflow.addStep(new WorkflowStep(_wfoTask, _wfoListener));
+            refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
+            refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
+            refreshWorkflow.addStep(new WorkflowStep(_stationTaskNearest, _stationListenerNearest));
+            refreshWorkflow.addStep(new WorkflowStep(_stationTaskNearestWithRadisonde, _stationListenerNearestWithRadiosonde));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -478,6 +429,54 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in refresh.", t);
             }
+        }
+    }
+
+    public void startBusy() {
+        if (_processing) {
+            return;
+        }
+        try {
+            _processing = true;
+            _spinner.setVisibility(View.VISIBLE);
+        } catch (Throwable t) {
+            // TODO: Show Error
+            _processing = false;
+            _spinner.setVisibility(View.GONE);
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
+            }
+        }
+    }
+
+    public void stopBusy() {
+        if (!_processing) {
+            return;
+        }
+        try {
+            _processing = false;
+            _spinner.setVisibility(View.GONE);
+        } catch (Throwable t) {
+            // TODO: Show Error
+            _processing = false;
+            _spinner.setVisibility(View.GONE);
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
+            }
+        }
+    }
+
+    private void resetView() {
+        try {
+            if (_viewPager.getCurrentItem() != 0) {
+                _viewPager.setCurrentItem(0);
+                _mainPageAdapter.refreshPage(getSupportFragmentManager(), _viewPager.getCurrentItem());
+            }
+        } catch (Throwable t) {
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
+            }
+            showError("Some Android weirdness occurred when rendering the widget. Wait a second and try refresh or my location from the menu.");
         }
     }
 
@@ -669,5 +668,122 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _stationsAdapter.notifyDataSetInvalidated();
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _drawerLayout.closeDrawer(Gravity.LEFT);
+    }
+
+    private class SunriseSunsetListener implements AsyncTaskListener<SunriseSunsetDTO> {
+        @Override
+        public void completed(AsyncTaskResult<SunriseSunsetDTO> result) {
+            if (result.getThrowable() != null) {
+                _sunriseSunset = null;
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving Sunrise/Sunset.", result.getThrowable());
+                }
+            } else {
+                _sunriseSunset = result.getResult();
+            }
+            _mainPageAdapter.setSunriseSunset(_sunriseSunset);
+        }
+    }
+
+    private class DWMLListener implements AsyncTaskListener<DWMLDTO> {
+        @Override
+        public void completed(AsyncTaskResult<DWMLDTO> result) {
+            _dwml = null;
+            _obervation = null;
+            _forecasts = null;
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
+                }
+            } else {
+                _dwml = result.getResult();
+                _obervation = ObservationDAO.getObservation(_dwml);
+                _forecasts = ForecastsDAO.getForecasts(_dwml);
+            }
+            _mainPageAdapter.setObservation(_obervation);
+            _mainPageAdapter.setForecasts(_forecasts);
+        }
+    }
+
+    private class WFOListener implements AsyncTaskListener<WFODTO> {
+        @Override
+        public void completed(AsyncTaskResult<WFODTO> result) {
+            if (result.getThrowable() != null) {
+                _wfo = null;
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving WFO.", result.getThrowable());
+                }
+            } else {
+                _wfo = result.getResult();
+            }
+            _radarTask.setWFO(_wfo);
+            _discussionTask.setWFO(_wfo);
+        }
+    }
+
+    private class RadarListener implements AsyncTaskListener<RadarDTO> {
+        @Override
+        public void completed(AsyncTaskResult<RadarDTO> result) {
+            if (result.getThrowable() != null) {
+                _mainPageAdapter.setBackgroundImages(null);
+                _mainPageAdapter.setRadarImages(null);
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving radar images.", result.getThrowable());
+                }
+            } else {
+                _mainPageAdapter.setBackgroundImages(result.getResult().getBackgroundImages());
+                _mainPageAdapter.setRadarImages(result.getResult().getRadarImages());
+            }
+        }
+    }
+
+    private class DiscussionListener implements AsyncTaskListener<String> {
+        @Override
+        public void completed(AsyncTaskResult<String> result) {
+            if (result.getThrowable() != null) {
+                _mainPageAdapter.setDiscussion(null);
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
+                }
+            } else {
+                _mainPageAdapter.setDiscussion(result.getResult());
+            }
+        }
+    }
+
+    private class StationListenerNearest implements AsyncTaskListener<StationDTO> {
+        @Override
+        public void completed(AsyncTaskResult<StationDTO> result) {
+            if (result.getThrowable() != null) {
+                _stationNearest = null;
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
+                }
+            } else {
+                _stationNearest = result.getResult();
+            }
+            if (_stationNearest != null) {
+                _stationsAdapter.add(_stationNearest);
+            }
+        }
+    }
+
+    private class StationListenerNearestWithRadiosonde implements AsyncTaskListener<StationDTO> {
+        @Override
+        public void completed(AsyncTaskResult<StationDTO> result) {
+            if (result.getThrowable() != null) {
+                _stationNearestWithRadiosonde = null;
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
+                }
+            } else {
+                _stationNearestWithRadiosonde = result.getResult();
+            }
+            if (_stationNearestWithRadiosonde != null) {
+                _mainPageAdapter.setSkewTStation(_stationNearestWithRadiosonde.getStationId());
+            } else {
+                _mainPageAdapter.setSkewTStation(null);
+            }
+        }
     }
 }

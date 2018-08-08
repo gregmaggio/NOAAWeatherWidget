@@ -1,7 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -9,11 +8,12 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.async.ImageTask;
+import ca.datamagic.noaa.async.AsyncTaskListener;
+import ca.datamagic.noaa.async.AsyncTaskResult;
+import ca.datamagic.noaa.async.SkewTTask;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -21,19 +21,60 @@ import ca.datamagic.noaa.logging.LogFactory;
  */
 public class SkewTFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(SkewTFragment.class);
+    private boolean _downloadingSkewTBitmap = false;
 
-    public String getSkewTUrl() {
+    public String getSkewTStation() {
         Bundle arguments = getArguments();
         if (arguments != null) {
-            return arguments.getString("skewTUrl", null);
+            return arguments.getString("skewTStation");
         }
         return null;
     }
 
-    public void setSkewTUrl(String newVal) {
+    public void setSkewTStation(String newVal) {
+        boolean skewTStationSet = false;
         Bundle arguments = getArguments();
         if (arguments != null) {
-            arguments.putString("skewTUrl", newVal);
+            String curVal = arguments.getString("skewTStation");
+            if ((curVal != null) && (newVal != null)) {
+                if (curVal != newVal) {
+                    arguments.putString("skewTStation", newVal);
+                    skewTStationSet = true;
+                }
+            } else if ((curVal == null) && (newVal != null)) {
+                arguments.putString("skewTStation", newVal);
+                skewTStationSet = true;
+            } else if ((curVal != null) && (newVal == null)) {
+                arguments.putString("skewTStation", newVal);
+                skewTStationSet = true;
+            }
+
+        }
+        if (skewTStationSet) {
+            setSkewTBitmap(null);
+        }
+    }
+
+    public Bitmap getSkewTBitmap() {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            return arguments.getParcelable("skewTBitmap");
+        }
+        return null;
+    }
+
+    public void setSkewTBitmap(Bitmap newVal) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            arguments.putParcelable("skewTBitmap", newVal);
+        }
+        try {
+            View view = getView();
+            SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
+            skewTView.setSkewTBitmap(null);
+            skewTView.invalidate();
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
         }
     }
 
@@ -41,10 +82,11 @@ public class SkewTFragment extends Fragment implements Renderer {
         return newInstance(null);
     }
 
-    public static SkewTFragment newInstance(String skewTUrl) {
+    public static SkewTFragment newInstance(String skewTStation) {
         SkewTFragment fragment = new SkewTFragment();
         Bundle bundle = new Bundle();
-        bundle.putString("skewTUrl", skewTUrl);
+        bundle.putString("skewTStation", skewTStation);
+        bundle.putParcelable("skewTBitmap", null);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -56,15 +98,8 @@ public class SkewTFragment extends Fragment implements Renderer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.skewt_main, container, false);
-        ImageView skewTView = (ImageView)view.findViewById(R.id.skewTView);
-        String skewTUrl = getSkewTUrl();
-        if ((skewTUrl != null) && (skewTUrl.length() > 0)) {
-            ImageTask imageTask = new ImageTask(skewTUrl, skewTView, false);
-            imageTask.execute((Void[]) null);
-        } else {
-            Bitmap blank = BitmapFactory.decodeResource(getResources(), R.drawable._blank);
-            skewTView.setImageBitmap(blank);
-        }
+        //SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
+        //skewTView.setSkewTBitmap(getSkewTBitmap());
         return view;
     }
 
@@ -72,8 +107,6 @@ public class SkewTFragment extends Fragment implements Renderer {
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         _logger.info("onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
-        String skewTUrl = getSkewTUrl();
-        _logger.info("skewTUrl: " + skewTUrl);
     }
 
     @Override
@@ -86,15 +119,45 @@ public class SkewTFragment extends Fragment implements Renderer {
     public void render() {
         View view = getView();
         if (view != null) {
-            ImageView skewTView = (ImageView)view.findViewById(R.id.skewTView);
-            String skewTUrl = getSkewTUrl();
-            if ((skewTUrl != null) && (skewTUrl.length() > 0)) {
-                ImageTask imageTask = new ImageTask(skewTUrl, skewTView, false);
-                imageTask.execute((Void[]) null);
-            } else {
-                Bitmap blank = BitmapFactory.decodeResource(getResources(), R.drawable._blank);
-                skewTView.setImageBitmap(blank);
+            String skewTStation = getSkewTStation();
+            Bitmap skewTBitmap = getSkewTBitmap();
+            if ((skewTBitmap == null) && (skewTStation != null)) {
+                initializeSkewTBitmap(skewTStation);
+            } else if (skewTBitmap != null) {
+                SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
+                skewTView.setSkewTBitmap(skewTBitmap);
+                skewTView.invalidate();
             }
         }
+    }
+
+    private void initializeSkewTBitmap(String skewTStation) {
+        if (_downloadingSkewTBitmap) {
+            return;
+        }
+        _downloadingSkewTBitmap = true;
+        MainActivity.getThisInstance().startBusy();
+        SkewTTask task = new SkewTTask(skewTStation);
+        task.addListener(new AsyncTaskListener<Bitmap>() {
+            @Override
+            public void completed(AsyncTaskResult<Bitmap> result) {
+                _downloadingSkewTBitmap = false;
+                MainActivity.getThisInstance().stopBusy();
+                if (result.getThrowable() != null) {
+                    _logger.warning("Exception: " + result.getThrowable().getMessage());
+                } else {
+                    setSkewTBitmap(result.getResult());
+                    try {
+                        View view = getView();
+                        SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
+                        skewTView.setSkewTBitmap(getSkewTBitmap());
+                        skewTView.invalidate();
+                    } catch (Throwable t) {
+                        _logger.warning("Exception: " + result.getThrowable().getMessage());
+                    }
+                }
+            }
+        });
+        task.execute((Void)null);
     }
 }

@@ -49,6 +49,7 @@ public class DiscussionFragment extends Fragment implements Renderer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.discussion_main, container, false);
+        /*
         TextView discussionView = (TextView)view.findViewById(R.id.discussionView);
         String discussion = getDiscussion();
         if ((discussion != null) && (discussion.length() > 0)) {
@@ -56,6 +57,7 @@ public class DiscussionFragment extends Fragment implements Renderer {
         } else {
             discussionView.setText("Discussion not available");
         }
+        */
         return view;
     }
 
