@@ -6,4 +6,5 @@ package ca.datamagic.noaa.widget;
 
 public interface Renderer {
     public void render();
+    public void cleanup();
 }

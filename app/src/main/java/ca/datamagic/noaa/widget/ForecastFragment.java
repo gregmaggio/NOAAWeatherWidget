@@ -90,6 +90,11 @@ public class ForecastFragment extends Fragment implements Renderer {
         }
     }
 
+    @Override
+    public void cleanup() {
+
+    }
+
     private void render(View view, LayoutInflater inflater) {
         TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         forecastTable.removeAllViews();

@@ -21,7 +21,8 @@ import ca.datamagic.noaa.logging.LogFactory;
  */
 public class SkewTFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(SkewTFragment.class);
-    private boolean _downloadingSkewTBitmap = false;
+    private boolean _downloading = false;
+    private Bitmap _skewTBitmap = null;
 
     public String getSkewTStation() {
         Bundle arguments = getArguments();
@@ -56,26 +57,11 @@ public class SkewTFragment extends Fragment implements Renderer {
     }
 
     public Bitmap getSkewTBitmap() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("skewTBitmap");
-        }
-        return null;
+        return _skewTBitmap;
     }
 
     public void setSkewTBitmap(Bitmap newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("skewTBitmap", newVal);
-        }
-        try {
-            View view = getView();
-            SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
-            skewTView.setSkewTBitmap(null);
-            skewTView.invalidate();
-        } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
-        }
+        _skewTBitmap = newVal;
     }
 
     public static SkewTFragment newInstance() {
@@ -86,7 +72,6 @@ public class SkewTFragment extends Fragment implements Renderer {
         SkewTFragment fragment = new SkewTFragment();
         Bundle bundle = new Bundle();
         bundle.putString("skewTStation", skewTStation);
-        bundle.putParcelable("skewTBitmap", null);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -98,8 +83,6 @@ public class SkewTFragment extends Fragment implements Renderer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.skewt_main, container, false);
-        //SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
-        //skewTView.setSkewTBitmap(getSkewTBitmap());
         return view;
     }
 
@@ -131,17 +114,22 @@ public class SkewTFragment extends Fragment implements Renderer {
         }
     }
 
+    @Override
+    public void cleanup() {
+
+    }
+
     private void initializeSkewTBitmap(String skewTStation) {
-        if (_downloadingSkewTBitmap) {
+        if (_downloading) {
             return;
         }
-        _downloadingSkewTBitmap = true;
+        _downloading = true;
         MainActivity.getThisInstance().startBusy();
         SkewTTask task = new SkewTTask(skewTStation);
         task.addListener(new AsyncTaskListener<Bitmap>() {
             @Override
             public void completed(AsyncTaskResult<Bitmap> result) {
-                _downloadingSkewTBitmap = false;
+                _downloading = false;
                 MainActivity.getThisInstance().stopBusy();
                 if (result.getThrowable() != null) {
                     _logger.warning("Exception: " + result.getThrowable().getMessage());

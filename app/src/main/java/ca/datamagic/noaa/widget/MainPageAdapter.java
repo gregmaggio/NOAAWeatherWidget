@@ -1,7 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Parcelable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -35,7 +34,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     private String _skewTStation = null;
     private String[] _pageTitles = new String[5];
     private Fragment[] _fragments = new Fragment[5];
-    private ViewGroup _container = null;
 
     public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
@@ -100,6 +98,14 @@ public class MainPageAdapter extends FragmentPagerAdapter {
 
     public void setSkewTStation(String newVal) {
         _skewTStation = newVal;
+    }
+
+    public void performCleanup(int position) {
+        Fragment currentFragment = getItem(position);
+        if (currentFragment != null) {
+            Renderer renderer = (Renderer) currentFragment;
+            renderer.cleanup();
+        }
     }
 
     public void refreshPage(FragmentManager manager, int position) {
@@ -173,14 +179,12 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     @Override
     public void startUpdate(ViewGroup container) {
         _logger.info("startUpdate");
-        _container = container;
         super.startUpdate(container);
     }
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
         _logger.info("instantiateItem. position: " + position);
-        _container = container;
         Object item = super.instantiateItem(container, position);
         if (item == null) {
             _logger.info("item is null");
@@ -195,7 +199,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
         _logger.info("destroyItem. position: " + position);
-        _container = container;
         _fragments[position] = null;
         super.destroyItem(container, position, object);
     }
@@ -203,7 +206,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     @Override
     public void finishUpdate(ViewGroup container) {
         _logger.info("finishUpdate");
-        _container = container;
         super.finishUpdate(container);
     }
 

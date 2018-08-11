@@ -100,7 +100,6 @@ public class ObservationFragment extends Fragment implements Renderer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.observation_main, container, false);
-        //render(view, inflater);
         return view;
     }
 
@@ -125,6 +124,11 @@ public class ObservationFragment extends Fragment implements Renderer {
         if ((view != null) && (inflater != null)) {
             render(view, inflater);
         }
+    }
+
+    @Override
+    public void cleanup() {
+
     }
 
     private void render(View view, LayoutInflater inflater) {

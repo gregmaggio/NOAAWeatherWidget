@@ -23,6 +23,8 @@ import ca.datamagic.noaa.logging.LogFactory;
 public class RadarFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(RadarFragment.class);
     private boolean _downloading = false;
+    private BitmapsDTO _backgroundBitmaps = null;
+    private BitmapsDTO _radarBitmaps = null;
     private Timer _radarTimer = null;
     private RadarTimerTask _radarTimerTask = null;
 
@@ -31,8 +33,6 @@ public class RadarFragment extends Fragment implements Renderer {
         Bundle bundle = new Bundle();
         bundle.putParcelable("backgroundImages", backgroundImages);
         bundle.putParcelable("radarImages", radarImages);
-        bundle.putParcelable("backgroundBitmaps", null);
-        bundle.putParcelable("radarBitmaps", null);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -104,62 +104,24 @@ public class RadarFragment extends Fragment implements Renderer {
     }
 
     public BitmapsDTO getBackgroundBitmaps() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("backgroundBitmaps");
-        }
-        return null;
+        return _backgroundBitmaps;
     }
 
     public void setBackgroundBitmaps(BitmapsDTO newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("backgroundBitmaps", newVal);
-        }
-        try {
-            RadarView radarView = getView().findViewById(R.id.radarView);
-            radarView.setBackgroundBitmaps(null);
-            radarView.invalidate();
-        } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
-        }
+        _backgroundBitmaps = newVal;
     }
 
     public BitmapsDTO getRadarBitmaps() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("radarBitmaps");
-        }
-        return null;
+        return _radarBitmaps;
     }
 
     public void setRadarBitmaps(BitmapsDTO newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("radarBitmaps", newVal);
-        }
-        try {
-            RadarView radarView = getView().findViewById(R.id.radarView);
-            radarView.setRadarBitmap(null);
-            radarView.invalidate();
-        } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
-        }
+        _radarBitmaps = newVal;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.radar_main, container, false);
-        /*
-        RadarView radarView = (RadarView)view.findViewById(R.id.radarView);
-        radarView.setTopoBitmap(getTopoBitmap());
-        radarView.setCountyBitmap(getCountyBitmap());
-        radarView.setRiverBitmap(getRiverBitmap());
-        radarView.setHighwayBitmap(getHighwayBitmap());
-        radarView.setCityBitmap(getCityBitmap());
-        radarView.setRadarBitmap(null);
-        radarView.invalidate();
-        */
         return view;
     }
 
@@ -167,13 +129,13 @@ public class RadarFragment extends Fragment implements Renderer {
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         _logger.info("onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
-        // TODO
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         _logger.info("onSaveInstanceState");
         super.onSaveInstanceState(outState);
+        cleanup();
     }
 
     @Override
@@ -186,6 +148,9 @@ public class RadarFragment extends Fragment implements Renderer {
             if ((backgroundImages != null) && (backgroundBitmaps == null)) {
                 initializeBackgroundBitmaps(backgroundImages);
                 return;
+            } else {
+                radarView.setBackgroundBitmaps(backgroundBitmaps);
+                radarView.invalidate();
             }
 
             StringListDTO radarImages = getRadarImages();
@@ -195,6 +160,18 @@ public class RadarFragment extends Fragment implements Renderer {
             } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
                 initializeRadarTimer(radarView, radarBitmaps);
             }
+        }
+    }
+
+    @Override
+    public void cleanup() {
+        if (_radarTimer != null) {
+            _radarTimer.cancel();
+            _radarTimer = null;
+        }
+        if (_radarTimerTask != null) {
+            _radarTimerTask.cancel();
+            _radarTimerTask = null;
         }
     }
 

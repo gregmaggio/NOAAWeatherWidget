@@ -34,7 +34,6 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
-import java.text.MessageFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
@@ -53,14 +52,11 @@ import ca.datamagic.noaa.async.SunriseSunsetTask;
 import ca.datamagic.noaa.async.WFOTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
-import ca.datamagic.noaa.dao.DWMLDAO;
-import ca.datamagic.noaa.dao.DiscussionDAO;
 import ca.datamagic.noaa.dao.ForecastsDAO;
 import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
-import ca.datamagic.noaa.dao.WFODAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
@@ -125,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Menu _mainMenu = null;
     private boolean _processing = false;
     private ProgressBar _spinner = null;
+    private int _currentPage = 0;
 
     public MainActivity() {
         _thisInstance = this;
@@ -237,7 +234,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             @Override
             public void onPageSelected(int position) {
+                _logger.info("onPageSelected: " + position);
+                _logger.info("currentPage: " + _currentPage);
                 refreshView();
+                _currentPage = position;
             }
 
             @Override

@@ -49,15 +49,6 @@ public class DiscussionFragment extends Fragment implements Renderer {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.discussion_main, container, false);
-        /*
-        TextView discussionView = (TextView)view.findViewById(R.id.discussionView);
-        String discussion = getDiscussion();
-        if ((discussion != null) && (discussion.length() > 0)) {
-            discussionView.setText(discussion);
-        } else {
-            discussionView.setText("Discussion not available");
-        }
-        */
         return view;
     }
 
@@ -65,8 +56,6 @@ public class DiscussionFragment extends Fragment implements Renderer {
     public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
         _logger.info("onViewStateRestored");
         super.onViewStateRestored(savedInstanceState);
-        String discussion = getDiscussion();
-        _logger.info("discussion: " + discussion);
     }
 
     @Override
@@ -87,5 +76,10 @@ public class DiscussionFragment extends Fragment implements Renderer {
                 discussionView.setText("Discussion not available");
             }
         }
+    }
+
+    @Override
+    public void cleanup() {
+
     }
 }
