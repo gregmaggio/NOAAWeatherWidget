@@ -13,7 +13,7 @@ import ca.datamagic.noaa.logging.LogFactory;
 
 public class RadarTask extends AsyncTaskBase<Void, Void, RadarDTO> {
     private static Logger _logger = LogFactory.getLogger(RadarTask.class);
-    private static int _maxImages = 10;
+    private static int _maxImages = 15;
     private static RadarImagesDAO _radarImagesDAO = new RadarImagesDAO();
     private WFODTO _wfo = null;
 

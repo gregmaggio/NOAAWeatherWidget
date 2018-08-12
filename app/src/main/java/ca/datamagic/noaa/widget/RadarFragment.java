@@ -263,24 +263,22 @@ public class RadarFragment extends Fragment implements Renderer {
         public RadarTimerTask(RadarView radarView, BitmapsDTO radarBitmaps) {
             _radarView = radarView;
             _radarBitmaps = radarBitmaps;
+            _index = _radarBitmaps.size() - 1;
         }
 
         @Override
         public void run() {
-            Bitmap radarBitmap = null;
-            if (_index < _radarBitmaps.size()) {
-                radarBitmap = _radarBitmaps.get(_index);
-            } else {
-                radarBitmap = _radarBitmaps.get(0);
-                _index = 0;
+            if (_index < 0) {
+                _index = _radarBitmaps.size() - 1;
             }
+            Bitmap radarBitmap = _radarBitmaps.get(_index);
             try {
                 _radarView.setRadarBitmap(radarBitmap);
                 _radarView.invalidate();
             } catch (Throwable t) {
                 // TODO
             }
-            ++_index;
+            --_index;
         }
     }
 }
