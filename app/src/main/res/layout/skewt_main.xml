@@ -3,8 +3,18 @@
     android:background="#FFFFFF"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent" >
-    <ca.datamagic.noaa.widget.SkewTView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:id="@+id/skewTView" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Double tap to zoom. Drag with finger."/>
+        <it.sephiroth.android.library.imagezoom.ImageViewTouch
+            android:id="@+id/imageView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+    </LinearLayout>
 </RelativeLayout>

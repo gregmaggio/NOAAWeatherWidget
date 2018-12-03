@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
     private MainPageAdapter _mainPageAdapter = null;
-    private ViewPager _viewPager = null;
+    private NonSwipeableViewPager _viewPager = null;
     private GoogleApiClient _googleApiClient = null;
     private StationsAdapter _stationsAdapter = null;
     private SearchManager _manager = null;
@@ -133,6 +133,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public String getFilesPath() {
         return _filesPath;
+    }
+
+    public MainPageAdapter getMainPageAdapter() {
+        return _mainPageAdapter;
+    }
+
+    public NonSwipeableViewPager getViewPager() {
+        return _viewPager;
     }
 
     public void readPreferences() {
@@ -223,7 +231,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         _preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager(), getBaseContext());
-        _viewPager = (ViewPager) findViewById(R.id.viewpager);
+        _viewPager = (NonSwipeableViewPager) findViewById(R.id.viewpager);
         PagerTitleStrip titleStrip = (PagerTitleStrip)_viewPager.findViewById(R.id.pagerTitle);
         _viewPager.setAdapter(_mainPageAdapter);
         _viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {

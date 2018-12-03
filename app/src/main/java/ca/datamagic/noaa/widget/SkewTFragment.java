@@ -6,6 +6,7 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -15,11 +16,12 @@ import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.SkewTTask;
 import ca.datamagic.noaa.logging.LogFactory;
+import it.sephiroth.android.library.imagezoom.ImageViewTouch;
 
 /**
  * Created by Greg on 12/14/2016.
  */
-public class SkewTFragment extends Fragment implements Renderer {
+public class SkewTFragment extends Fragment implements Renderer, View.OnTouchListener {
     private static Logger _logger = LogFactory.getLogger(SkewTFragment.class);
     private boolean _downloading = false;
     private Bitmap _skewTBitmap = null;
@@ -107,9 +109,7 @@ public class SkewTFragment extends Fragment implements Renderer {
             if ((skewTBitmap == null) && (skewTStation != null)) {
                 initializeSkewTBitmap(skewTStation);
             } else if (skewTBitmap != null) {
-                SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
-                skewTView.setSkewTBitmap(skewTBitmap);
-                skewTView.invalidate();
+                setImageBitmap(skewTBitmap);
             }
         }
     }
@@ -135,17 +135,39 @@ public class SkewTFragment extends Fragment implements Renderer {
                     _logger.warning("Exception: " + result.getThrowable().getMessage());
                 } else {
                     setSkewTBitmap(result.getResult());
-                    try {
-                        View view = getView();
-                        SkewTView skewTView = (SkewTView)view.findViewById(R.id.skewTView);
-                        skewTView.setSkewTBitmap(getSkewTBitmap());
-                        skewTView.invalidate();
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + result.getThrowable().getMessage());
-                    }
+                    setImageBitmap(result.getResult());
                 }
             }
         });
         task.execute((Void)null);
+    }
+
+    private void setImageBitmap(Bitmap bitmap) {
+        try {
+            View view = getView();
+            _logger.info("viewHeight: " + Integer.toString(view.getHeight()));
+            _logger.info("viewWidth: " + Integer.toString(view.getWidth()));
+            ImageViewTouch imageView = (ImageViewTouch) view.findViewById(R.id.imageView);
+            imageView.setOnTouchListener(this);
+            _logger.info("imageViewHeight: " + Integer.toString(imageView.getHeight()));
+            _logger.info("imageViewWidth: " + Integer.toString(imageView.getWidth()));
+            imageView.setImageBitmap(bitmap);
+            imageView.invalidate();
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+        }
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        _logger.info("SkewT Image Touch");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            NonSwipeableViewPager viewPager = mainActivity.getViewPager();
+            if (viewPager != null) {
+                viewPager.setEnabled(false);
+            }
+        }
+        return false;
     }
 }
