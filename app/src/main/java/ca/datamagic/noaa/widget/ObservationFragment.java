@@ -255,7 +255,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
 
             TextView pressureText = (TextView) item.findViewById(R.id.pressure);
-            String formattedPressure = getFormattedPressure(pressure, pressureUnits, preferencesDTO);
+            String formattedPressure = getFormattedPressure(pressure, pressureUnits, elevation, elevationUnits, preferencesDTO);
             if (formattedPressure.length() > 0) {
                 pressureText.setText(formattedPressure);
             } else {
@@ -420,10 +420,10 @@ public class ObservationFragment extends Fragment implements Renderer {
         return buffer.toString();
     }
 
-    private String getFormattedPressure(Double pressure, String pressureUnits, PreferencesDTO preferencesDTO) {
+    private String getFormattedPressure(Double pressure, String pressureUnits, Double elevation, String elevationUnits, PreferencesDTO preferencesDTO) {
         StringBuffer buffer = new StringBuffer();
         if ((pressure != null) && (pressureUnits != null)) {
-            pressure = PressureCalculatorDTO.compute(pressure, pressureUnits, preferencesDTO.getPressureUnits());
+            pressure = PressureCalculatorDTO.compute(pressure, pressureUnits, preferencesDTO.getPressureUnits(), elevation, elevationUnits);
             if (pressure != null) {
                 buffer.append(_pressureFormat.format(pressure.doubleValue()));
                 if (preferencesDTO.getPressureUnits().compareToIgnoreCase(PressureUnitsDTO.InchesOfMercury) == 0) {
@@ -432,6 +432,9 @@ public class ObservationFragment extends Fragment implements Renderer {
                 } else if (preferencesDTO.getPressureUnits().compareToIgnoreCase(PressureUnitsDTO.KiloPascals) == 0) {
                     buffer.append(" ");
                     buffer.append(getResources().getString(R.string.kiloPascals));
+                } else if (preferencesDTO.getPressureUnits().compareToIgnoreCase(PressureUnitsDTO.StationPressure) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getResources().getString(R.string.inchesOfMercury));
                 }
             }
         }

@@ -99,6 +99,8 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
             _pressureUnits.check(R.id.pressureUnitsInchesOfMercury);
         } else if ((pressureUnits != null) && (pressureUnits.compareToIgnoreCase(PressureUnitsDTO.KiloPascals) == 0)) {
             _pressureUnits.check(R.id.pressureUnitsKiloPascals);
+        } else if ((pressureUnits != null) && (pressureUnits.compareToIgnoreCase(PressureUnitsDTO.StationPressure) == 0)) {
+            _pressureUnits.check(R.id.pressureUnitsStationPressure);
         } else {
             _pressureUnits.check(R.id.pressureUnitsInchesOfMercury);
         }
@@ -170,6 +172,9 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
                     break;
                 case R.id.pressureUnitsKiloPascals:
                     dto.setPressureUnits(PressureUnitsDTO.KiloPascals);
+                    break;
+                case R.id.pressureUnitsStationPressure:
+                    dto.setPressureUnits(PressureUnitsDTO.StationPressure);
                     break;
             }
             switch (_visibilityUnits.getCheckedRadioButtonId()) {

@@ -91,6 +91,12 @@
             android:layout_height="wrap_content"
             android:text="@string/kiloPascals"
             android:buttonTint="@color/colorPrimary"/>
+        <RadioButton
+            android:id="@+id/pressureUnitsStationPressure"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/stationPressure"
+            android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
     <TextView
         android:id="@+id/visibilityUnitsLabel"

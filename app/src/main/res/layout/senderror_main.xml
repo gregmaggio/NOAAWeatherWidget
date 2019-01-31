@@ -4,11 +4,32 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <TextView
-        android:id="@+id/textView"
+        android:id="@+id/mailFromLabel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:text="@string/send_error_mailfrom" />
+    <EditText
+        android:id="@+id/mailFrom"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="top"
+        android:inputType="textEmailAddress"
+        android:paddingLeft="8px"
+        android:paddingRight="8px"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:text=""
+        android:textAlignment="gravity"
+        android:textColor="@color/colorPrimaryDark"
+        tools:text="" />
+    <TextView
+        android:id="@+id/errorInformationLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:paddingLeft="8px"
         android:paddingRight="8px"
         android:text="@string/send_error_label" />
@@ -16,7 +37,6 @@
         android:id="@+id/errorInformation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
         android:ems="10"
         android:gravity="top"
         android:inputType="textMultiLine"
@@ -25,7 +45,7 @@
         android:paddingRight="8px"
         android:selectAllOnFocus="true"
         android:singleLine="false"
-        android:text="Text"
+        android:text=""
         android:textAlignment="gravity"
         tools:text=""
         android:textColor="@color/colorPrimaryDark"/>

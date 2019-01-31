@@ -1,6 +1,8 @@
 package ca.datamagic.noaa.widget;
 
 import android.Manifest;
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
@@ -22,6 +24,7 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.util.Patterns;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,6 +41,7 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
@@ -46,7 +50,6 @@ import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.RadarTask;
-import ca.datamagic.noaa.async.SkewTTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.SunriseSunsetTask;
 import ca.datamagic.noaa.async.WFOTask;
@@ -89,14 +92,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private DiscussionTask _discussionTask = null;
     private StationTask _stationTaskNearest = null;
     private StationTask _stationTaskNearestWithRadisonde = null;
-    private SkewTTask _skewTTask = null;
     private SunriseSunsetListener _sunriseSunsetListener = new SunriseSunsetListener();
     private DWMLListener _dwmlListener = new DWMLListener();
     private WFOListener _wfoListener = new WFOListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private StationListenerNearest _stationListenerNearest = new StationListenerNearest();
-    private StationListenerNearestWithRadiosonde _stationListenerNearestWithRadiosonde = new StationListenerNearestWithRadiosonde();
     private SunriseSunsetDTO _sunriseSunset = null;
     private DWMLDTO _dwml = null;
     private ObservationDTO _obervation = null;
@@ -419,7 +420,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
             refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTaskNearest, _stationListenerNearest));
-            refreshWorkflow.addStep(new WorkflowStep(_stationTaskNearestWithRadisonde, _stationListenerNearestWithRadiosonde));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -772,25 +772,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
             if (_stationNearest != null) {
                 _stationsAdapter.add(_stationNearest);
-            }
-        }
-    }
-
-    private class StationListenerNearestWithRadiosonde implements AsyncTaskListener<StationDTO> {
-        @Override
-        public void completed(AsyncTaskResult<StationDTO> result) {
-            if (result.getThrowable() != null) {
-                _stationNearestWithRadiosonde = null;
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
-                }
-            } else {
-                _stationNearestWithRadiosonde = result.getResult();
-            }
-            if (_stationNearestWithRadiosonde != null) {
-                _mainPageAdapter.setSkewTStation(_stationNearestWithRadiosonde.getStationId());
-            } else {
-                _mainPageAdapter.setSkewTStation(null);
             }
         }
     }

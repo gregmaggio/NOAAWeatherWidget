@@ -23,7 +23,7 @@ public class WFODAO {
     public List<WFODTO> read(double latitude, double longitude) throws Throwable {
         HttpURLConnection connection = null;
         try {
-            URL url = new URL(MessageFormat.format("http://datamagic.ca/WFO/api/{0}/{1}/coordinates", Double.toString(latitude), Double.toString(longitude)));
+            URL url = new URL(MessageFormat.format("http://env-5616586.jelastic.servint.net/WFO/api/{0}/{1}/coordinates", Double.toString(latitude), Double.toString(longitude)));
             _logger.info("url: " + url.toString());
             connection = (HttpURLConnection)url.openConnection();
             connection.setDoInput(true);

@@ -23,24 +23,21 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ObservationIndex = 0;
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
-    public static final int SkewTIndex = 3;
-    public static final int RadarIndex = 4;
+    public static final int RadarIndex = 3;
     private SunriseSunsetDTO _sunriseSunset = null;
     private ObservationDTO _observation = null;
     private ForecastsDTO _forecasts = null;
     private StringListDTO _backgroundImages = null;
     private StringListDTO _radarImages = null;
     private String _discussion = null;
-    private String _skewTStation = null;
-    private String[] _pageTitles = new String[5];
-    private Fragment[] _fragments = new Fragment[5];
+    private String[] _pageTitles = new String[4];
+    private Fragment[] _fragments = new Fragment[4];
 
     public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
         _pageTitles[ObservationIndex] = context.getResources().getString(R.string.observation_page_title);
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
-        _pageTitles[SkewTIndex] = context.getResources().getString(R.string.skewt_page_title);
         _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
     }
 
@@ -92,14 +89,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _discussion = newVal;
     }
 
-    public String getSkewTStation() {
-        return _skewTStation;
-    }
-
-    public void setSkewTStation(String newVal) {
-        _skewTStation = newVal;
-    }
-
     public void performCleanup(int position) {
         Fragment currentFragment = getItem(position);
         if (currentFragment != null) {
@@ -126,7 +115,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
             case ObservationIndex: return R.layout.observation_main;
             case ForecastIndex: return R.layout.forecast_main;
             case DiscussionIndex: return R.layout.discussion_main;
-            case SkewTIndex: return R.layout.skewt_main;
             case RadarIndex: return R.layout.radar_main;
         }
         return -1;
@@ -145,9 +133,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                 case DiscussionIndex:
                     _fragments[position] = DiscussionFragment.newInstance(getDiscussion());
                     break;
-                case SkewTIndex:
-                    _fragments[position] = SkewTFragment.newInstance(getSkewTStation());
-                    break;
                 case RadarIndex:
                     _fragments[position] = RadarFragment.newInstance(getBackgroundImages(), getRadarImages());
                     break;
@@ -163,9 +148,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                     break;
                 case DiscussionIndex:
                     ((DiscussionFragment)_fragments[position]).setDiscussion(getDiscussion());
-                    break;
-                case SkewTIndex:
-                    ((SkewTFragment)_fragments[position]).setSkewTStation(getSkewTStation());
                     break;
                 case RadarIndex:
                     ((RadarFragment)_fragments[position]).setBackgroundImages(getBackgroundImages());

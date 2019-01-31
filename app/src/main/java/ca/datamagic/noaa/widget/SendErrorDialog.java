@@ -17,6 +17,7 @@ import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.SendErrorTask;
 
 public class SendErrorDialog extends Dialog implements View.OnClickListener {
+    private EditText _mailFrom = null;
     private EditText _errorInformation = null;
     private Button _okButton = null;
     private Button _cancelButton = null;
@@ -38,6 +39,7 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        /*
         Window window = getWindow();
         if (window != null) {
             Rect displayRectangle = new Rect();
@@ -49,12 +51,16 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
         } else {
             setContentView(R.layout.senderror_main);
         }
+        */
+        setContentView(R.layout.senderror_main);
         setCancelable(false);
         setTitle(R.string.send_error_title);
+        _mailFrom = (EditText)findViewById(R.id.mailFrom);
         _errorInformation = (EditText)findViewById(R.id.errorInformation);
         _okButton = (Button)findViewById(R.id.sendErrorOK);
         _cancelButton = (Button)findViewById(R.id.sendErrorCancel);
         _sendErrorProgress = (ProgressBar)findViewById(R.id.sendErrorProgress);
+        _mailFrom.setText("");
         _errorInformation.setText("");
         _okButton.setOnClickListener(this);
         _cancelButton.setOnClickListener(this);
@@ -81,7 +87,10 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
             _sendErrorProgress.setVisibility(View.VISIBLE);
             String errorInformation = _errorInformation.getText().toString();
             String logPath = MainActivity.getThisInstance().getFilesPath();
-            String mailFrom = "no-reply@datamagic.ca";
+            String mailFrom = _mailFrom.getText().toString();
+            if ((mailFrom == null) || (mailFrom.length() < 1)) {
+                mailFrom = "no-reply@datamagic.ca";
+            }
             String mailSubject = "NOAAWeatherWidget Error";
             StringBuffer mailBody = new StringBuffer();
             mailBody.append(errorInformation);
@@ -92,10 +101,10 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
                 public void completed(AsyncTaskResult<Void> result) {
                     _processing = false;
                     _sendErrorProgress.setVisibility(View.GONE);
-                    dismiss();
                 }
             });
             task.execute((Void[]) null);
+            dismiss();
         } catch (Throwable t) {
             // TODO: Show error
             _processing = false;

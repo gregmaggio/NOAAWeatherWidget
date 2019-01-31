@@ -22,7 +22,7 @@ public class StationDAO {
 
     public List<StationDTO> list() throws  Throwable {
         HttpURLConnection connection = null;
-        URL url = new URL("http://datamagic.ca/Station/api/list");
+        URL url = new URL("http://env-5616586.jelastic.servint.net/Station/api/list");
         _logger.info("url: " + url.toString());
         try {
             connection = (HttpURLConnection)url.openConnection();
@@ -54,7 +54,7 @@ public class StationDAO {
 
     public StationDTO nearest(double latitude, double longitude) throws Throwable {
         HttpURLConnection connection = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
+        URL url = new URL(MessageFormat.format("http://env-5616586.jelastic.servint.net/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
         _logger.info("url: " + url.toString());
         try {
             connection = (HttpURLConnection)url.openConnection();
@@ -82,7 +82,7 @@ public class StationDAO {
 
     public StationDTO nearestWithRadiosonde(double latitude, double longitude) throws Throwable {
         HttpURLConnection connection = null;
-        URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearestWithRadiosonde", Double.toString(latitude), Double.toString(longitude)));
+        URL url = new URL(MessageFormat.format("http://env-5616586.jelastic.servint.net/Station/api/{0}/{1}/nearestWithRadiosonde", Double.toString(latitude), Double.toString(longitude)));
         _logger.info("url: " + url.toString());
         try {
             connection = (HttpURLConnection)url.openConnection();
