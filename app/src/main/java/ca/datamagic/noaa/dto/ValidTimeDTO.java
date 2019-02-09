@@ -27,27 +27,29 @@ public class ValidTimeDTO {
 	}
 
 	public ValidTimeDTO(String timeStampText, String periodName) {
-		Matcher matcher = _timeStampRegex.matcher(timeStampText);
-		if (matcher.matches()) {
-			int year = Integer.parseInt(matcher.group(1));
-			int month = Integer.parseInt(matcher.group(2));
-			int day = Integer.parseInt(matcher.group(3));
-			int hour = Integer.parseInt(matcher.group(4));
-			int minute = Integer.parseInt(matcher.group(5));
-			int second = Integer.parseInt(matcher.group(6));
-			int hourAdjust = Integer.parseInt(matcher.group(7));
-			int minuteAdjust = Integer.parseInt(matcher.group(8));
-			Calendar utc = Calendar.getInstance();
-			utc.set(Calendar.YEAR, year);
-			utc.set(Calendar.MONTH, month - 1);
-			utc.set(Calendar.DATE, day);
-			utc.set(Calendar.HOUR_OF_DAY, hour);
-			utc.set(Calendar.MINUTE, minute);
-			utc.set(Calendar.SECOND, second);
-			utc.set(Calendar.MILLISECOND, 0);
-			utc.add(Calendar.HOUR, -1 * hourAdjust);
-			utc.add(Calendar.MINUTE, -1 * minuteAdjust);
-			_timeStamp = utc;
+		if (timeStampText != null) {
+			Matcher matcher = _timeStampRegex.matcher(timeStampText);
+			if (matcher.matches()) {
+				int year = Integer.parseInt(matcher.group(1));
+				int month = Integer.parseInt(matcher.group(2));
+				int day = Integer.parseInt(matcher.group(3));
+				int hour = Integer.parseInt(matcher.group(4));
+				int minute = Integer.parseInt(matcher.group(5));
+				int second = Integer.parseInt(matcher.group(6));
+				int hourAdjust = Integer.parseInt(matcher.group(7));
+				int minuteAdjust = Integer.parseInt(matcher.group(8));
+				Calendar utc = Calendar.getInstance();
+				utc.set(Calendar.YEAR, year);
+				utc.set(Calendar.MONTH, month - 1);
+				utc.set(Calendar.DATE, day);
+				utc.set(Calendar.HOUR_OF_DAY, hour);
+				utc.set(Calendar.MINUTE, minute);
+				utc.set(Calendar.SECOND, second);
+				utc.set(Calendar.MILLISECOND, 0);
+				utc.add(Calendar.HOUR, -1 * hourAdjust);
+				utc.add(Calendar.MINUTE, -1 * minuteAdjust);
+				_timeStamp = utc;
+			}
 		}
 		_periodName = periodName;
 	}

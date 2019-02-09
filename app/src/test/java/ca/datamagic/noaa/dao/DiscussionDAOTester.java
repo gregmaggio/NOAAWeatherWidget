@@ -14,11 +14,9 @@ import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
 public class DiscussionDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
-        DiscussionDAO.setFilesPath(getFilesPath());
         DiscussionDAO dao = new DiscussionDAO();
         String discussion = dao.load("LWX");
         System.out.println(discussion);
-        String readDiscussion = DiscussionDAO.read();
-        Assert.assertEquals(discussion, readDiscussion);
+
     }
 }

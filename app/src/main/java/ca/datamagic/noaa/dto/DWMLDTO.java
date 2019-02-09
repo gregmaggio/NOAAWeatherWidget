@@ -8,6 +8,8 @@ public class DWMLDTO {
     public static final String VersionAttribute = "version";
     private boolean _cached = false;
     private String _version = null;
+    private String _wfoUrl = null;
+    private LocationDTO _location = null;
     private HeadDTO _head = null;
     private DataDTO _forecast = null;
     private DataDTO _observation = null;
@@ -26,6 +28,22 @@ public class DWMLDTO {
 
     public void setVersion(String newVal) {
         _version = newVal;
+    }
+
+    public String getWFOURL() {
+        return _wfoUrl;
+    }
+
+    public void setWFOURL(String newVal) {
+        _wfoUrl = newVal;
+    }
+
+    public LocationDTO getLocation() {
+        return _location;
+    }
+
+    public void setLocation(LocationDTO newVal) {
+        _location = newVal;
     }
 
     public HeadDTO getHead() {

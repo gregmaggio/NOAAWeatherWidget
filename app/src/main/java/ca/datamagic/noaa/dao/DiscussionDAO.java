@@ -4,6 +4,9 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -29,6 +32,28 @@ public class DiscussionDAO {
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
             connection.connect();
+            int responseCode = connection.getResponseCode();
+            _logger.info("responseCode: " + responseCode);
+            if ((responseCode > 299) && (responseCode < 400)) {
+                Map<String, List<String>> headerFields = connection.getHeaderFields();
+                Set<String> keys = headerFields.keySet();
+                for (String key : keys) {
+                    _logger.info("key: " + key);
+                    if ((key != null) && (key.compareToIgnoreCase("location") == 0)) {
+                        List<String> values = headerFields.get(key);
+                        if (values.size() > 0) {
+                            URL newUrl = new URL(values.get(0));
+                            connection.disconnect();
+                            connection = (HttpsURLConnection) url.openConnection();
+                            connection.setDoInput(true);
+                            connection.setDoOutput(false);
+                            connection.setRequestMethod("GET");
+                            connection.setConnectTimeout(5000);
+                            connection.connect();
+                        }
+                    }
+                }
+            }
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             StringBuffer buffer = new StringBuffer();
             String currentLine = null;

@@ -13,21 +13,27 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
+
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.HeightCalculatorDTO;
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.PressureCalculatorDTO;
 import ca.datamagic.noaa.dto.PressureUnitsDTO;
-import ca.datamagic.noaa.dto.SunriseSunsetDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
+import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.dto.VisibilityCalculatorDTO;
 import ca.datamagic.noaa.dto.VisibilityUnitsDTO;
 import ca.datamagic.noaa.dto.WindSpeedCalculatorDTO;
@@ -50,6 +56,21 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
 
+    public ForecastsDTO getForecasts() {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            return arguments.getParcelable("forecasts");
+        }
+        return null;
+    }
+
+    public void setForecasts(ForecastsDTO newVal) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            arguments.putParcelable("forecasts", newVal);
+        }
+    }
+
     public ObservationDTO getObservation() {
         Bundle arguments = getArguments();
         if (arguments != null) {
@@ -65,30 +86,31 @@ public class ObservationFragment extends Fragment implements Renderer {
         }
     }
 
-    public SunriseSunsetDTO getSunriseSunset() {
+    public TimeZoneDTO getTimeZone() {
         Bundle arguments = getArguments();
         if (arguments != null) {
-            return arguments.getParcelable("sunriseSunset");
+            return arguments.getParcelable("timeZone");
         }
         return null;
     }
 
-    public void setSunriseSunset(SunriseSunsetDTO newVal) {
+    public void setTimeZone(TimeZoneDTO newVal) {
         Bundle arguments = getArguments();
         if (arguments != null) {
-            arguments.putParcelable("sunriseSunset", newVal);
+            arguments.putParcelable("timeZone", newVal);
         }
     }
 
     public static ObservationFragment newInstance() {
-        return newInstance(null, null);
+        return newInstance(null, null, null);
     }
 
-    public static ObservationFragment newInstance(ObservationDTO observation, SunriseSunsetDTO sunriseSunset) {
+    public static ObservationFragment newInstance(ForecastsDTO forecasts, ObservationDTO observation, TimeZoneDTO timeZone) {
         ObservationFragment fragment = new ObservationFragment();
         Bundle bundle = new Bundle();
+        bundle.putParcelable("forecasts", forecasts);
         bundle.putParcelable("observation", observation);
-        bundle.putParcelable("sunriseSunset", sunriseSunset);
+        bundle.putParcelable("timeZone", timeZone);
         fragment.setArguments(bundle);
         return fragment;
     }
@@ -134,6 +156,7 @@ public class ObservationFragment extends Fragment implements Renderer {
     private void render(View view, LayoutInflater inflater) {
         TableLayout observationTable = (TableLayout)view.findViewById(R.id.observationTable);
         observationTable.removeAllViews();
+        ForecastsDTO forecasts = getForecasts();
         ObservationDTO observation = getObservation();
         if (observation != null) {
             PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
@@ -144,6 +167,18 @@ public class ObservationFragment extends Fragment implements Renderer {
             Double longitude = observation.getLongitude();
             Double elevation = observation.getElevation();
             String elevationUnits = observation.getElevationUnits();
+            if ((locationText == null) || (locationText.length() < 1)) {
+                locationText = forecasts.getLocationText();
+            }
+            if ((latitude == null) || (longitude == null)) {
+                latitude = forecasts.getLatitude();
+                longitude = forecasts.getLongitude();
+            }
+            if ((elevation == null) || (elevationUnits == null) || (elevationUnits.length() < 1)) {
+                elevation = forecasts.getElevation();
+                elevationUnits = forecasts.getElevationUnits();
+            }
+
             Double temperature = observation.getTemperature();
             String temperatureUnits = observation.getTemperatureUnits();
             Double dewPoint = observation.getDewPoint();
@@ -178,14 +213,16 @@ public class ObservationFragment extends Fragment implements Renderer {
                 location.setText(locationText);
             }
 
-            TextView coordinates = (TextView) item.findViewById(R.id.coordinates);
-            String formattedCoordinates = getFormattedCoordinates(latitude, longitude, elevation, elevationUnits, preferencesDTO);
-            if (formattedCoordinates.length() > 0) {
-                coordinates.setVisibility(View.VISIBLE);
-                coordinates.setText(formattedCoordinates);
-            } else {
-                coordinates.setVisibility(View.GONE);
-                coordinates.setText("");
+            if ((latitude != null) && (longitude != null) && (elevation != null) && (elevationUnits != null) && (elevationUnits.length() > 0)) {
+                TextView coordinates = (TextView) item.findViewById(R.id.coordinates);
+                String formattedCoordinates = getFormattedCoordinates(latitude, longitude, elevation, elevationUnits, preferencesDTO);
+                if (formattedCoordinates.length() > 0) {
+                    coordinates.setVisibility(View.VISIBLE);
+                    coordinates.setText(formattedCoordinates);
+                } else {
+                    coordinates.setVisibility(View.GONE);
+                    coordinates.setText("");
+                }
             }
 
             if (conditionsIcon != null) {
@@ -264,14 +301,21 @@ public class ObservationFragment extends Fragment implements Renderer {
 
             TextView sunriseText = (TextView) item.findViewById(R.id.sunrise);
             TextView sunsetText = (TextView) item.findViewById(R.id.sunset);
-            SunriseSunsetDTO sunriseSunset = getSunriseSunset();
-            if (sunriseSunset != null) {
-                sunriseText.setText(sunriseSunset.getSunrise());
-                sunsetText.setText(sunriseSunset.getSunset());
-            } else {
-                sunriseText.setText("");
-                sunsetText.setText("");
+
+            String sunrise = "";
+            String sunset = "";
+
+            TimeZoneDTO timeZone = getTimeZone();
+            if ((latitude != null) && (longitude != null) && (timeZone != null)) {
+                TimeZone tz = TimeZone.getTimeZone(timeZone.getTimeZoneId());
+                Calendar today = Calendar.getInstance();
+                today.setTimeZone(tz);
+                SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(new Location(latitude, longitude), timeZone.getTimeZoneId());
+                sunrise = calculator.getOfficialSunriseForDate(today);
+                sunset = calculator.getOfficialSunsetForDate(today);
             }
+            sunriseText.setText(sunrise);
+            sunsetText.setText(sunset);
             row.addView(item);
             observationTable.addView(row);
         }

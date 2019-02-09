@@ -18,7 +18,7 @@ public class IOUtils {
         StringBuffer textBuffer = new StringBuffer();
         byte[] buffer = new byte[1024];
         int bytesRead = 0;
-        while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) > 0) {
+        while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) != -1) {
             textBuffer.append(new String(buffer, 0, bytesRead));
         }
         return textBuffer.toString();

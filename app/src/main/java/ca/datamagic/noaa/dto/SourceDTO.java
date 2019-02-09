@@ -28,7 +28,7 @@ public class SourceDTO {
 	private String _moreInformationLink = null;
 	private ProductionCenterDTO _productionCenter = null;
 	private String _disclaimerLink = null;
-	private String _creditLink = null;
+	private String _credit = null;
 	private String _creditLogo = null;
 	private String _feedbackLink = null;
 	
@@ -56,12 +56,12 @@ public class SourceDTO {
 		_disclaimerLink = newVal;
 	}
 	
-	public String getCreditLink() {
-		return _creditLink;
+	public String getCredit() {
+		return _credit;
 	}
 	
-	public void setCreditLink(String newVal) {
-		_creditLink = newVal;
+	public void setCredit(String newVal) {
+		_credit = newVal;
 	}
 	
 	public String getCreditLogo() {

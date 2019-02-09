@@ -34,4 +34,14 @@ public class HeightDTO {
     public void setValue(Double newVal) {
         _value = newVal;
     }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("Height: ");
+        buffer.append("datum=" + ((_datum != null) ? _datum : "null"));
+        buffer.append(",heightUnits=" + ((_heightUnits != null) ? _heightUnits : "null"));
+        buffer.append(",value=" + ((_value != null) ? Double.toString(_value.doubleValue()) : "null"));
+        return buffer.toString();
+    }
 }

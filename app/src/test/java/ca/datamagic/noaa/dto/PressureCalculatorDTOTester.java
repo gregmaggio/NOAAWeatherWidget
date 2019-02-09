@@ -19,13 +19,16 @@ public class PressureCalculatorDTOTester extends BaseTester {
         Double initialIn = 30.4;
         _logger.info("initialIn: " + initialIn);
 
-        Double initialKpa = PressureCalculatorDTO.compute(initialIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals);
+        Double elevation = 13.0;
+        String elevationUnits = HeightUnitsDTO.Feet;
+
+        Double initialKpa = PressureCalculatorDTO.compute(initialIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals, elevation, elevationUnits);
         _logger.info("initialKpa: " + initialKpa);
 
-        Double convertedIn = PressureCalculatorDTO.compute(initialKpa, PressureUnitsDTO.KiloPascals, PressureUnitsDTO.InchesOfMercury);
+        Double convertedIn = PressureCalculatorDTO.compute(initialKpa, PressureUnitsDTO.KiloPascals, PressureUnitsDTO.InchesOfMercury, elevation, elevationUnits);
         _logger.info("convertedIn: " + convertedIn);
 
-        Double convertedKpa = PressureCalculatorDTO.compute(convertedIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals);
+        Double convertedKpa = PressureCalculatorDTO.compute(convertedIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals, elevation, elevationUnits);
         _logger.info("convertedKpa: " + convertedKpa);
 
         Assert.assertTrue(Math.abs(convertedIn - initialIn) < 0.01);
@@ -37,13 +40,16 @@ public class PressureCalculatorDTOTester extends BaseTester {
         Double initialIn = 27.3;
         _logger.info("initialIn: " + initialIn);
 
-        Double initialKpa = PressureCalculatorDTO.compute(initialIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals);
+        Double elevation = 13.0;
+        String elevationUnits = HeightUnitsDTO.Feet;
+
+        Double initialKpa = PressureCalculatorDTO.compute(initialIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals, elevation, elevationUnits);
         _logger.info("initialKpa: " + initialKpa);
 
-        Double convertedIn = PressureCalculatorDTO.compute(initialKpa, PressureUnitsDTO.KiloPascals, PressureUnitsDTO.InchesOfMercury);
+        Double convertedIn = PressureCalculatorDTO.compute(initialKpa, PressureUnitsDTO.KiloPascals, PressureUnitsDTO.InchesOfMercury, elevation, elevationUnits);
         _logger.info("convertedIn: " + convertedIn);
 
-        Double convertedKpa = PressureCalculatorDTO.compute(convertedIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals);
+        Double convertedKpa = PressureCalculatorDTO.compute(convertedIn, PressureUnitsDTO.InchesOfMercury, PressureUnitsDTO.KiloPascals, elevation, elevationUnits);
         _logger.info("convertedKpa: " + convertedKpa);
 
         Assert.assertTrue(Math.abs(convertedIn - initialIn) < 0.01);

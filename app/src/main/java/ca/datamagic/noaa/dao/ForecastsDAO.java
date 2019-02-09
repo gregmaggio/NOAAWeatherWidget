@@ -9,7 +9,10 @@ import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.DataDTO;
 import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.dto.HeightDTO;
+import ca.datamagic.noaa.dto.LocationDTO;
 import ca.datamagic.noaa.dto.ParametersDTO;
+import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.ProbabilityOfPrecipitationDTO;
 import ca.datamagic.noaa.dto.TemperatureDTO;
 import ca.datamagic.noaa.dto.TimeLayoutDTO;
@@ -110,6 +113,31 @@ public class ForecastsDAO {
         }
         ForecastsDTO forecasts = new ForecastsDTO();
         forecasts.setCached(dwml.isCached());
+        DataDTO data = dwml.getForecast();
+        if (data != null) {
+            LocationDTO location = data.getLocation();
+            if (location != null) {
+                forecasts.setLocationText(location.getDescription());
+                PointDTO point = location.getPoint();
+                if (point != null) {
+                    Double latitude = point.getLatitude();
+                    Double longitude = point.getLongitude();
+                    if ((latitude != null) && (!Double.isNaN(latitude.doubleValue())) && (longitude != null) && (!Double.isNaN(longitude.doubleValue()))) {
+                        forecasts.setLatitude(latitude);
+                        forecasts.setLongitude(longitude);
+                    }
+                }
+                HeightDTO height = location.getHeight();
+                if (height != null) {
+                    Double elevation = height.getValue();
+                    String elevationUnits = height.getHeightUnits();
+                    if ((elevation != null) && (!Double.isNaN(elevation.doubleValue())) && (elevationUnits != null) && (elevationUnits.length() > 0)) {
+                        forecasts.setElevation(elevation);
+                        forecasts.setElevationUnits(elevationUnits);
+                    }
+                }
+            }
+        }
         forecasts.setItems(items);
         return forecasts;
     }

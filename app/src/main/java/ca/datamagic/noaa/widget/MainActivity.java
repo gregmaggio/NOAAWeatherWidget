@@ -1,8 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.Manifest;
-import android.accounts.Account;
-import android.accounts.AccountManager;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
@@ -11,7 +9,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
-import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -24,7 +21,6 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
-import android.util.Patterns;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,7 +37,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
@@ -50,8 +45,7 @@ import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.RadarTask;
-import ca.datamagic.noaa.async.StationTask;
-import ca.datamagic.noaa.async.SunriseSunsetTask;
+import ca.datamagic.noaa.async.TimeZoneTask;
 import ca.datamagic.noaa.async.WFOTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
@@ -60,18 +54,19 @@ import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dao.TimeZoneDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.dto.LocationDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
+import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
-import ca.datamagic.noaa.dto.StationDTO;
-import ca.datamagic.noaa.dto.SunriseSunsetDTO;
-import ca.datamagic.noaa.dto.WFODTO;
+import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, LocationsAdapter.LocationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
     private String _filesPath = null;
@@ -85,36 +80,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
-    private SunriseSunsetTask _sunriseSunsetTask = null;
     private DWMLTask _dwmlTask = null;
+    private TimeZoneTask _timeZoneTask = null;
     private WFOTask _wfoTask = null;
     private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
-    private StationTask _stationTaskNearest = null;
-    private StationTask _stationTaskNearestWithRadisonde = null;
-    private SunriseSunsetListener _sunriseSunsetListener = new SunriseSunsetListener();
     private DWMLListener _dwmlListener = new DWMLListener();
+    private TimeZoneListener _timeZoneListener = new TimeZoneListener();
     private WFOListener _wfoListener = new WFOListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
-    private StationListenerNearest _stationListenerNearest = new StationListenerNearest();
-    private SunriseSunsetDTO _sunriseSunset = null;
     private DWMLDTO _dwml = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private WFODTO _wfo = null;
-    private StationDTO _stationNearest = null;
-    private StationDTO _stationNearestWithRadiosonde = null;
-    private Bitmap _skewT = null;
-    private StationsHelper _stationsHelper = null;
-    private StationDTO _selectedStation = null;
+    private LocationsHelper _locationsHelper = null;
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
     private MainPageAdapter _mainPageAdapter = null;
     private NonSwipeableViewPager _viewPager = null;
     private GoogleApiClient _googleApiClient = null;
-    private StationsAdapter _stationsAdapter = null;
+    private LocationsAdapter _locationsAdapter = null;
     private SearchManager _manager = null;
     private SearchView _search = null;
     private GooglePredictionsTask _googlePredictionsTask = null;
@@ -167,15 +153,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void readCurrentState() {
         readPreferences();
-        _stationsHelper = new StationsHelper(getBaseContext());
-        _stationsAdapter = new StationsAdapter(this, _stationsHelper.readStations());
-        _stationsAdapter.addListener(this);
+        _locationsHelper = new LocationsHelper(getBaseContext());
+        _locationsAdapter = new LocationsAdapter(this, _locationsHelper.readLocations());
+        _locationsAdapter.addListener(this);
     }
 
     private void writeCurrentState() {
         writePreferences();
-        if ((_stationsHelper != null) && (_stationsAdapter != null)) {
-            _stationsHelper.writeStations(_stationsAdapter.getStations());
+        if ((_locationsHelper != null) && (_locationsAdapter != null)) {
+            _locationsHelper.writeLocations(_locationsAdapter.getLocations());
         }
     }
 
@@ -185,6 +171,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
 
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
+        TimeZoneDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
         initializeLogging();
 
@@ -193,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         readCurrentState();
 
         ListView leftDrawer = (ListView)findViewById(R.id.left_drawer);
-        leftDrawer.setAdapter(_stationsAdapter);
+        leftDrawer.setAdapter(_locationsAdapter);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -309,8 +296,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onDestroy() {
-        if (_stationsHelper != null) {
-            _stationsHelper.close();
+        if (_locationsHelper != null) {
+            _locationsHelper.close();
         }
         super.onDestroy();
     }
@@ -405,21 +392,18 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _year = Calendar.getInstance().get(Calendar.YEAR);
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-            _sunriseSunsetTask = new SunriseSunsetTask(_latitude, _longitude);
             _dwmlTask = new DWMLTask(_latitude, _longitude);
-            _wfoTask = new WFOTask(_latitude, _longitude);
+            _timeZoneTask = new TimeZoneTask(_latitude, _longitude);
+            _wfoTask = new WFOTask();
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
-            _stationTaskNearest = new StationTask(_latitude, _longitude, false);
-            _stationTaskNearestWithRadisonde = new StationTask(_latitude, _longitude, true);
 
             Workflow refreshWorkflow = new Workflow();
-            refreshWorkflow.addStep(new WorkflowStep(_sunriseSunsetTask, _sunriseSunsetListener));
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
+            refreshWorkflow.addStep(new WorkflowStep(_timeZoneTask, _timeZoneListener));
             refreshWorkflow.addStep(new WorkflowStep(_wfoTask, _wfoListener));
             refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
             refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
-            refreshWorkflow.addStep(new WorkflowStep(_stationTaskNearest, _stationListenerNearest));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -624,26 +608,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         String placeId = cursor.getString(index);
 
         _googlePlaceTask = new GooglePlaceTask(placeId);
-        _googlePlaceTask.addListener(new AsyncTaskListener<StationDTO>() {
+        _googlePlaceTask.addListener(new AsyncTaskListener<PlaceDTO>() {
             @Override
-            public void completed(AsyncTaskResult<StationDTO> result) {
+            public void completed(AsyncTaskResult<PlaceDTO> result) {
                 if (result.getThrowable() != null) {
                     if (_logger != null) {
-                        _logger.log(Level.WARNING, "Error retrieving station for suggestion.", result.getThrowable());
+                        _logger.log(Level.WARNING, "Error retrieving place for suggestion.", result.getThrowable());
                     }
                 } else {
-                    _selectedStation = result.getResult();
                     _savedlatitude = _latitude;
                     _savedLongitude = _longitude;
-                    _latitude = _selectedStation.getLatitude();
-                    _longitude = _selectedStation.getLongitude();
+                    _latitude = result.getResult().getLatitude();
+                    _longitude = result.getResult().getLongitude();
                     _mainMenu.findItem(R.id.search).collapseActionView();
                     _mainMenu.close();
                     _search.setIconified(true);
                     _search.setQuery("", false);
                     _search.clearFocus();
                     _search.onActionViewCollapsed();
-                    _stationsAdapter.add(_selectedStation);
                     actionRefresh();
                 }
                 _googlePlaceTask = null;
@@ -654,43 +636,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onStationAdded(StationDTO station) {
-        _stationsHelper.writeStations(_stationsAdapter.getStations());
-        _stationsAdapter.notifyDataSetChanged();
+    public void onLocationAdded(LocationDTO location) {
+        _locationsHelper.writeLocations(_locationsAdapter.getLocations());
+        _locationsAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onStationSelect(StationDTO station) {
+    public void onLocationSelect(LocationDTO location) {
         _drawerLayout.closeDrawer(Gravity.LEFT);
-        _selectedStation = station;
         _savedlatitude = _latitude;
         _savedLongitude = _longitude;
-        _latitude = _selectedStation.getLatitude();
-        _longitude = _selectedStation.getLongitude();
+        _latitude = location.getPoint().getLatitude();
+        _longitude = location.getPoint().getLongitude();
         actionRefresh();
     }
 
     @Override
-    public void onStationRemove(StationDTO station) {
-        _stationsAdapter.remove(station);
-        _stationsAdapter.notifyDataSetInvalidated();
-        _stationsHelper.writeStations(_stationsAdapter.getStations());
+    public void onLocationRemove(LocationDTO location) {
+        _locationsAdapter.remove(location);
+        _locationsAdapter.notifyDataSetInvalidated();
+        _locationsHelper.writeLocations(_locationsAdapter.getLocations());
         _drawerLayout.closeDrawer(Gravity.LEFT);
-    }
-
-    private class SunriseSunsetListener implements AsyncTaskListener<SunriseSunsetDTO> {
-        @Override
-        public void completed(AsyncTaskResult<SunriseSunsetDTO> result) {
-            if (result.getThrowable() != null) {
-                _sunriseSunset = null;
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving Sunrise/Sunset.", result.getThrowable());
-                }
-            } else {
-                _sunriseSunset = result.getResult();
-            }
-            _mainPageAdapter.setSunriseSunset(_sunriseSunset);
-        }
     }
 
     private class DWMLListener implements AsyncTaskListener<DWMLDTO> {
@@ -703,29 +669,49 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
                 }
+                // TODO: Reset to last good state
             } else {
                 _dwml = result.getResult();
                 _obervation = ObservationDAO.getObservation(_dwml);
                 _forecasts = ForecastsDAO.getForecasts(_dwml);
+                LocationDTO location = _dwml.getLocation();
+                if (location != null) {
+                    _locationsAdapter.add(location);
+                }
+                _wfoTask.setUrl(_dwml.getWFOURL());
             }
             _mainPageAdapter.setObservation(_obervation);
             _mainPageAdapter.setForecasts(_forecasts);
         }
     }
 
-    private class WFOListener implements AsyncTaskListener<WFODTO> {
+    private class TimeZoneListener implements AsyncTaskListener<TimeZoneDTO> {
         @Override
-        public void completed(AsyncTaskResult<WFODTO> result) {
+        public void completed(AsyncTaskResult<TimeZoneDTO> result) {
             if (result.getThrowable() != null) {
-                _wfo = null;
                 if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving WFO.", result.getThrowable());
+                    _logger.log(Level.WARNING, "Error retrieving time zone.", result.getThrowable());
                 }
+                _mainPageAdapter.setTimeZone(null);
             } else {
-                _wfo = result.getResult();
+                _mainPageAdapter.setTimeZone(result.getResult());
             }
-            _radarTask.setWFO(_wfo);
-            _discussionTask.setWFO(_wfo);
+        }
+    }
+
+    private class WFOListener implements AsyncTaskListener<String> {
+        @Override
+        public void completed(AsyncTaskResult<String> result) {
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving wfo.", result.getThrowable());
+                }
+                _discussionTask.setWFO(null);
+                _radarTask.setWFO(null);
+            } else {
+                _radarTask.setWFO(result.getResult());
+                _discussionTask.setWFO(result.getResult());
+            }
         }
     }
 
@@ -755,23 +741,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
             } else {
                 _mainPageAdapter.setDiscussion(result.getResult());
-            }
-        }
-    }
-
-    private class StationListenerNearest implements AsyncTaskListener<StationDTO> {
-        @Override
-        public void completed(AsyncTaskResult<StationDTO> result) {
-            if (result.getThrowable() != null) {
-                _stationNearest = null;
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
-                }
-            } else {
-                _stationNearest = result.getResult();
-            }
-            if (_stationNearest != null) {
-                _stationsAdapter.add(_stationNearest);
             }
         }
     }

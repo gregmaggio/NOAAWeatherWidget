@@ -13,9 +13,9 @@
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:text=""
             android:textAlignment="center"
-            android:id="@+id/station_name" />
+            android:id="@+id/location_name" />
         <ImageView
-            android:id="@+id/remove_station"
+            android:id="@+id/remove_location"
             android:contentDescription=""
             android:padding="6dip"
             android:layout_width="35dp"

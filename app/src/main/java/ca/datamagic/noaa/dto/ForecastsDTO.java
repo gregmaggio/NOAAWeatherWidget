@@ -15,6 +15,11 @@ import ca.datamagic.noaa.dao.ForecastsDAO;
 
 public class ForecastsDTO implements Parcelable {
     private boolean _cached = false;
+    private String _locationText = null;
+    private Double _latitude = null;
+    private Double _longitude = null;
+    private Double _elevation = null;
+    private String _elevationUnits = null;
     private List<ForecastDTO> _items = null;
 
     public ForecastsDTO() {
@@ -23,6 +28,11 @@ public class ForecastsDTO implements Parcelable {
 
     public ForecastsDTO(Parcel in) {
         _cached = (in.readByte() == (byte)1) ? true : false;
+        _locationText = in.readString();
+        _latitude = in.readDouble();
+        _longitude = in.readDouble();
+        _elevation = in.readDouble();
+        _elevationUnits = in.readString();
         _items = new ArrayList<ForecastDTO>();
         int items = in.readInt();
         for (int ii = 0; ii < items; ii++) {
@@ -46,6 +56,46 @@ public class ForecastsDTO implements Parcelable {
         _cached = newVal;
     }
 
+    public String getLocationText() {
+        return _locationText;
+    }
+
+    public void setLocationText(String newVal) {
+        _locationText = newVal;
+    }
+
+    public Double getLatitude() {
+        return _latitude;
+    }
+
+    public void setLatitude(Double newVal) {
+        _latitude = newVal;
+    }
+
+    public Double getLongitude() {
+        return _longitude;
+    }
+
+    public void setLongitude(Double newVal) {
+        _longitude = newVal;
+    }
+
+    public Double getElevation() {
+        return _elevation;
+    }
+
+    public void setElevation(Double newVal) {
+        _elevation = newVal;
+    }
+
+    public String getElevationUnits() {
+        return _elevationUnits;
+    }
+
+    public void setElevationUnits(String newVal) {
+        _elevationUnits = newVal;
+    }
+
     public List<ForecastDTO> getItems() {
         return _items;
     }
@@ -62,6 +112,11 @@ public class ForecastsDTO implements Parcelable {
     @Override
     public void writeToParcel(Parcel out, int flags) {
         out.writeByte((_cached ? (byte)1 : (byte)0));
+        out.writeString(((_locationText == null) ? "" : _locationText));
+        out.writeDouble(((_latitude == null) ? Double.NaN : _latitude));
+        out.writeDouble(((_longitude == null) ? Double.NaN : _longitude));
+        out.writeDouble(((_elevation == null) ? Double.NaN : _elevation));
+        out.writeString(((_elevationUnits == null) ? "" : _elevationUnits));
         if ((_items != null) && (_items.size() > 0)) {
             out.writeInt(_items.size());
             for (int ii = 0; ii < _items.size(); ii++) {

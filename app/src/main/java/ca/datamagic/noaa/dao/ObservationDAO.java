@@ -33,7 +33,7 @@ public class ObservationDAO {
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
-                    observation.setLocationText(location.getAreaDescription());
+                    observation.setLocationText(location.getDescription());
                     PointDTO point = location.getPoint();
                     if (point != null) {
                         Double latitude = point.getLatitude();

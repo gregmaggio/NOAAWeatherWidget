@@ -2,6 +2,7 @@ package ca.datamagic.noaa.dom;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -20,6 +21,7 @@ import ca.datamagic.noaa.dto.DirectionDTO;
 import ca.datamagic.noaa.dto.HazardConditionsDTO;
 import ca.datamagic.noaa.dto.HazardDTO;
 import ca.datamagic.noaa.dto.HazardsDTO;
+import ca.datamagic.noaa.dto.HeadDTO;
 import ca.datamagic.noaa.dto.HeightDTO;
 import ca.datamagic.noaa.dto.HumidityDTO;
 import ca.datamagic.noaa.dto.LocationDTO;
@@ -28,6 +30,8 @@ import ca.datamagic.noaa.dto.ParametersDTO;
 import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.PressureDTO;
 import ca.datamagic.noaa.dto.ProbabilityOfPrecipitationDTO;
+import ca.datamagic.noaa.dto.ProductDTO;
+import ca.datamagic.noaa.dto.SourceDTO;
 import ca.datamagic.noaa.dto.TemperatureDTO;
 import ca.datamagic.noaa.dto.TimeLayoutDTO;
 import ca.datamagic.noaa.dto.ValidTimeDTO;
@@ -83,13 +87,53 @@ public class DWMLHandler {
                 for (int index = 0; index < childNodes.getLength(); index++) {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
-                        if (child.getNodeName().toLowerCase().contains(DataDTO.NodeName.toLowerCase())) {
+                        if (child.getNodeName().toLowerCase().contains(HeadDTO.NodeName.toLowerCase())) {
+                            traverseHead((Element) child);
+                            continue;
+                        } else if (child.getNodeName().toLowerCase().contains(DataDTO.NodeName.toLowerCase())) {
                             traverseData((Element) child);
                             continue;
                         }
                     }
                 }
             }
+        }
+    }
+
+    private void traverseHead(Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(HeadDTO.NodeName.toLowerCase())) {
+            HeadDTO head = new HeadDTO();
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int index = 0; index < childNodes.getLength(); index++) {
+                    Node child = childNodes.item(index);
+                    if (child.getNodeType() == Node.ELEMENT_NODE) {
+                        if (child.getNodeName().toLowerCase().contains(ProductDTO.NodeName.toLowerCase())) {
+                            continue;
+                        } else if (child.getNodeName().toLowerCase().contains(SourceDTO.NodeName.toLowerCase())) {
+                            traverseSource(head, (Element) child);
+                            continue;
+                        }
+                    }
+                }
+            }
+            _dwml.setHead(head);
+        }
+    }
+
+    private void traverseSource(HeadDTO head, Element element) throws Exception {
+        if (element.getNodeName().toLowerCase().contains(SourceDTO.NodeName.toLowerCase())) {
+            SourceDTO source = new SourceDTO();
+            if (element.hasChildNodes()) {
+                NodeList childNodes = element.getChildNodes();
+                for (int index = 0; index < childNodes.getLength(); index++) {
+                    Node child = childNodes.item(index);
+                    if (child.getNodeName().compareToIgnoreCase(SourceDTO.CreditNode) == 0) {
+                        source.setCredit(XmlUtils.getText(child));
+                    }
+                }
+            }
+            head.setSource(source);
         }
     }
 
@@ -144,8 +188,20 @@ public class DWMLHandler {
                             location.setLocationKey(XmlUtils.getText(child));
                             continue;
                         }
-                        if (child.getNodeName().toLowerCase().contains(LocationDTO.AreaDescriptionNode.toLowerCase())) {
-                            location.setAreaDescription(XmlUtils.getText(child));
+                        if (child.getNodeName().toLowerCase().contains(LocationDTO.DescriptionNode.toLowerCase())) {
+                            location.setDescription(XmlUtils.getText(child));
+                            continue;
+                        }
+                        if (child.getNodeName().toLowerCase().contains(LocationDTO.CityNode.toLowerCase())) {
+                            location.setCity(XmlUtils.getText(child));
+                            if (child.hasAttributes()) {
+                                NamedNodeMap attributes = child.getAttributes();
+                                for (int jj = 0; jj < attributes.getLength(); jj++) {
+                                    if (attributes.item(jj).getNodeName().compareToIgnoreCase(LocationDTO.StateAttribute) == 0) {
+                                        location.setState(attributes.item(jj).getNodeValue());
+                                    }
+                                }
+                            }
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(PointDTO.NodeName.toLowerCase())) {

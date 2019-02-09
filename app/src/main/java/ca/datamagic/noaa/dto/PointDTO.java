@@ -71,11 +71,9 @@ public class PointDTO {
 	@Override
 	public String toString() {
 		StringBuffer buffer = new StringBuffer();
-		if ((_latitude != null) && (_longitude != null)) {
-			buffer.append(Double.toString(_latitude.doubleValue()));
-			buffer.append(", ");
-			buffer.append(Double.toString(_longitude.doubleValue()));
-		}
+		buffer.append("Point: ");
+		buffer.append("latitude=" + ((_latitude != null) ? Double.toString(_latitude.doubleValue()) : "null"));
+		buffer.append(",longitude=" + ((_longitude != null) ? Double.toString(_longitude.doubleValue()) : "null"));
 		return buffer.toString();
 	}
 }

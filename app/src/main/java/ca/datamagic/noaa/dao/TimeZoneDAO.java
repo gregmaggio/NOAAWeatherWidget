@@ -1,35 +1,54 @@
 package ca.datamagic.noaa.dao;
 
-import org.json.JSONException;
+import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
+import java.io.InputStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
+import java.util.Calendar;
 import java.util.logging.Logger;
 
+import javax.net.ssl.HttpsURLConnection;
+
+import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class TimeZoneDAO {
     private static Logger _logger = LogFactory.getLogger(TimeZoneDAO.class);
+    private static String _apiKey = null;
 
-    public String getTimeZone(double latitude, double longitude) throws Throwable {
-        HttpURLConnection connection = null;
+    public static String getApiKey() {
+        return _apiKey;
+    }
+
+    public static void setApiKey(String newVal) {
+        _apiKey = newVal;
+    }
+
+    public TimeZoneDTO loadTimeZone(double latitude, double longitude) throws MalformedURLException {
+        String timestamp = Long.toString((long)(Calendar.getInstance().getTimeInMillis() / 1000));
+        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/timezone/json?location={0},{1}&timestamp={2}&key={3}", latitude, longitude, timestamp, _apiKey));
+        _logger.info("url: " + url.toString());
+        HttpsURLConnection connection = null;
+        InputStream inputStream = null;
         try {
-            URL url = new URL(MessageFormat.format("http://env-5616586.jelastic.servint.net/TimeZone/api/{0}/{1}/timeZone", Double.toString(latitude), Double.toString(longitude)));
-            _logger.info("url: " + url.toString());
-            connection = (HttpURLConnection)url.openConnection();
+            connection = (HttpsURLConnection)url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(5000);
             connection.connect();
-            String json = IOUtils.readEntireStream(connection.getInputStream());
-            String timeZone = parseJSON(json);
-            return timeZone;
+            inputStream = connection.getInputStream();
+            String responseText = IOUtils.readEntireStream(inputStream);
+            _logger.info("responseText: " + responseText);
+            JSONObject responseObj = new JSONObject(responseText);
+            return new TimeZoneDTO(responseObj);
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
         } finally {
+            IOUtils.closeQuietly(inputStream);
             if (connection != null) {
                 try {
                     connection.disconnect();
@@ -39,15 +58,5 @@ public class TimeZoneDAO {
             }
         }
         return null;
-    }
-
-    private static String parseJSON(String json) throws JSONException {
-        if (json.startsWith("\"")) {
-            json = json.substring(1);
-        }
-        if (json.endsWith("\"")) {
-            json = json.substring(0, json.length() - 1);
-        }
-        return  json;
     }
 }
