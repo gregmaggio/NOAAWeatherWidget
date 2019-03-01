@@ -28,12 +28,10 @@ public class ObservationDAO {
     public static ObservationDTO getObservation(DWMLDTO dwml) {
         ObservationDTO observation = new ObservationDTO();
         if (dwml != null) {
-            observation.setCached(dwml.isCached());
             DataDTO data = dwml.getObservation();
             if (data != null) {
                 LocationDTO location = data.getLocation();
                 if (location != null) {
-                    observation.setLocationText(location.getDescription());
                     PointDTO point = location.getPoint();
                     if (point != null) {
                         Double latitude = point.getLatitude();

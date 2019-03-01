@@ -24,6 +24,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
     public static final int RadarIndex = 3;
+    private String _location = null;
     private ObservationDTO _observation = null;
     private ForecastsDTO _forecasts = null;
     private TimeZoneDTO _timeZone = null;
@@ -39,6 +40,14 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
         _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
+    }
+
+    public String getLocation() {
+        return _location;
+    }
+
+    public void setLocation(String newVal) {
+        _location = newVal;
     }
 
     public ObservationDTO getObservation() {
@@ -125,7 +134,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         if (_fragments[position] == null) {
             switch (position) {
                 case ObservationIndex:
-                    _fragments[position] = ObservationFragment.newInstance(getForecasts(), getObservation(), getTimeZone());
+                    _fragments[position] = ObservationFragment.newInstance(getLocation(), getForecasts(), getObservation(), getTimeZone());
                     break;
                 case ForecastIndex:
                     _fragments[position] = ForecastFragment.newInstance(getForecasts());
@@ -140,6 +149,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         } else {
             switch (position) {
                 case ObservationIndex:
+                    ((ObservationFragment)_fragments[position]).setLocation(getLocation());
                     ((ObservationFragment)_fragments[position]).setForecasts(getForecasts());
                     ((ObservationFragment)_fragments[position]).setObservation(getObservation());
                     ((ObservationFragment)_fragments[position]).setTimeZone(getTimeZone());

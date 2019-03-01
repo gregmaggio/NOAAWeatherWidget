@@ -106,25 +106,6 @@ public class ForecastFragment extends Fragment implements Renderer {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
 
-                    if (forecasts.isCached()) {
-                        TableRow row = new TableRow(getContext());
-                        row.setVisibility(View.VISIBLE);
-                        row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-
-                        LinearLayout item = (LinearLayout)inflater.inflate(R.layout.cached_forecast, null);
-                        item.setVisibility(View.VISIBLE);
-
-                        row.addView(item);
-                        forecastTable.addView(row);
-
-                        TableRow spacerRow = new TableRow(getContext());
-                        spacerRow.setVisibility(View.VISIBLE);
-                        spacerRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-                        LinearLayout forecastDivider = (LinearLayout)inflater.inflate(R.layout.forecast_divider, null);
-                        forecastDivider.setVisibility(View.VISIBLE);
-                        spacerRow.addView(forecastDivider);
-                        forecastTable.addView(spacerRow);
-                    }
                     for (int ii = 0; ii < items.size(); ii++) {
                         if (ii > 0) {
                             TableRow spacerRow = new TableRow(getContext());

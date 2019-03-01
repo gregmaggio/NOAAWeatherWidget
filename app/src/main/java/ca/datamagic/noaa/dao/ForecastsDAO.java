@@ -112,12 +112,10 @@ public class ForecastsDAO {
             }
         }
         ForecastsDTO forecasts = new ForecastsDTO();
-        forecasts.setCached(dwml.isCached());
         DataDTO data = dwml.getForecast();
         if (data != null) {
             LocationDTO location = data.getLocation();
             if (location != null) {
-                forecasts.setLocationText(location.getDescription());
                 PointDTO point = location.getPoint();
                 if (point != null) {
                     Double latitude = point.getLatitude();

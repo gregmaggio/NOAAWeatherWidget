@@ -8,8 +8,6 @@ import android.os.Parcelable;
  */
 
 public class ObservationDTO implements Parcelable {
-    private boolean _cached = false;
-    private String _locationText = null;
     private Double _latitude = null;
     private Double _longitude = null;
     private Double _elevation = null;
@@ -37,8 +35,6 @@ public class ObservationDTO implements Parcelable {
     }
 
     public ObservationDTO(Parcel in) {
-        _cached = (in.readByte() == (byte)1) ? true : false;
-        _locationText = in.readString();
         _latitude = in.readDouble();
         _longitude = in.readDouble();
         _elevation = in.readDouble();
@@ -60,22 +56,6 @@ public class ObservationDTO implements Parcelable {
         _windGustUnits = in.readString();
         _pressure = in.readDouble();
         _pressureUnits = in.readString();
-    }
-
-    public boolean isCached() {
-        return _cached;
-    }
-
-    public void setCached(boolean newVal) {
-        _cached = newVal;
-    }
-
-    public String getLocationText() {
-        return _locationText;
-    }
-
-    public void setLocationText(String newVal) {
-        _locationText = newVal;
     }
 
     public Double getLatitude() {
@@ -253,8 +233,6 @@ public class ObservationDTO implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
-        out.writeByte((_cached ? (byte)1 : (byte)0));
-        out.writeString(((_locationText == null) ? "" : _locationText));
         out.writeDouble(((_latitude == null) ? Double.NaN : _latitude));
         out.writeDouble(((_longitude == null) ? Double.NaN : _longitude));
         out.writeDouble(((_elevation == null) ? Double.NaN : _elevation));

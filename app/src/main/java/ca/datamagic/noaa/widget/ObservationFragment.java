@@ -56,6 +56,21 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
 
+    public String getLocation() {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            return arguments.getString("location");
+        }
+        return null;
+    }
+
+    public void setLocation(String newVal) {
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            arguments.putString("location", newVal);
+        }
+    }
+
     public ForecastsDTO getForecasts() {
         Bundle arguments = getArguments();
         if (arguments != null) {
@@ -102,12 +117,13 @@ public class ObservationFragment extends Fragment implements Renderer {
     }
 
     public static ObservationFragment newInstance() {
-        return newInstance(null, null, null);
+        return newInstance(null, null, null, null);
     }
 
-    public static ObservationFragment newInstance(ForecastsDTO forecasts, ObservationDTO observation, TimeZoneDTO timeZone) {
+    public static ObservationFragment newInstance(String location, ForecastsDTO forecasts, ObservationDTO observation, TimeZoneDTO timeZone) {
         ObservationFragment fragment = new ObservationFragment();
         Bundle bundle = new Bundle();
+        bundle.putString("location", location);
         bundle.putParcelable("forecasts", forecasts);
         bundle.putParcelable("observation", observation);
         bundle.putParcelable("timeZone", timeZone);
@@ -162,14 +178,11 @@ public class ObservationFragment extends Fragment implements Renderer {
             PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
             PreferencesDTO preferencesDTO = preferencesDAO.read();
 
-            String locationText = observation.getLocationText();
+            String location = getLocation();
             Double latitude = observation.getLatitude();
             Double longitude = observation.getLongitude();
             Double elevation = observation.getElevation();
             String elevationUnits = observation.getElevationUnits();
-            if ((locationText == null) || (locationText.length() < 1)) {
-                locationText = forecasts.getLocationText();
-            }
             if ((latitude == null) || (longitude == null)) {
                 latitude = forecasts.getLatitude();
                 longitude = forecasts.getLongitude();
@@ -203,14 +216,9 @@ public class ObservationFragment extends Fragment implements Renderer {
             LinearLayout item = (LinearLayout)inflater.inflate(R.layout.observation_item, null);
             item.setVisibility(View.VISIBLE);
 
-            if (observation.isCached()) {
-                LinearLayout cached = (LinearLayout)item.findViewById(R.id.cached);
-                cached.setVisibility(View.VISIBLE);
-            }
-
-            if ((locationText != null) && (locationText.length() > 0)) {
-                TextView location = (TextView) item.findViewById(R.id.location);
-                location.setText(locationText);
+            if ((location != null) && (location.length() > 0)) {
+                TextView locationView = (TextView) item.findViewById(R.id.location);
+                locationView.setText(location);
             }
 
             if ((latitude != null) && (longitude != null) && (elevation != null) && (elevationUnits != null) && (elevationUnits.length() > 0)) {

@@ -7,6 +7,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.content.res.XmlResourceParser;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.location.Location;
@@ -64,6 +66,7 @@ import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.TimeZoneDTO;
+import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, LocationsAdapter.LocationsAdapterListener {
@@ -91,6 +94,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private DWMLDTO _dwml = null;
+    private String _location = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
     private LocationsHelper _locationsHelper = null;
@@ -394,7 +398,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             _dwmlTask = new DWMLTask(_latitude, _longitude);
             _timeZoneTask = new TimeZoneTask(_latitude, _longitude);
-            _wfoTask = new WFOTask();
+            _wfoTask = new WFOTask(_latitude, _longitude);
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
 
@@ -663,6 +667,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         @Override
         public void completed(AsyncTaskResult<DWMLDTO> result) {
             _dwml = null;
+            _location = null;
             _obervation = null;
             _forecasts = null;
             if (result.getThrowable() != null) {
@@ -676,10 +681,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _forecasts = ForecastsDAO.getForecasts(_dwml);
                 LocationDTO location = _dwml.getLocation();
                 if (location != null) {
+                    _location = location.getDescription();
                     _locationsAdapter.add(location);
                 }
-                _wfoTask.setUrl(_dwml.getWFOURL());
             }
+            _mainPageAdapter.setLocation(_location);
             _mainPageAdapter.setObservation(_obervation);
             _mainPageAdapter.setForecasts(_forecasts);
         }
@@ -699,9 +705,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private class WFOListener implements AsyncTaskListener<String> {
+    private class WFOListener implements AsyncTaskListener<WFODTO> {
         @Override
-        public void completed(AsyncTaskResult<String> result) {
+        public void completed(AsyncTaskResult<WFODTO> result) {
             if (result.getThrowable() != null) {
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving wfo.", result.getThrowable());
@@ -709,8 +715,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _discussionTask.setWFO(null);
                 _radarTask.setWFO(null);
             } else {
-                _radarTask.setWFO(result.getResult());
-                _discussionTask.setWFO(result.getResult());
+                _radarTask.setWFO(result.getResult().getWFO());
+                _discussionTask.setWFO(result.getResult().getWFO());
             }
         }
     }
