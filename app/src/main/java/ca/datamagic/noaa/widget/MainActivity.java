@@ -7,8 +7,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.res.Resources;
-import android.content.res.XmlResourceParser;
 import android.database.Cursor;
 import android.database.MatrixCursor;
 import android.location.Location;
@@ -35,7 +33,9 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -48,7 +48,7 @@ import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.TimeZoneTask;
-import ca.datamagic.noaa.async.WFOTask;
+import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dao.ForecastsDAO;
@@ -59,17 +59,16 @@ import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dao.TimeZoneDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
-import ca.datamagic.noaa.dto.LocationDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.TimeZoneDTO;
-import ca.datamagic.noaa.dto.WFODTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, LocationsAdapter.LocationsAdapterListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
     private String _filesPath = null;
@@ -85,26 +84,26 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private String _format = "24 hourly";
     private DWMLTask _dwmlTask = null;
     private TimeZoneTask _timeZoneTask = null;
-    private WFOTask _wfoTask = null;
+    private StationTask _stationTask = null;
     private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
     private TimeZoneListener _timeZoneListener = new TimeZoneListener();
-    private WFOListener _wfoListener = new WFOListener();
+    private StationListener _stationListener = new StationListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private DWMLDTO _dwml = null;
     private String _location = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private LocationsHelper _locationsHelper = null;
+    private StationsHelper _stationsHelper = null;
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
     private MainPageAdapter _mainPageAdapter = null;
     private NonSwipeableViewPager _viewPager = null;
     private GoogleApiClient _googleApiClient = null;
-    private LocationsAdapter _locationsAdapter = null;
+    private StationsAdapter _stationsAdapter = null;
     private SearchManager _manager = null;
     private SearchView _search = null;
     private GooglePredictionsTask _googlePredictionsTask = null;
@@ -157,15 +156,50 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void readCurrentState() {
         readPreferences();
-        _locationsHelper = new LocationsHelper(getBaseContext());
-        _locationsAdapter = new LocationsAdapter(this, _locationsHelper.readLocations());
-        _locationsAdapter.addListener(this);
+        _stationsHelper = new StationsHelper(getBaseContext());
+        LocationsHelper locationsHelper = new LocationsHelper(getBaseContext());
+        OldStationsHelper oldStationsHelper = new OldStationsHelper(getBaseContext());
+
+        HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
+        List<StationDTO> stations1 = _stationsHelper.readStations();
+        List<StationDTO> stations2 = locationsHelper.readStations();
+        List<StationDTO> stations3 = oldStationsHelper.readStations();
+        if (stations1 != null) {
+            for (int ii = 0; ii < stations1.size(); ii++) {
+                StationDTO station = stations1.get(ii);
+                String key = station.getStationName().toLowerCase();
+                if (!stations.containsKey(key)) {
+                    stations.put(key, station);
+                }
+            }
+        }
+        if (stations2 != null) {
+            for (int ii = 0; ii < stations2.size(); ii++) {
+                StationDTO station = stations2.get(ii);
+                String key = station.getStationName().toLowerCase();
+                if (!stations.containsKey(key)) {
+                    stations.put(key, station);
+                }
+            }
+        }
+        if (stations3 != null) {
+            for (int ii = 0; ii < stations3.size(); ii++) {
+                StationDTO station = stations3.get(ii);
+                String key = station.getStationName().toLowerCase();
+                if (!stations.containsKey(key)) {
+                    stations.put(key, station);
+                }
+            }
+        }
+        List<StationDTO> stationsList = new ArrayList<StationDTO>(stations.values());
+        _stationsAdapter = new StationsAdapter(this, stationsList);
+        _stationsAdapter.addListener(this);
     }
 
     private void writeCurrentState() {
         writePreferences();
-        if ((_locationsHelper != null) && (_locationsAdapter != null)) {
-            _locationsHelper.writeLocations(_locationsAdapter.getLocations());
+        if ((_stationsHelper != null) && (_stationsAdapter != null)) {
+            _stationsHelper.writeStations(_stationsAdapter.getStations());
         }
     }
 
@@ -184,7 +218,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         readCurrentState();
 
         ListView leftDrawer = (ListView)findViewById(R.id.left_drawer);
-        leftDrawer.setAdapter(_locationsAdapter);
+        leftDrawer.setAdapter(_stationsAdapter);
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -245,7 +279,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             }
         });
-
         readPreferences();
         myLocation();
     }
@@ -300,8 +333,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onDestroy() {
-        if (_locationsHelper != null) {
-            _locationsHelper.close();
+        if (_stationsHelper != null) {
+            _stationsHelper.close();
         }
         super.onDestroy();
     }
@@ -398,14 +431,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             _dwmlTask = new DWMLTask(_latitude, _longitude);
             _timeZoneTask = new TimeZoneTask(_latitude, _longitude);
-            _wfoTask = new WFOTask(_latitude, _longitude);
+            _stationTask = new StationTask(_latitude, _longitude);
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(_timeZoneTask, _timeZoneListener));
-            refreshWorkflow.addStep(new WorkflowStep(_wfoTask, _wfoListener));
+            refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
             refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
             refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
@@ -640,26 +673,26 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onLocationAdded(LocationDTO location) {
-        _locationsHelper.writeLocations(_locationsAdapter.getLocations());
-        _locationsAdapter.notifyDataSetChanged();
+    public void onStationAdded(StationDTO stationn) {
+        _stationsHelper.writeStations(_stationsAdapter.getStations());
+        _stationsAdapter.notifyDataSetChanged();
     }
 
     @Override
-    public void onLocationSelect(LocationDTO location) {
+    public void onStationSelect(StationDTO station) {
         _drawerLayout.closeDrawer(Gravity.LEFT);
         _savedlatitude = _latitude;
         _savedLongitude = _longitude;
-        _latitude = location.getPoint().getLatitude();
-        _longitude = location.getPoint().getLongitude();
+        _latitude = station.getLatitude();
+        _longitude = station.getLongitude();
         actionRefresh();
     }
 
     @Override
-    public void onLocationRemove(LocationDTO location) {
-        _locationsAdapter.remove(location);
-        _locationsAdapter.notifyDataSetInvalidated();
-        _locationsHelper.writeLocations(_locationsAdapter.getLocations());
+    public void onStationRemove(StationDTO station) {
+        _stationsAdapter.remove(station);
+        _stationsAdapter.notifyDataSetInvalidated();
+        _stationsHelper.writeStations(_stationsAdapter.getStations());
         _drawerLayout.closeDrawer(Gravity.LEFT);
     }
 
@@ -679,13 +712,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _dwml = result.getResult();
                 _obervation = ObservationDAO.getObservation(_dwml);
                 _forecasts = ForecastsDAO.getForecasts(_dwml);
-                LocationDTO location = _dwml.getLocation();
-                if (location != null) {
-                    _location = location.getDescription();
-                    _locationsAdapter.add(location);
-                }
             }
-            _mainPageAdapter.setLocation(_location);
             _mainPageAdapter.setObservation(_obervation);
             _mainPageAdapter.setForecasts(_forecasts);
         }
@@ -705,16 +732,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private class WFOListener implements AsyncTaskListener<WFODTO> {
+    private class StationListener implements AsyncTaskListener<StationDTO> {
         @Override
-        public void completed(AsyncTaskResult<WFODTO> result) {
+        public void completed(AsyncTaskResult<StationDTO> result) {
             if (result.getThrowable() != null) {
                 if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving wfo.", result.getThrowable());
+                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
                 }
                 _discussionTask.setWFO(null);
                 _radarTask.setWFO(null);
             } else {
+                _stationsAdapter.add(result.getResult());
                 _radarTask.setWFO(result.getResult().getWFO());
                 _discussionTask.setWFO(result.getResult().getWFO());
             }

@@ -87,53 +87,13 @@ public class DWMLHandler {
                 for (int index = 0; index < childNodes.getLength(); index++) {
                     Node child = childNodes.item(index);
                     if (child.getNodeType() == Node.ELEMENT_NODE) {
-                        if (child.getNodeName().toLowerCase().contains(HeadDTO.NodeName.toLowerCase())) {
-                            traverseHead((Element) child);
-                            continue;
-                        } else if (child.getNodeName().toLowerCase().contains(DataDTO.NodeName.toLowerCase())) {
+                        if (child.getNodeName().toLowerCase().contains(DataDTO.NodeName.toLowerCase())) {
                             traverseData((Element) child);
                             continue;
                         }
                     }
                 }
             }
-        }
-    }
-
-    private void traverseHead(Element element) throws Exception {
-        if (element.getNodeName().toLowerCase().contains(HeadDTO.NodeName.toLowerCase())) {
-            HeadDTO head = new HeadDTO();
-            if (element.hasChildNodes()) {
-                NodeList childNodes = element.getChildNodes();
-                for (int index = 0; index < childNodes.getLength(); index++) {
-                    Node child = childNodes.item(index);
-                    if (child.getNodeType() == Node.ELEMENT_NODE) {
-                        if (child.getNodeName().toLowerCase().contains(ProductDTO.NodeName.toLowerCase())) {
-                            continue;
-                        } else if (child.getNodeName().toLowerCase().contains(SourceDTO.NodeName.toLowerCase())) {
-                            traverseSource(head, (Element) child);
-                            continue;
-                        }
-                    }
-                }
-            }
-            _dwml.setHead(head);
-        }
-    }
-
-    private void traverseSource(HeadDTO head, Element element) throws Exception {
-        if (element.getNodeName().toLowerCase().contains(SourceDTO.NodeName.toLowerCase())) {
-            SourceDTO source = new SourceDTO();
-            if (element.hasChildNodes()) {
-                NodeList childNodes = element.getChildNodes();
-                for (int index = 0; index < childNodes.getLength(); index++) {
-                    Node child = childNodes.item(index);
-                    if (child.getNodeName().compareToIgnoreCase(SourceDTO.CreditNode) == 0) {
-                        source.setCredit(XmlUtils.getText(child));
-                    }
-                }
-            }
-            head.setSource(source);
         }
     }
 
@@ -189,6 +149,10 @@ public class DWMLHandler {
                             continue;
                         }
                         if (child.getNodeName().toLowerCase().contains(LocationDTO.DescriptionNode.toLowerCase())) {
+                            location.setDescription(XmlUtils.getText(child));
+                            continue;
+                        }
+                        if (child.getNodeName().toLowerCase().contains(LocationDTO.AreaDescriptionNode.toLowerCase())) {
                             location.setDescription(XmlUtils.getText(child));
                             continue;
                         }

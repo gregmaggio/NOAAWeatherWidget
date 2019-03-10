@@ -12,24 +12,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.LocationDTO;
-import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-/**
- * Created by Greg on 2/11/2017.
- */
-
-public class LocationsHelper extends SQLiteOpenHelper {
-    private static Logger _logger = LogFactory.getLogger(LocationsHelper.class);
+public class OldStationsHelper extends SQLiteOpenHelper {
+    private static Logger _logger = LogFactory.getLogger(OldStationsHelper.class);
     private static int _version = 1;
-    private static String _dbName = "locations.db";
-    private static String _createSQL = "CREATE TABLE location (description TEXT, city TEXT, state_code TEXT, latitude NUMERIC, longitude NUMERIC)";
-    private static String _deleteSQL = "DROP TABLE IF EXISTS location";
+    private static String _dbName = "stations.db";
+    private static String _createSQL = "CREATE TABLE station (station_id TEXT, station_name TEXT, street_number TEXT, street_name TEXT, city TEXT, state_code TEXT, state_name TEXT, zip TEXT, country_code TEXT, country_name TEXT, latitude NUMERIC, longitude NUMERIC, has_radiosonde TEXT)";
+    private static String _deleteSQL = "DROP TABLE IF EXISTS station";
     private String _databaseFileName = null;
 
-    public LocationsHelper(Context context) {
+    public OldStationsHelper(Context context) {
         super(context, _dbName, null, _version);
         _databaseFileName = MessageFormat.format("{0}/{1}", context.getFilesDir().getAbsolutePath(), _dbName);
     }
@@ -54,27 +48,29 @@ public class LocationsHelper extends SQLiteOpenHelper {
         if (!file.exists()) {
             return null;
         }
-        Cursor cursor = null;
         SQLiteDatabase db = null;
+        Cursor cursor = null;
         try {
             HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
             db = getReadableDatabase();
-            String tableName = "location";
-            String[] projection = {"description", "city", "state_code", "latitude", "longitude" };
-            String sortOrder = "description ASC";
+            String tableName = "station";
+            String[] projection = {"station_id", "station_name", "street_number", "street_name", "city", "state_code", "state_name", "zip", "country_code", "country_name", "latitude", "longitude", "has_radiosonde"};
+            String sortOrder = "station_name ASC";
             cursor = db.query(tableName, projection, null, null, null, null, sortOrder);
             while (cursor.moveToNext()) {
-                String description = cursor.getString(cursor.getColumnIndexOrThrow("description"));
+                String stationId = cursor.getString(cursor.getColumnIndexOrThrow("station_id"));
+                String stationName = cursor.getString(cursor.getColumnIndexOrThrow("station_name"));
                 String stateCode = cursor.getString(cursor.getColumnIndexOrThrow("state_code"));
                 double latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"));
                 double longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"));
-                if (!stations.containsKey(description.toUpperCase())) {
+                if (!stations.containsKey(stationId.toUpperCase())) {
                     StationDTO station = new StationDTO();
-                    station.setStationName(description);
+                    station.setStationId(stationId);
+                    station.setStationName(stationName);
                     station.setState(stateCode);
                     station.setLatitude(latitude);
                     station.setLongitude(longitude);
-                    stations.put(description.toUpperCase(), station);
+                    stations.put(stationId.toUpperCase(), station);
                 }
             }
             return new ArrayList<StationDTO>(stations.values());

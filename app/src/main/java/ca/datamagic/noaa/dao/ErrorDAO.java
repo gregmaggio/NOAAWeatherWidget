@@ -22,7 +22,7 @@ public class ErrorDAO {
         Throwable lastError = null;
         for (int ii = 0; ii < _maxTries; ii++) {
             try {
-                MultipartUtility multipartUtility = new MultipartUtility("http://env-5616586.jelastic.servint.net/api/error");
+                MultipartUtility multipartUtility = new MultipartUtility("http://datamagic.ca/api/error");
                 multipartUtility.addFormField("mailFrom", mailFrom);
                 multipartUtility.addFormField("mailSubject", mailSubject);
                 multipartUtility.addFormField("mailBody", mailBody);

@@ -2,11 +2,7 @@ package ca.datamagic.noaa.dao;
 
 import java.net.URL;
 import java.text.MessageFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.TimeZone;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -21,9 +17,6 @@ import ca.datamagic.noaa.util.IOUtils;
 
 public class DWMLDAO {
     private static Logger _logger = LogFactory.getLogger(DWMLDAO.class);
-    private static Pattern _scriptPattern = Pattern.compile("<script", Pattern.CASE_INSENSITIVE);
-    private static Pattern _closeTagPattern = Pattern.compile(">", Pattern.CASE_INSENSITIVE);
-    private static Pattern _endScriptPattern = Pattern.compile("</script>", Pattern.CASE_INSENSITIVE);
 
     /**
      * Get the current observation at a location
@@ -36,14 +29,6 @@ public class DWMLDAO {
         if (unit.compareToIgnoreCase("m") == 0) {
             intUnit = 1;
         }
-        Calendar now = Calendar.getInstance();
-        Calendar sevenDays = Calendar.getInstance();
-        sevenDays.add(Calendar.DAY_OF_MONTH, 7);
-
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));   // This line converts the given date into UTC time zone
-        String startDate = sdf.format(now.getTime()) + "Z";
-        String endDate = sdf.format(sevenDays.getTime()) + "Z";
         URL url = new URL(MessageFormat.format("https://forecast.weather.gov/MapClick.php?lat={0}&lon={1}&unit={2}&lg=english&FcstType=dwml", Double.toString(latitude), Double.toString(longitude), Integer.toString(intUnit)));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;

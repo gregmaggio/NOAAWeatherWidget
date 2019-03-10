@@ -14,6 +14,13 @@ package ca.datamagic.noaa.dto;
  *     <height datum="mean sea level">49</height>
  *   </location>
  *
+ *   <location>
+ *     <location-key>point1</location-key>
+ *     <point latitude="38.98" longitude="-76.92"/>
+ *     <area-description>College Park Airport, MD</area-description>
+ *     <height datum="mean sea level" height-units="feet">49</height>
+ *   </location>
+ *
  * @author greg
  *
  */
@@ -21,6 +28,7 @@ public class LocationDTO {
 	public static final String NodeName = "location";
 	public static final String LocationKeyNode = "location-key";
 	public static final String DescriptionNode = "description";
+	public static final String AreaDescriptionNode = "area-description";
 	public static final String CityNode = "city";
 	public static final String StateAttribute = "state";
 	private String _locationKey = null;

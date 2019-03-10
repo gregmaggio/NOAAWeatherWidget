@@ -8,6 +8,7 @@ import android.os.Parcelable;
  */
 
 public class ObservationDTO implements Parcelable {
+    private String _description = null;
     private Double _latitude = null;
     private Double _longitude = null;
     private Double _elevation = null;
@@ -35,6 +36,7 @@ public class ObservationDTO implements Parcelable {
     }
 
     public ObservationDTO(Parcel in) {
+        _description = in.readString();
         _latitude = in.readDouble();
         _longitude = in.readDouble();
         _elevation = in.readDouble();
@@ -56,6 +58,14 @@ public class ObservationDTO implements Parcelable {
         _windGustUnits = in.readString();
         _pressure = in.readDouble();
         _pressureUnits = in.readString();
+    }
+
+    public String getDescription() {
+        return _description;
+    }
+
+    public void setDescription(String newVal) {
+        _description = newVal;
     }
 
     public Double getLatitude() {
@@ -233,6 +243,7 @@ public class ObservationDTO implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
+        out.writeString(((_description == null) ? "" : _description));
         out.writeDouble(((_latitude == null) ? Double.NaN : _latitude));
         out.writeDouble(((_longitude == null) ? Double.NaN : _longitude));
         out.writeDouble(((_elevation == null) ? Double.NaN : _elevation));

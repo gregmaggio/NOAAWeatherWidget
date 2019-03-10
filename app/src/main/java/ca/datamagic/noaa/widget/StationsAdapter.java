@@ -12,54 +12,54 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.datamagic.noaa.dto.LocationDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 
 /**
  * Created by Greg on 1/28/2017.
  */
 
-public class LocationsAdapter extends BaseAdapter implements View.OnClickListener {
+public class StationsAdapter extends BaseAdapter implements View.OnClickListener {
     private LayoutInflater _inflater = null;
-    private List<LocationDTO> _locations = null;
-    private List<LocationsAdapterListener> _listeners = new ArrayList<LocationsAdapterListener>();
+    private List<StationDTO> _stations = null;
+    private List<StationsAdapterListener> _listeners = new ArrayList<StationsAdapterListener>();
 
-    public LocationsAdapter(Context context, List<LocationDTO> locations) {
+    public StationsAdapter(Context context, List<StationDTO> stations) {
         _inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        _locations = locations;
+        _stations = stations;
     }
 
-    public void addListener(LocationsAdapterListener listener) {
+    public void addListener(StationsAdapterListener listener) {
         _listeners.add(listener);
     }
 
-    public void removeListener(LocationsAdapterListener listener) {
+    public void removeListener(StationsAdapterListener listener) {
         _listeners.remove(listener);
     }
 
-    private void fireLocationAdded(LocationDTO location) {
+    private void fireStationAdded(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
-                _listeners.get(ii).onLocationAdded(location);
+                _listeners.get(ii).onStationAdded(station);
             } catch (Throwable t) {
                 // TODO
             }
         }
     }
 
-    private void fireLocationSelect(LocationDTO location) {
+    private void fireStationSelect(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
-                _listeners.get(ii).onLocationSelect(location);
+                _listeners.get(ii).onStationSelect(station);
             } catch (Throwable t) {
                 // TODO
             }
         }
     }
 
-    private void fireLocationRemove(LocationDTO location) {
+    private void fireStationRemove(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
-                _listeners.get(ii).onLocationRemove(location);
+                _listeners.get(ii).onStationRemove(station);
             } catch (Throwable t) {
                 // TODO
             }
@@ -68,12 +68,12 @@ public class LocationsAdapter extends BaseAdapter implements View.OnClickListene
 
     @Override
     public int getCount() {
-        return _locations.size();
+        return _stations.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return _locations.get(position);
+        return _stations.get(position);
     }
 
     @Override
@@ -81,28 +81,31 @@ public class LocationsAdapter extends BaseAdapter implements View.OnClickListene
         return position;
     }
 
-    public List<LocationDTO> getLocations() {
-        return _locations;
+    public List<StationDTO> getStations() {
+        return _stations;
     }
 
-    public void add(LocationDTO location) {
+    public void add(StationDTO station) {
         boolean exists = false;
-        for (int ii = 0; ii < _locations.size(); ii++) {
-            if (_locations.get(ii).getDescription().compareToIgnoreCase(location.getDescription()) == 0) {
+        for (int ii = 0; ii < _stations.size(); ii++) {
+            if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
+                exists = true;
+                break;
+            } else if (_stations.get(ii).getStationName().compareToIgnoreCase(station.getStationName()) == 0) {
                 exists = true;
                 break;
             }
         }
         if (!exists) {
-            _locations.add(location);
-            fireLocationAdded(location);
+            _stations.add(station);
+            fireStationAdded(station);
         }
     }
 
-    public void remove(LocationDTO location) {
-        for (int ii = 0; ii < _locations.size(); ii++) {
-            if (_locations.get(ii).getDescription().compareToIgnoreCase(location.getDescription()) == 0) {
-                _locations.remove(ii);
+    public void remove(StationDTO station) {
+        for (int ii = 0; ii < _stations.size(); ii++) {
+            if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
+                _stations.remove(ii);
                 break;
             }
         }
@@ -111,28 +114,28 @@ public class LocationsAdapter extends BaseAdapter implements View.OnClickListene
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        LocationDTO location = null;
-        if (_locations.size() > 0) {
-            location = _locations.get(position);
+        StationDTO station = null;
+        if (_stations.size() > 0) {
+            station = _stations.get(position);
         }
         View view = convertView;
         boolean viewInflated = false;
         if (view == null) {
-            view = _inflater.inflate(R.layout.location_choose, null);
+            view = _inflater.inflate(R.layout.station_choose, null);
             viewInflated = true;
         }
         TextView stationName = (TextView)view.findViewById(R.id.location_name);
-        if (location != null) {
-            stationName.setTag(location);
-            stationName.setText(location.getDescription());
+        if (station != null) {
+            stationName.setTag(station);
+            stationName.setText(station.getStationName());
         }
         if (viewInflated) {
             stationName.setOnClickListener(this);
         }
         ImageView removeStation = (ImageView)view.findViewById(R.id.remove_location);
         removeStation.setClickable(true);
-        if (location != null) {
-            removeStation.setTag(location);
+        if (station != null) {
+            removeStation.setTag(station);
         }
         if (viewInflated) {
             removeStation.setOnClickListener(this);
@@ -144,19 +147,19 @@ public class LocationsAdapter extends BaseAdapter implements View.OnClickListene
     public void onClick(View v) {
         Object tag = v.getTag();
         if (tag != null) {
-            if (tag instanceof LocationDTO) {
+            if (tag instanceof StationDTO) {
                 if (v instanceof TextView) {
-                    fireLocationSelect((LocationDTO) tag);
+                    fireStationSelect((StationDTO) tag);
                 } else  if (v instanceof ImageView) {
-                    fireLocationRemove((LocationDTO) tag);
+                    fireStationRemove((StationDTO) tag);
                 }
             }
         }
     }
 
-    public interface LocationsAdapterListener {
-        public void onLocationAdded(LocationDTO location);
-        public void onLocationSelect(LocationDTO location);
-        public void onLocationRemove(LocationDTO location);
+    public interface StationsAdapterListener {
+        public void onStationAdded(StationDTO station);
+        public void onStationSelect(StationDTO station);
+        public void onStationRemove(StationDTO station);
     }
 }
