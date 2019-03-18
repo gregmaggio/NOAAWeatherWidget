@@ -93,9 +93,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private DWMLDTO _dwml = null;
-    private String _location = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
+    private TimeZoneDTO _timeZone = null;
+    private StationDTO _station = null;
+    private RadarDTO _radar = null;
+    private String _discussion = null;
     private StationsHelper _stationsHelper = null;
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
@@ -131,6 +134,34 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public NonSwipeableViewPager getViewPager() {
         return _viewPager;
+    }
+
+    public DWMLDTO getDWML() {
+        return _dwml;
+    }
+
+    public ObservationDTO getObervation() {
+        return _obervation;
+    }
+
+    public ForecastsDTO getForecasts() {
+        return _forecasts;
+    }
+
+    public TimeZoneDTO getTimeZone() {
+        return _timeZone;
+    }
+
+    public StationDTO getStation() {
+        return _station;
+    }
+
+    public RadarDTO getRadar() {
+        return _radar;
+    }
+
+    public String getDiscussion() {
+        return _discussion;
     }
 
     public void readPreferences() {
@@ -700,7 +731,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         @Override
         public void completed(AsyncTaskResult<DWMLDTO> result) {
             _dwml = null;
-            _location = null;
             _obervation = null;
             _forecasts = null;
             if (result.getThrowable() != null) {
@@ -713,8 +743,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _obervation = ObservationDAO.getObservation(_dwml);
                 _forecasts = ForecastsDAO.getForecasts(_dwml);
             }
-            _mainPageAdapter.setObservation(_obervation);
-            _mainPageAdapter.setForecasts(_forecasts);
         }
     }
 
@@ -725,9 +753,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving time zone.", result.getThrowable());
                 }
-                _mainPageAdapter.setTimeZone(null);
             } else {
-                _mainPageAdapter.setTimeZone(result.getResult());
+                _timeZone = result.getResult();
             }
         }
     }
@@ -742,6 +769,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _discussionTask.setWFO(null);
                 _radarTask.setWFO(null);
             } else {
+                _station = result.getResult();
                 _stationsAdapter.add(result.getResult());
                 _radarTask.setWFO(result.getResult().getWFO());
                 _discussionTask.setWFO(result.getResult().getWFO());
@@ -761,6 +789,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             } else {
                 _mainPageAdapter.setBackgroundImages(result.getResult().getBackgroundImages());
                 _mainPageAdapter.setRadarImages(result.getResult().getRadarImages());
+                _radar = result.getResult();
             }
         }
     }
@@ -769,12 +798,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         @Override
         public void completed(AsyncTaskResult<String> result) {
             if (result.getThrowable() != null) {
-                _mainPageAdapter.setDiscussion(null);
+                _discussion = null;
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
                 }
             } else {
-                _mainPageAdapter.setDiscussion(result.getResult());
+                _discussion = result.getResult();
             }
         }
     }

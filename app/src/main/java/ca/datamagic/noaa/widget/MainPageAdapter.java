@@ -9,10 +9,7 @@ import android.view.ViewGroup;
 
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.ForecastsDTO;
-import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.StringListDTO;
-import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -24,12 +21,8 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ForecastIndex = 1;
     public static final int DiscussionIndex = 2;
     public static final int RadarIndex = 3;
-    private ObservationDTO _observation = null;
-    private ForecastsDTO _forecasts = null;
-    private TimeZoneDTO _timeZone = null;
     private StringListDTO _backgroundImages = null;
     private StringListDTO _radarImages = null;
-    private String _discussion = null;
     private String[] _pageTitles = new String[4];
     private Fragment[] _fragments = new Fragment[4];
 
@@ -39,30 +32,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
         _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
-    }
-
-    public ObservationDTO getObservation() {
-        return _observation;
-    }
-
-    public void  setObservation(ObservationDTO newVal) {
-        _observation = newVal;
-    }
-
-    public ForecastsDTO getForecasts() {
-        return _forecasts;
-    }
-
-    public void  setForecasts(ForecastsDTO newVal) {
-        _forecasts = newVal;
-    }
-
-    public TimeZoneDTO getTimeZone() {
-        return _timeZone;
-    }
-
-    public void setTimeZone(TimeZoneDTO newVal) {
-        _timeZone = newVal;
     }
 
     public StringListDTO getBackgroundImages() {
@@ -79,14 +48,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
 
     public void setRadarImages(StringListDTO newVal) {
         _radarImages = newVal;
-    }
-
-    public String getDiscussion() {
-        return _discussion;
-    }
-
-    public void setDiscussion(String newVal) {
-        _discussion = newVal;
     }
 
     public void performCleanup(int position) {
@@ -125,13 +86,13 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         if (_fragments[position] == null) {
             switch (position) {
                 case ObservationIndex:
-                    _fragments[position] = ObservationFragment.newInstance(getForecasts(), getObservation(), getTimeZone());
+                    _fragments[position] = ObservationFragment.newInstance();
                     break;
                 case ForecastIndex:
-                    _fragments[position] = ForecastFragment.newInstance(getForecasts());
+                    _fragments[position] = ForecastFragment.newInstance();
                     break;
                 case DiscussionIndex:
-                    _fragments[position] = DiscussionFragment.newInstance(getDiscussion());
+                    _fragments[position] = DiscussionFragment.newInstance();
                     break;
                 case RadarIndex:
                     _fragments[position] = RadarFragment.newInstance(getBackgroundImages(), getRadarImages());
@@ -140,15 +101,10 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         } else {
             switch (position) {
                 case ObservationIndex:
-                    ((ObservationFragment)_fragments[position]).setForecasts(getForecasts());
-                    ((ObservationFragment)_fragments[position]).setObservation(getObservation());
-                    ((ObservationFragment)_fragments[position]).setTimeZone(getTimeZone());
                     break;
                 case ForecastIndex:
-                    ((ForecastFragment)_fragments[position]).setForecasts(getForecasts());
                     break;
                 case DiscussionIndex:
-                    ((DiscussionFragment)_fragments[position]).setDiscussion(getDiscussion());
                     break;
                 case RadarIndex:
                     ((RadarFragment)_fragments[position]).setBackgroundImages(getBackgroundImages());

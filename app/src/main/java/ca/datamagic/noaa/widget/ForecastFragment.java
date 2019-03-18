@@ -34,29 +34,15 @@ public class ForecastFragment extends Fragment implements Renderer {
     private static char _degrees = (char)0x00B0;
 
     public ForecastsDTO getForecasts() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("forecasts");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getForecasts();
         }
         return null;
     }
 
-    public void setForecasts(ForecastsDTO newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("forecasts", newVal);
-        }
-    }
-
     public static ForecastFragment newInstance() {
-        return newInstance(null);
-    }
-
-    public static ForecastFragment newInstance(ForecastsDTO forecasts) {
         ForecastFragment fragment = new ForecastFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("forecasts", forecasts);
-        fragment.setArguments(bundle);
         return fragment;
     }
 

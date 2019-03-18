@@ -57,61 +57,31 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
 
     public ForecastsDTO getForecasts() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("forecasts");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getForecasts();
         }
         return null;
-    }
-
-    public void setForecasts(ForecastsDTO newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("forecasts", newVal);
-        }
     }
 
     public ObservationDTO getObservation() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("observation");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getObervation();
         }
         return null;
-    }
-
-    public void setObservation(ObservationDTO newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("observation", newVal);
-        }
     }
 
     public TimeZoneDTO getTimeZone() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("timeZone");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getTimeZone();
         }
         return null;
     }
 
-    public void setTimeZone(TimeZoneDTO newVal) {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            arguments.putParcelable("timeZone", newVal);
-        }
-    }
-
     public static ObservationFragment newInstance() {
-        return newInstance(null, null, null);
-    }
-
-    public static ObservationFragment newInstance(ForecastsDTO forecasts, ObservationDTO observation, TimeZoneDTO timeZone) {
         ObservationFragment fragment = new ObservationFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("forecasts", forecasts);
-        bundle.putParcelable("observation", observation);
-        bundle.putParcelable("timeZone", timeZone);
-        fragment.setArguments(bundle);
         return fragment;
     }
 
