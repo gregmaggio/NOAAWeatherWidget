@@ -46,6 +46,7 @@ import ca.datamagic.noaa.async.DWMLTask;
 import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
+import ca.datamagic.noaa.async.HourlyForecastTask;
 import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.TimeZoneTask;
 import ca.datamagic.noaa.async.StationTask;
@@ -58,6 +59,7 @@ import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dao.TimeZoneDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
+import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PlaceDTO;
@@ -83,16 +85,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private String _unit = "e";
     private String _format = "24 hourly";
     private DWMLTask _dwmlTask = null;
+    private HourlyForecastTask _hourlyForecastTask = null;
     private TimeZoneTask _timeZoneTask = null;
     private StationTask _stationTask = null;
     private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
+    private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
     private TimeZoneListener _timeZoneListener = new TimeZoneListener();
     private StationListener _stationListener = new StationListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private DWMLDTO _dwml = null;
+    private FeatureDTO _hourlyForecastFeature = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
     private TimeZoneDTO _timeZone = null;
@@ -138,6 +143,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public DWMLDTO getDWML() {
         return _dwml;
+    }
+
+    public FeatureDTO getHourlyForecastFeature() {
+        return _hourlyForecastFeature;
     }
 
     public ObservationDTO getObervation() {
@@ -461,6 +470,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             _dwmlTask = new DWMLTask(_latitude, _longitude);
+            _hourlyForecastTask = new HourlyForecastTask(_latitude, _longitude);
             _timeZoneTask = new TimeZoneTask(_latitude, _longitude);
             _stationTask = new StationTask(_latitude, _longitude);
             _radarTask = new RadarTask();
@@ -468,6 +478,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
+            refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_timeZoneTask, _timeZoneListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
             refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
@@ -742,6 +753,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _dwml = result.getResult();
                 _obervation = ObservationDAO.getObservation(_dwml);
                 _forecasts = ForecastsDAO.getForecasts(_dwml);
+            }
+        }
+    }
+
+    private class HourlyForecastListener implements AsyncTaskListener<FeatureDTO> {
+        @Override
+        public void completed(AsyncTaskResult<FeatureDTO> result) {
+            _hourlyForecastFeature = null;
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving hourly forecast.", result.getThrowable());
+                }
+            } else {
+                _hourlyForecastFeature = result.getResult();
             }
         }
     }

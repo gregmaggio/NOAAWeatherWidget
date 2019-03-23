@@ -13,36 +13,36 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
-import ca.datamagic.noaa.dto.ForecastDTO;
-import ca.datamagic.noaa.dto.ForecastsDTO;
+import ca.datamagic.noaa.dto.FeatureDTO;
+import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
+import ca.datamagic.noaa.dto.PeriodDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-/**
- * Created by Greg on 1/10/2016.
- */
-public class ForecastFragment extends Fragment implements Renderer {
-    private static Logger _logger = LogFactory.getLogger(ForecastFragment.class);
+public class HourlyForecastFragment extends Fragment implements Renderer {
+    private static Logger _logger = LogFactory.getLogger(HourlyForecastFragment.class);
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
     private static char _degrees = (char)0x00B0;
 
-    public ForecastsDTO getForecasts() {
+    public FeatureDTO getHourlyForecastFeature() {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            return mainActivity.getForecasts();
+            return mainActivity.getHourlyForecastFeature();
         }
         return null;
     }
 
-    public static ForecastFragment newInstance() {
-        ForecastFragment fragment = new ForecastFragment();
+    public static HourlyForecastFragment newInstance() {
+        HourlyForecastFragment fragment = new HourlyForecastFragment();
         return fragment;
     }
 
@@ -82,14 +82,14 @@ public class ForecastFragment extends Fragment implements Renderer {
         TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         forecastTable.removeAllViews();
         if (forecastTable != null) {
-            ForecastsDTO forecasts = getForecasts();
-            if (forecasts != null) {
-                List<ForecastDTO> items = forecasts.getItems();
-                if (items != null) {
+            FeatureDTO hourlyForecastFeature = getHourlyForecastFeature();
+            FeaturePropertiesDTO properties =  hourlyForecastFeature.getProperties();
+            if (properties != null) {
+                PeriodDTO[] periods = properties.getPeriods();
+                if (periods != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
-
-                    for (int ii = 0; ii < items.size(); ii++) {
+                    for (int ii = 0; ii < periods.length; ii++) {
                         if (ii > 0) {
                             TableRow spacerRow = new TableRow(getContext());
                             spacerRow.setVisibility(View.VISIBLE);
@@ -104,26 +104,32 @@ public class ForecastFragment extends Fragment implements Renderer {
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                         row.setTag(ii);
 
-                        LinearLayout item = (LinearLayout)inflater.inflate(R.layout.forecast_item, null);
+                        LinearLayout item = (LinearLayout)inflater.inflate(R.layout.hourly_forecast_item, null);
                         item.setVisibility(View.VISIBLE);
 
                         ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
                         TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
-                        TextView dayMonthView = (TextView) item.findViewById(R.id.dayMonth);
                         TextView dayOfWeekView = (TextView) item.findViewById(R.id.dayOfWeek);
+                        TextView hourOfDayView = (TextView) item.findViewById(R.id.hourOfDay);
                         TextView temperatureView = (TextView) item.findViewById(R.id.temperature);
 
-                        if (items.get(ii).getSummary() != null) {
-                            weatherSummaryView.setText(items.get(ii).getSummary());
+                        if (periods[ii].getShortForecast() != null) {
+                            weatherSummaryView.setText(periods[ii].getShortForecast());
                         }
-                        if (items.get(ii).getDayOfMonth() != null) {
-                            dayMonthView.setText(items.get(ii).getDayOfMonth());
+                        if (periods[ii].getStartTime() != null) {
+                            try {
+                                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz");
+                                Date date = dateFormat.parse(periods[ii].getStartTime());
+                                DateFormat dayOfWeekFormat = new SimpleDateFormat("E");
+                                DateFormat hourOfDayFormat = new SimpleDateFormat("HH:mm");
+                                dayOfWeekView.setText(dayOfWeekFormat.format(date));
+                                hourOfDayView.setText(hourOfDayFormat.format(date));
+                            } catch (Throwable t) {
+                                _logger.warning("Exception: " + t.getMessage());
+                            }
                         }
-                        if (items.get(ii).getDayOfWeek() != null) {
-                            dayOfWeekView.setText(items.get(ii).getDayOfWeek());
-                        }
-                        if (items.get(ii).getTemperature() != null) {
-                            Double temperature = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), preferencesDTO.getTemperatureUnits());
+                        if (periods[ii].getTemperature() != null) {
+                            Double temperature = TemperatureCalculatorDTO.compute(periods[ii].getTemperature(), periods[ii].getTemperatureUnit(), preferencesDTO.getTemperatureUnits());
                             if (temperature != null) {
                                 temperatureView.setText(_temperatureFormat.format(temperature.doubleValue()) + _degrees);
                             }
@@ -132,8 +138,8 @@ public class ForecastFragment extends Fragment implements Renderer {
                         row.addView(item);
                         forecastTable.addView(row);
 
-                        if ((items.get(ii).getImageUrl() != null) && (items.get(ii).getImageUrl().length() > 0)) {
-                            ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView);
+                        if ((periods[ii].getIcon() != null) && (periods[ii].getIcon().length() > 0)) {
+                            ImageTask imageTask = new ImageTask(periods[ii].getIcon(), conditionsView);
                             imageTask.execute((Void[]) null);
                         }
                     }

@@ -18,17 +18,19 @@ import ca.datamagic.noaa.logging.LogFactory;
 public class MainPageAdapter extends FragmentPagerAdapter {
     private static Logger _logger = LogFactory.getLogger(MainPageAdapter.class);
     public static final int ObservationIndex = 0;
-    public static final int ForecastIndex = 1;
-    public static final int DiscussionIndex = 2;
-    public static final int RadarIndex = 3;
+    public static final int HourlyForecastIndex = 1;
+    public static final int ForecastIndex = 2;
+    public static final int DiscussionIndex = 3;
+    public static final int RadarIndex = 4;
     private StringListDTO _backgroundImages = null;
     private StringListDTO _radarImages = null;
-    private String[] _pageTitles = new String[4];
-    private Fragment[] _fragments = new Fragment[4];
+    private String[] _pageTitles = new String[5];
+    private Fragment[] _fragments = new Fragment[5];
 
     public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
         _pageTitles[ObservationIndex] = context.getResources().getString(R.string.observation_page_title);
+        _pageTitles[HourlyForecastIndex] = context.getResources().getString(R.string.hourlyforecast_page_title);
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
         _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
@@ -74,6 +76,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public int getLayoutId(int position) {
         switch (position) {
             case ObservationIndex: return R.layout.observation_main;
+            case HourlyForecastIndex: return R.layout.forecast_main;
             case ForecastIndex: return R.layout.forecast_main;
             case DiscussionIndex: return R.layout.discussion_main;
             case RadarIndex: return R.layout.radar_main;
@@ -88,6 +91,9 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                 case ObservationIndex:
                     _fragments[position] = ObservationFragment.newInstance();
                     break;
+                case HourlyForecastIndex:
+                    _fragments[position] = HourlyForecastFragment.newInstance();
+                    break;
                 case ForecastIndex:
                     _fragments[position] = ForecastFragment.newInstance();
                     break;
@@ -101,6 +107,8 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         } else {
             switch (position) {
                 case ObservationIndex:
+                    break;
+                case HourlyForecastIndex:
                     break;
                 case ForecastIndex:
                     break;

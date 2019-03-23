@@ -18,6 +18,7 @@
     <string name="not_available">N/A</string>
     <string name="wind_gust">Gusting to {0} {1}</string>
     <string name="observation_page_title">Current</string>
+    <string name="hourlyforecast_page_title">Hourly</string>
     <string name="forecast_page_title">Forecast</string>
     <string name="discussion_page_title">Discussion</string>
     <string name="skewt_page_title">SkewT</string>
