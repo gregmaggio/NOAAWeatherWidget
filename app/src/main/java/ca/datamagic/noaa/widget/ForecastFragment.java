@@ -23,6 +23,8 @@ import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
+import ca.datamagic.noaa.dto.TimeStampDTO;
+import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -37,6 +39,14 @@ public class ForecastFragment extends Fragment implements Renderer {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
             return mainActivity.getForecasts();
+        }
+        return null;
+    }
+
+    public TimeZoneDTO getTimeZone() {
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getTimeZone();
         }
         return null;
     }
@@ -83,7 +93,9 @@ public class ForecastFragment extends Fragment implements Renderer {
         forecastTable.removeAllViews();
         if (forecastTable != null) {
             ForecastsDTO forecasts = getForecasts();
-            if (forecasts != null) {
+            TimeZoneDTO timeZone = getTimeZone();
+            if ((forecasts != null) && (timeZone != null)) {
+                TimeStampDTO timeStampDTO = new TimeStampDTO(timeZone.getTimeZoneId());
                 List<ForecastDTO> items = forecasts.getItems();
                 if (items != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
@@ -116,11 +128,12 @@ public class ForecastFragment extends Fragment implements Renderer {
                         if (items.get(ii).getSummary() != null) {
                             weatherSummaryView.setText(items.get(ii).getSummary());
                         }
-                        if (items.get(ii).getDayOfMonth() != null) {
-                            dayMonthView.setText(items.get(ii).getDayOfMonth());
+                        if (items.get(ii).getTimeStamp() != null) {
+                            timeStampDTO.setTimeStamp(items.get(ii).getTimeStamp());
+                            dayMonthView.setText(timeStampDTO.getDayOfMonth());
                         }
-                        if (items.get(ii).getDayOfWeek() != null) {
-                            dayOfWeekView.setText(items.get(ii).getDayOfWeek());
+                        if (items.get(ii).getPeriodName() != null) {
+                            dayOfWeekView.setText(items.get(ii).getPeriodName());
                         }
                         if (items.get(ii).getTemperature() != null) {
                             Double temperature = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), preferencesDTO.getTemperatureUnits());
@@ -133,7 +146,7 @@ public class ForecastFragment extends Fragment implements Renderer {
                         forecastTable.addView(row);
 
                         if ((items.get(ii).getImageUrl() != null) && (items.get(ii).getImageUrl().length() > 0)) {
-                            ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView);
+                            ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView, false);
                             imageTask.execute((Void[]) null);
                         }
                     }

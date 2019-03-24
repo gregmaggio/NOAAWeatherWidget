@@ -5,8 +5,8 @@ package ca.datamagic.noaa.dto;
  */
 
 public class ForecastDTO {
-    private String _dayOfMonth = null;
-    private String _dayOfWeek = null;
+    private String _timeStamp = null;
+    private String _periodName = null;
     private String _summary = null;
     private Double _temperature = null;
     private String _temperatureUnits = null;
@@ -14,12 +14,12 @@ public class ForecastDTO {
     private String _imageUrl = null;
     private String _wordedForecast = null;
 
-    public String getDayOfMonth() {
-        return _dayOfMonth;
+    public String getTimeStamp() {
+        return _timeStamp;
     }
 
-    public String getDayOfWeek() {
-        return _dayOfWeek;
+    public String getPeriodName() {
+        return _periodName;
     }
 
     public String getSummary() {
@@ -46,12 +46,12 @@ public class ForecastDTO {
         return _wordedForecast;
     }
 
-    public void setDayOfMonth(String newVal) {
-        _dayOfMonth = newVal;
+    public void setTimeStamp(String newVal) {
+        _timeStamp = newVal;
     }
 
-    public void setDayOfWeek(String newVal) {
-        _dayOfWeek = newVal;
+    public void setPeriodName(String newVal) {
+        _periodName = newVal;
     }
 
     public void setSummary(String newVal) {
@@ -81,8 +81,7 @@ public class ForecastDTO {
     @Override
     public String toString() {
         return "ForecastDTO{" +
-                "_dayOfMonth='" + _dayOfMonth + '\'' +
-                ", _dayOfWeek='" + _dayOfWeek + '\'' +
+                "_timeStamp='" + _timeStamp + '\'' +
                 ", _summary='" + _summary + '\'' +
                 ", _temperature=" + _temperature +
                 ", _temperatureUnits='" + _temperatureUnits + '\'' +

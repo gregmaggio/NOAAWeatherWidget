@@ -26,6 +26,8 @@ import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.PeriodDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
+import ca.datamagic.noaa.dto.TimeStampDTO;
+import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class HourlyForecastFragment extends Fragment implements Renderer {
@@ -37,6 +39,14 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
             return mainActivity.getHourlyForecastFeature();
+        }
+        return null;
+    }
+
+    public TimeZoneDTO getTimeZone() {
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getTimeZone();
         }
         return null;
     }
@@ -83,22 +93,51 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         forecastTable.removeAllViews();
         if (forecastTable != null) {
             FeatureDTO hourlyForecastFeature = getHourlyForecastFeature();
-            FeaturePropertiesDTO properties =  hourlyForecastFeature.getProperties();
-            if (properties != null) {
+            FeaturePropertiesDTO properties = null;
+            if (hourlyForecastFeature != null) {
+                properties = hourlyForecastFeature.getProperties();
+            }
+            TimeZoneDTO timeZone = getTimeZone();
+            if ((properties != null) && (timeZone != null)) {
+                TimeStampDTO timeStampDTO = new TimeStampDTO(timeZone.getTimeZoneId());
                 PeriodDTO[] periods = properties.getPeriods();
                 if (periods != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
+                    String currentDayOfWeek = null;
                     for (int ii = 0; ii < periods.length; ii++) {
-                        if (ii > 0) {
-                            TableRow spacerRow = new TableRow(getContext());
-                            spacerRow.setVisibility(View.VISIBLE);
-                            spacerRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-                            LinearLayout forecastDivider = (LinearLayout)inflater.inflate(R.layout.forecast_divider, null);
-                            forecastDivider.setVisibility(View.VISIBLE);
-                            spacerRow.addView(forecastDivider);
-                            forecastTable.addView(spacerRow);
+                        String dayOfWeek = null;
+                        String hourOfDay = null;
+                        if (periods[ii].getStartTime() != null) {
+                            timeStampDTO.setTimeStamp(periods[ii].getStartTime());
+                            dayOfWeek = timeStampDTO.getDayOfWeek();
+                            hourOfDay = timeStampDTO.get12HourOfDay();
                         }
+                        if (dayOfWeek != null) {
+                            if ((currentDayOfWeek == null) || (currentDayOfWeek.compareToIgnoreCase(dayOfWeek) != 0)) {
+                                TableRow row = new TableRow(getContext());
+                                row.setVisibility(View.VISIBLE);
+                                row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
+                                LinearLayout item = (LinearLayout)inflater.inflate(R.layout.hourly_forecast_day, null);
+                                item.setVisibility(View.VISIBLE);
+
+                                TextView dayOfWeekView = (TextView) item.findViewById(R.id.dayOfWeek);
+                                dayOfWeekView.setText(dayOfWeek);
+
+                                row.addView(item);
+                                forecastTable.addView(row);
+                            }
+                        }
+
+                        TableRow spacerRow = new TableRow(getContext());
+                        spacerRow.setVisibility(View.VISIBLE);
+                        spacerRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                        LinearLayout forecastDivider = (LinearLayout)inflater.inflate(R.layout.forecast_divider, null);
+                        forecastDivider.setVisibility(View.VISIBLE);
+                        spacerRow.addView(forecastDivider);
+                        forecastTable.addView(spacerRow);
+
                         TableRow row = new TableRow(getContext());
                         row.setVisibility(View.VISIBLE);
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -109,24 +148,14 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
 
                         ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
                         TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
-                        TextView dayOfWeekView = (TextView) item.findViewById(R.id.dayOfWeek);
                         TextView hourOfDayView = (TextView) item.findViewById(R.id.hourOfDay);
                         TextView temperatureView = (TextView) item.findViewById(R.id.temperature);
 
+                        if (hourOfDay != null) {
+                            hourOfDayView.setText(hourOfDay);
+                        }
                         if (periods[ii].getShortForecast() != null) {
                             weatherSummaryView.setText(periods[ii].getShortForecast());
-                        }
-                        if (periods[ii].getStartTime() != null) {
-                            try {
-                                DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz");
-                                Date date = dateFormat.parse(periods[ii].getStartTime());
-                                DateFormat dayOfWeekFormat = new SimpleDateFormat("E");
-                                DateFormat hourOfDayFormat = new SimpleDateFormat("HH:mm");
-                                dayOfWeekView.setText(dayOfWeekFormat.format(date));
-                                hourOfDayView.setText(hourOfDayFormat.format(date));
-                            } catch (Throwable t) {
-                                _logger.warning("Exception: " + t.getMessage());
-                            }
                         }
                         if (periods[ii].getTemperature() != null) {
                             Double temperature = TemperatureCalculatorDTO.compute(periods[ii].getTemperature(), periods[ii].getTemperatureUnit(), preferencesDTO.getTemperatureUnits());
@@ -139,9 +168,11 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         forecastTable.addView(row);
 
                         if ((periods[ii].getIcon() != null) && (periods[ii].getIcon().length() > 0)) {
-                            ImageTask imageTask = new ImageTask(periods[ii].getIcon(), conditionsView);
+                            ImageTask imageTask = new ImageTask(periods[ii].getIcon(), conditionsView, false);
                             imageTask.execute((Void[]) null);
                         }
+
+                        currentDayOfWeek = dayOfWeek;
                     }
                 }
             }

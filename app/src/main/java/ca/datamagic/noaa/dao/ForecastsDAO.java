@@ -46,12 +46,8 @@ public class ForecastsDAO {
             if (forecastDays != null) {
                 for (int ii = 0; ii < forecastDays.size(); ii++) {
                     ValidTimeDTO startTime = forecastDays.get(ii);
-
-                    String dayOfMonth = "";
-                    String dayOfWeek = startTime.getPeriodName();
-                    if (startTime.getTimeStamp() != null) {
-                        dayOfMonth = _dayMonthFormat.format(startTime.getTimeStamp().getTime());
-                    }
+                    String timeStamp = startTime.getTimeStamp();
+                    String currentPeriodName = startTime.getPeriodName();
                     Double temperature = null;
                     String temperatureUnits = null;
                     if ((temperature == null) && (maxTemperatureTimeLayout != null)) {
@@ -61,8 +57,8 @@ public class ForecastsDAO {
                         if ((startTimes != null) && (values != null)) {
                             for (int jj = 0; jj < startTimes.size(); jj++) {
                                 String periodName = startTimes.get(jj).getPeriodName();
-                                if ((dayOfWeek != null) && (periodName != null)) {
-                                    if (dayOfWeek.compareToIgnoreCase(periodName) == 0) {
+                                if ((currentPeriodName != null) && (periodName != null)) {
+                                    if (currentPeriodName.compareToIgnoreCase(periodName) == 0) {
                                         if (jj < values.size()) {
                                             temperature = values.get(jj);
                                             temperatureUnits = units;
@@ -80,8 +76,8 @@ public class ForecastsDAO {
                         if ((startTimes != null) && (values != null)) {
                             for (int jj = 0; jj < startTimes.size(); jj++) {
                                 String periodName = startTimes.get(jj).getPeriodName();
-                                if ((dayOfWeek != null) && (periodName != null)) {
-                                    if (dayOfWeek.compareToIgnoreCase(periodName) == 0) {
+                                if ((currentPeriodName != null) && (periodName != null)) {
+                                    if (currentPeriodName.compareToIgnoreCase(periodName) == 0) {
                                         if (jj < values.size()) {
                                             temperature = values.get(jj);
                                             temperatureUnits = units;
@@ -99,8 +95,8 @@ public class ForecastsDAO {
                     String wordedForecast = getWordedForecast(ii, dwml);
 
                     ForecastDTO forecast = new ForecastDTO();
-                    forecast.setDayOfMonth(dayOfMonth);
-                    forecast.setDayOfWeek(dayOfWeek);
+                    forecast.setTimeStamp(timeStamp);
+                    forecast.setPeriodName(currentPeriodName);
                     forecast.setTemperature(temperature);
                     forecast.setTemperatureUnits(temperatureUnits);
                     forecast.setPOP(pop);

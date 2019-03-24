@@ -7,8 +7,8 @@ android {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 21
         targetSdkVersion 27
-        versionCode 31
-        versionName "1.39"
+        versionCode 32
+        versionName "1.40"
     }
     buildTypes {
         release {

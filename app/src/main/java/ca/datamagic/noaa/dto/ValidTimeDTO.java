@@ -3,10 +3,6 @@
  */
 package ca.datamagic.noaa.dto;
 
-import java.util.Calendar;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
  * The ValidTime class represents the start-valid-time and end-valid-time elements in the dwml xml stream.
  * 
@@ -18,47 +14,23 @@ import java.util.regex.Pattern;
  */
 public class ValidTimeDTO {
 	public static final String PeriodNameAttribute = "period-name";
-	private static final Pattern _timeStampRegex = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})-(\\d{2}):(\\d{2})");
-	private Calendar _timeStamp = null;
+	private String _timeStamp = null;
 	private String _periodName = null;
 
 	public ValidTimeDTO() {
 
 	}
 
-	public ValidTimeDTO(String timeStampText, String periodName) {
-		if (timeStampText != null) {
-			Matcher matcher = _timeStampRegex.matcher(timeStampText);
-			if (matcher.matches()) {
-				int year = Integer.parseInt(matcher.group(1));
-				int month = Integer.parseInt(matcher.group(2));
-				int day = Integer.parseInt(matcher.group(3));
-				int hour = Integer.parseInt(matcher.group(4));
-				int minute = Integer.parseInt(matcher.group(5));
-				int second = Integer.parseInt(matcher.group(6));
-				int hourAdjust = Integer.parseInt(matcher.group(7));
-				int minuteAdjust = Integer.parseInt(matcher.group(8));
-				Calendar utc = Calendar.getInstance();
-				utc.set(Calendar.YEAR, year);
-				utc.set(Calendar.MONTH, month - 1);
-				utc.set(Calendar.DATE, day);
-				utc.set(Calendar.HOUR_OF_DAY, hour);
-				utc.set(Calendar.MINUTE, minute);
-				utc.set(Calendar.SECOND, second);
-				utc.set(Calendar.MILLISECOND, 0);
-				utc.add(Calendar.HOUR, -1 * hourAdjust);
-				utc.add(Calendar.MINUTE, -1 * minuteAdjust);
-				_timeStamp = utc;
-			}
-		}
+	public ValidTimeDTO(String timeStamp, String periodName) {
+		_timeStamp = timeStamp;
 		_periodName = periodName;
 	}
 	
-	public Calendar getTimeStamp() {
+	public String getTimeStamp() {
 		return _timeStamp;
 	}
 
-	public void setTimeStamp(Calendar newVal) { _timeStamp = newVal; }
+	public void setTimeStamp(String newVal) { _timeStamp = newVal; }
 
 	public String getPeriodName() {
 		return _periodName;
