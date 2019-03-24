@@ -65,7 +65,7 @@ public class TimeStampDTO {
                 calendar.set(Calendar.YEAR, year);
                 calendar.set(Calendar.MONTH, month - 1);
                 calendar.set(Calendar.DAY_OF_MONTH, day);
-                calendar.set(Calendar.HOUR, hour);
+                calendar.set(Calendar.HOUR_OF_DAY, hour);
                 calendar.set(Calendar.MINUTE, minute);
                 calendar.set(Calendar.SECOND, second);
                 _calendar = calendar;
@@ -86,21 +86,21 @@ public class TimeStampDTO {
 
     public String getDayOfWeek() {
         if (_calendar != null) {
-            return  _dayOfWeekFormat.format(_calendar.getTime());
+            return _dayOfWeekFormat.format(_calendar.getTime());
         }
         return null;
     }
 
     public String get12HourOfDay() {
         if (_calendar != null) {
-            return  _12HourOfDayFormat.format(_calendar.getTime());
+            return _12HourOfDayFormat.format(_calendar.getTime());
         }
         return null;
     }
 
     public String get24HourOfDay() {
         if (_calendar != null) {
-            return  _24HourOfDayFormat.format(_calendar.getTime());
+            return _24HourOfDayFormat.format(_calendar.getTime());
         }
         return null;
     }
