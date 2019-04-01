@@ -30,6 +30,10 @@ public class APIDAO {
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
             JSONObject obj = new JSONObject(responseText);
+            int status = obj.optInt("status", 0);
+            if (status == 404) {
+                return null;
+            }
             return new FeatureDTO(obj);
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());

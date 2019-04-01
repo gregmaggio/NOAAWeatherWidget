@@ -100,9 +100,28 @@ public class ForecastFragment extends Fragment implements Renderer {
                 if (items != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
-
+                    String prevDayOfMonth = null;
+                    String currDayOfMonth = null;
                     for (int ii = 0; ii < items.size(); ii++) {
-                        if (ii > 0) {
+                        if (items.get(ii).getTimeStamp() != null) {
+                            timeStampDTO.setTimeStamp(items.get(ii).getTimeStamp());
+                            currDayOfMonth = timeStampDTO.getDayOfMonth();
+                        }
+                        boolean showForecastDay = true;
+                        if ((prevDayOfMonth != null) && (currDayOfMonth != null)) {
+                            showForecastDay = prevDayOfMonth.compareToIgnoreCase(currDayOfMonth) != 0;
+                        }
+                        if (showForecastDay) {
+                            TableRow forecastDayRow = new TableRow(getContext());
+                            forecastDayRow.setVisibility(View.VISIBLE);
+                            forecastDayRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                            LinearLayout forecastDay = (LinearLayout)inflater.inflate(R.layout.forecast_day, null);
+                            TextView dateView = forecastDay.findViewById(R.id.date);
+                            dateView.setText(currDayOfMonth);
+                            forecastDay.setVisibility(View.VISIBLE);
+                            forecastDayRow.addView(forecastDay);
+                            forecastTable.addView(forecastDayRow);
+
                             TableRow spacerRow = new TableRow(getContext());
                             spacerRow.setVisibility(View.VISIBLE);
                             spacerRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -111,6 +130,7 @@ public class ForecastFragment extends Fragment implements Renderer {
                             spacerRow.addView(forecastDivider);
                             forecastTable.addView(spacerRow);
                         }
+
                         TableRow row = new TableRow(getContext());
                         row.setVisibility(View.VISIBLE);
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
@@ -121,16 +141,11 @@ public class ForecastFragment extends Fragment implements Renderer {
 
                         ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
                         TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
-                        TextView dayMonthView = (TextView) item.findViewById(R.id.dayMonth);
                         TextView dayOfWeekView = (TextView) item.findViewById(R.id.dayOfWeek);
                         TextView temperatureView = (TextView) item.findViewById(R.id.temperature);
 
                         if (items.get(ii).getSummary() != null) {
                             weatherSummaryView.setText(items.get(ii).getSummary());
-                        }
-                        if (items.get(ii).getTimeStamp() != null) {
-                            timeStampDTO.setTimeStamp(items.get(ii).getTimeStamp());
-                            dayMonthView.setText(timeStampDTO.getDayOfMonth());
                         }
                         if (items.get(ii).getPeriodName() != null) {
                             dayOfWeekView.setText(items.get(ii).getPeriodName());
@@ -145,10 +160,20 @@ public class ForecastFragment extends Fragment implements Renderer {
                         row.addView(item);
                         forecastTable.addView(row);
 
+                        TableRow spacerRow = new TableRow(getContext());
+                        spacerRow.setVisibility(View.VISIBLE);
+                        spacerRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                        LinearLayout forecastDivider = (LinearLayout)inflater.inflate(R.layout.forecast_divider, null);
+                        forecastDivider.setVisibility(View.VISIBLE);
+                        spacerRow.addView(forecastDivider);
+                        forecastTable.addView(spacerRow);
+
                         if ((items.get(ii).getImageUrl() != null) && (items.get(ii).getImageUrl().length() > 0)) {
                             ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView, false);
                             imageTask.execute((Void[]) null);
                         }
+
+                        prevDayOfMonth = currDayOfMonth;
                     }
                 }
             }
