@@ -35,6 +35,11 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
     private static char _degrees = (char)0x00B0;
 
+    private int convertDipToPixels(float dips) {
+        float density = getContext().getResources().getDisplayMetrics().density;
+        return (int) (dips * density + 0.5f);
+    }
+
     public FeatureDTO getHourlyForecastFeature() {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
@@ -91,6 +96,7 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
     private void render(View view, LayoutInflater inflater) {
         TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         forecastTable.removeAllViews();
+        int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
             FeatureDTO hourlyForecastFeature = getHourlyForecastFeature();
             FeaturePropertiesDTO properties = null;
@@ -146,11 +152,23 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         LinearLayout item = (LinearLayout)inflater.inflate(R.layout.hourly_forecast_item, null);
                         item.setVisibility(View.VISIBLE);
 
-                        ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
-                        TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
                         TextView hourOfDayView = (TextView) item.findViewById(R.id.hourOfDay);
+                        int hourOfDayViewWidth = convertDipToPixels(60);
+                        int hourOfDayViewPaddingLeft = hourOfDayView.getPaddingLeft();
+                        int hourOfDayViewPaddingRight = hourOfDayView.getPaddingRight();
+                        ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
+                        int conditionsViewWidth = convertDipToPixels(40);
+                        int conditionsViewPaddingLeft = conditionsView.getPaddingLeft();
+                        int conditionsViewPaddingRight = conditionsView.getPaddingRight();
+                        TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
+                        int weatherSummaryViewPaddingLeft = weatherSummaryView.getPaddingLeft();
+                        int weatherSummaryViewPaddingRight = weatherSummaryView.getPaddingRight();
                         TextView temperatureView = (TextView) item.findViewById(R.id.temperature);
-
+                        int temperatureViewWidth = convertDipToPixels(40);
+                        int temperatureViewPaddingLeft = temperatureView.getPaddingLeft();
+                        int temperatureViewPaddingRight = temperatureView.getPaddingRight();
+                        int weatherSummaryViewWidth = (totalWidth - hourOfDayViewPaddingLeft - hourOfDayViewWidth - hourOfDayViewPaddingRight - conditionsViewPaddingLeft - conditionsViewWidth - conditionsViewPaddingRight - weatherSummaryViewPaddingLeft - weatherSummaryViewPaddingRight - temperatureViewPaddingLeft - temperatureViewWidth - temperatureViewPaddingRight);
+                        weatherSummaryView.setLayoutParams(new LinearLayout.LayoutParams(weatherSummaryViewWidth, LinearLayout.LayoutParams.WRAP_CONTENT));
                         if (hourOfDay != null) {
                             hourOfDayView.setText(hourOfDay);
                         }

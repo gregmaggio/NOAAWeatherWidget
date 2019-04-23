@@ -175,15 +175,27 @@ public class ObservationFragment extends Fragment implements Renderer {
                 locationView.setText(description);
             }
 
-            if ((latitude != null) && (longitude != null) && (elevation != null) && (elevationUnits != null) && (elevationUnits.length() > 0)) {
+            if ((latitude != null) && (longitude != null)) {
                 TextView coordinates = (TextView) item.findViewById(R.id.coordinates);
-                String formattedCoordinates = getFormattedCoordinates(latitude, longitude, elevation, elevationUnits, preferencesDTO);
+                String formattedCoordinates = getFormattedCoordinates(latitude, longitude);
                 if (formattedCoordinates.length() > 0) {
                     coordinates.setVisibility(View.VISIBLE);
                     coordinates.setText(formattedCoordinates);
                 } else {
                     coordinates.setVisibility(View.GONE);
                     coordinates.setText("");
+                }
+            }
+
+            if ((elevation != null) && (elevationUnits != null) && (elevationUnits.length() > 0)) {
+                TextView elevationView = (TextView) item.findViewById(R.id.elevation);
+                String formattedElevation = getFormattedElevation(elevation, elevationUnits, preferencesDTO);
+                if (formattedElevation.length() > 0) {
+                    elevationView.setVisibility(View.VISIBLE);
+                    elevationView.setText(formattedElevation);
+                } else {
+                    elevationView.setVisibility(View.GONE);
+                    elevationView.setText("");
                 }
             }
 
@@ -283,7 +295,7 @@ public class ObservationFragment extends Fragment implements Renderer {
         }
     }
 
-    private String getFormattedCoordinates(Double latitude, Double longitude, Double elevation, String elevationUnits, PreferencesDTO preferencesDTO) {
+    private String getFormattedCoordinates(Double latitude, Double longitude) {
         StringBuffer buffer = new StringBuffer();
         if ((latitude != null) && (longitude != null)) {
             buffer.append(getContext().getResources().getString(R.string.latitudeAbbreviation));
@@ -305,20 +317,24 @@ public class ObservationFragment extends Fragment implements Renderer {
             } else if (longitude.doubleValue() < 0) {
                 buffer.append(getContext().getResources().getString(R.string.longitudeW));
             }
-            if ((elevation != null) && (elevationUnits != null)) {
-                elevation = HeightCalculatorDTO.compute(elevation, elevationUnits, preferencesDTO.getHeightUnits());
-                if (elevation != null) {
-                    buffer.append(", ");
-                    buffer.append(getContext().getResources().getString(R.string.elevationAbbreviation));
-                    buffer.append(": ");
-                    buffer.append(_elevationFormat.format(elevation.doubleValue()));
-                    if (preferencesDTO.getHeightUnits().compareToIgnoreCase(HeightUnitsDTO.Feet) == 0) {
-                        buffer.append(" ");
-                        buffer.append(getContext().getResources().getString(R.string.elevationFeet));
-                    } else if (preferencesDTO.getHeightUnits().compareToIgnoreCase(HeightUnitsDTO.Meters) == 0) {
-                        buffer.append(" ");
-                        buffer.append(getContext().getResources().getString(R.string.elevationMeters));
-                    }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedElevation(Double elevation, String elevationUnits, PreferencesDTO preferencesDTO) {
+        StringBuffer buffer = new StringBuffer();
+        if ((elevation != null) && (elevationUnits != null)) {
+            elevation = HeightCalculatorDTO.compute(elevation, elevationUnits, preferencesDTO.getHeightUnits());
+            if (elevation != null) {
+                buffer.append(getContext().getResources().getString(R.string.elevationAbbreviation));
+                buffer.append(": ");
+                buffer.append(_elevationFormat.format(elevation.doubleValue()));
+                if (preferencesDTO.getHeightUnits().compareToIgnoreCase(HeightUnitsDTO.Feet) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getContext().getResources().getString(R.string.elevationFeet));
+                } else if (preferencesDTO.getHeightUnits().compareToIgnoreCase(HeightUnitsDTO.Meters) == 0) {
+                    buffer.append(" ");
+                    buffer.append(getContext().getResources().getString(R.string.elevationMeters));
                 }
             }
         }
