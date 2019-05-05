@@ -166,12 +166,29 @@ public class RadarFragment extends Fragment implements Renderer {
     @Override
     public void cleanup() {
         if (_radarTimer != null) {
-            _radarTimer.cancel();
+            try {
+                _radarTimer.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Cancel radar timer error: " + t.getMessage());
+            }
             _radarTimer = null;
         }
         if (_radarTimerTask != null) {
-            _radarTimerTask.cancel();
+            try {
+                _radarTimerTask.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Cancel radar timer task error: " + t.getMessage());
+            }
             _radarTimerTask = null;
+        }
+        try {
+            View view = getView();
+            if (view != null) {
+                RadarView radarView = (RadarView) view.findViewById(R.id.radarView);
+                radarView.resetScale();
+            }
+        } catch (Throwable t) {
+            _logger.warning("Radar view reset scale error: " + t.getMessage());
         }
     }
 
