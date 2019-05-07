@@ -13,10 +13,12 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import java.text.DateFormat;
+import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
+import com.luckycatlabs.sunrisesunset.dto.Location;
+
 import java.text.DecimalFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.ImageTask;
@@ -25,6 +27,7 @@ import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.PeriodDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TimeStampDTO;
 import ca.datamagic.noaa.dto.TimeZoneDTO;
@@ -44,6 +47,14 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
             return mainActivity.getHourlyForecastFeature();
+        }
+        return null;
+    }
+
+    public StationDTO getStation() {
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getStation();
         }
         return null;
     }
@@ -104,20 +115,34 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                 properties = hourlyForecastFeature.getProperties();
             }
             TimeZoneDTO timeZone = getTimeZone();
-            if ((properties != null) && (timeZone != null)) {
+            StationDTO station = getStation();
+            if ((properties != null) && (timeZone != null) && (station != null)) {
                 TimeStampDTO timeStampDTO = new TimeStampDTO(timeZone.getTimeZoneId());
+                TimeZone tz = TimeZone.getTimeZone(timeZone.getTimeZoneId());
+                SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(new Location(station.getLatitude(), station.getLongitude()), timeZone.getTimeZoneId());
+
                 PeriodDTO[] periods = properties.getPeriods();
                 if (periods != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
                     String currentDayOfWeek = null;
                     for (int ii = 0; ii < periods.length; ii++) {
+                        Calendar calendar = null;
+                        Calendar sunrise = null;
+                        Calendar sunset = null;
                         String dayOfWeek = null;
                         String hourOfDay = null;
                         if (periods[ii].getStartTime() != null) {
                             timeStampDTO.setTimeStamp(periods[ii].getStartTime());
                             dayOfWeek = timeStampDTO.getDayOfWeek();
                             hourOfDay = timeStampDTO.get12HourOfDay();
+                            calendar = (Calendar)timeStampDTO.getCalendar().clone();
+                            calendar.setTimeZone(tz);
+                            _logger.info("Current Time: " + calendar.toString());
+                            sunrise = calculator.getOfficialSunriseCalendarForDate(calendar);
+                            _logger.info("sunrise: " + sunrise.toString());
+                            sunset = calculator.getOfficialSunsetCalendarForDate(calendar);
+                            _logger.info("sunset: " + sunset.toString());
                         }
                         if (dayOfWeek != null) {
                             if ((currentDayOfWeek == null) || (currentDayOfWeek.compareToIgnoreCase(dayOfWeek) != 0)) {
@@ -186,7 +211,21 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         forecastTable.addView(row);
 
                         if ((periods[ii].getIcon() != null) && (periods[ii].getIcon().length() > 0)) {
-                            ImageTask imageTask = new ImageTask(periods[ii].getIcon(), conditionsView, false);
+                            String iconUrl = periods[ii].getIcon();
+                            if ((calendar != null) && (sunrise != null) && (sunset != null)) {
+                                boolean afterSunrise = calendar.after(sunrise);
+                                _logger.info("afterSunrise: " + afterSunrise);
+                                boolean beforeSunset = calendar.before(sunset);
+                                _logger.info("beforeSunset: " + beforeSunset);
+                                boolean dayTime = afterSunrise && beforeSunset;
+                                _logger.info("dayTime: " + dayTime);
+                                if (dayTime) {
+                                    iconUrl = iconUrl.replace("night", "day");
+                                } else {
+                                    iconUrl = iconUrl.replace("day", "night");
+                                }
+                            }
+                            ImageTask imageTask = new ImageTask(iconUrl, conditionsView, false);
                             imageTask.execute((Void[]) null);
                         }
 
