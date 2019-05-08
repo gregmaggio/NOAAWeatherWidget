@@ -8,7 +8,12 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
+import java.util.logging.Logger;
+
+import ca.datamagic.noaa.logging.LogFactory;
+
 public class NonSwipeableViewPager extends ViewPager {
+    private static Logger _logger = LogFactory.getLogger(NonSwipeableViewPager.class);
     private boolean _enabled = true;
 
     public NonSwipeableViewPager(Context context, AttributeSet attrs) {
@@ -26,23 +31,27 @@ public class NonSwipeableViewPager extends ViewPager {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        if (!_enabled) {
-            // If we are disabled, but the touch event is outside the current fragment view, then re-enable the pager
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                MainPageAdapter mainPageAdapter = mainActivity.getMainPageAdapter();
-                if (mainPageAdapter != null) {
-                    Fragment currentFragment = mainPageAdapter.getItem(getCurrentItem());
-                    if ( currentFragment != null) {
-                        if (!inViewInBounds(currentFragment.getView(), (int) ev.getX(), (int) ev.getY())) {
-                            _enabled = true;
+        try {
+            if (!_enabled) {
+                // If we are disabled, but the touch event is outside the current fragment view, then re-enable the pager
+                MainActivity mainActivity = MainActivity.getThisInstance();
+                if (mainActivity != null) {
+                    MainPageAdapter mainPageAdapter = mainActivity.getMainPageAdapter();
+                    if (mainPageAdapter != null) {
+                        Fragment currentFragment = mainPageAdapter.getItem(getCurrentItem());
+                        if (currentFragment != null) {
+                            if (!inViewInBounds(currentFragment.getView(), (int) ev.getX(), (int) ev.getY())) {
+                                _enabled = true;
+                            }
                         }
                     }
                 }
             }
-        }
-        if (_enabled) {
-            return super.onTouchEvent(ev);
+            if (_enabled) {
+                return super.onTouchEvent(ev);
+            }
+        } catch (Throwable t) {
+            _logger.warning("Exception caught in NonSwipeableViewPager.onTouchEvent. Exception: " + t.getMessage());
         }
         return false;
     }

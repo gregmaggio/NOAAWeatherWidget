@@ -61,83 +61,87 @@ public class RadarView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        _logger.info("Radar Image Touch");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            NonSwipeableViewPager viewPager = mainActivity.getViewPager();
-            if (viewPager != null) {
-                viewPager.setEnabled(false);
-            }
-        }
-
-        // Let the ScaleGestureDetector inspect all events.
-        _scaleDetector.onTouchEvent(event);
-
-        int action = event.getAction() & MotionEvent.ACTION_MASK;
-        _logger.info("action: " + action);
-
-        int pointerCount = event.getPointerCount();
-        _logger.info("pointerCount: " + pointerCount);
-
-        switch (action) {
-            case MotionEvent.ACTION_DOWN: {
-                _logger.info("ACTION_DOWN");
-                final float x = event.getX();
-                final float y = event.getY();
-                _lastTouchX = x;
-                _lastTouchY = y;
-                _activePointerId = event.getPointerId(0);
-                break;
-            }
-            case MotionEvent.ACTION_POINTER_DOWN: {
-                _logger.info("ACTION_DOWN");
-                break;
-            }
-            case MotionEvent.ACTION_MOVE: {
-                _logger.info("ACTION_MOVE");
-                final int pointerIndex = event.findPointerIndex(_activePointerId);
-                final float x = event.getX(pointerIndex);
-                final float y = event.getY(pointerIndex);
-
-                // Only move if the ScaleGestureDetector isn't processing a gesture.
-                if (!_scaleDetector.isInProgress()) {
-                    final float dx = x - _lastTouchX;
-                    final float dy = y - _lastTouchY;
-
-                    _posX += dx;
-                    _posY += dy;
-
-                    invalidate();
+        try {
+            _logger.info("Radar Image Touch");
+            MainActivity mainActivity = MainActivity.getThisInstance();
+            if (mainActivity != null) {
+                NonSwipeableViewPager viewPager = mainActivity.getViewPager();
+                if (viewPager != null) {
+                    viewPager.setEnabled(false);
                 }
+            }
 
-                _lastTouchX = x;
-                _lastTouchY = y;
-                break;
-            }
-            case MotionEvent.ACTION_UP: {
-                _logger.info("ACTION_UP");
-                _activePointerId = INVALID_POINTER_ID;
-                break;
-            }
-            case MotionEvent.ACTION_CANCEL: {
-                _logger.info("ACTION_CANCEL");
-                _activePointerId = INVALID_POINTER_ID;
-                break;
-            }
-            case MotionEvent.ACTION_POINTER_UP: {
-                _logger.info("ACTION_POINTER_UP");
-                final int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
-                final int pointerId = event.getPointerId(pointerIndex);
-                if (pointerId == _activePointerId) {
-                    // This was our active pointer going up. Choose a new
-                    // active pointer and adjust accordingly.
-                    final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
-                    _lastTouchX = event.getX(newPointerIndex);
-                    _lastTouchY = event.getY(newPointerIndex);
-                    _activePointerId = event.getPointerId(newPointerIndex);
+            // Let the ScaleGestureDetector inspect all events.
+            _scaleDetector.onTouchEvent(event);
+
+            int action = event.getAction() & MotionEvent.ACTION_MASK;
+            _logger.info("action: " + action);
+
+            int pointerCount = event.getPointerCount();
+            _logger.info("pointerCount: " + pointerCount);
+
+            switch (action) {
+                case MotionEvent.ACTION_DOWN: {
+                    _logger.info("ACTION_DOWN");
+                    final float x = event.getX();
+                    final float y = event.getY();
+                    _lastTouchX = x;
+                    _lastTouchY = y;
+                    _activePointerId = event.getPointerId(0);
+                    break;
                 }
-                break;
+                case MotionEvent.ACTION_POINTER_DOWN: {
+                    _logger.info("ACTION_DOWN");
+                    break;
+                }
+                case MotionEvent.ACTION_MOVE: {
+                    _logger.info("ACTION_MOVE");
+                    final int pointerIndex = event.findPointerIndex(_activePointerId);
+                    final float x = event.getX(pointerIndex);
+                    final float y = event.getY(pointerIndex);
+
+                    // Only move if the ScaleGestureDetector isn't processing a gesture.
+                    if (!_scaleDetector.isInProgress()) {
+                        final float dx = x - _lastTouchX;
+                        final float dy = y - _lastTouchY;
+
+                        _posX += dx;
+                        _posY += dy;
+
+                        invalidate();
+                    }
+
+                    _lastTouchX = x;
+                    _lastTouchY = y;
+                    break;
+                }
+                case MotionEvent.ACTION_UP: {
+                    _logger.info("ACTION_UP");
+                    _activePointerId = INVALID_POINTER_ID;
+                    break;
+                }
+                case MotionEvent.ACTION_CANCEL: {
+                    _logger.info("ACTION_CANCEL");
+                    _activePointerId = INVALID_POINTER_ID;
+                    break;
+                }
+                case MotionEvent.ACTION_POINTER_UP: {
+                    _logger.info("ACTION_POINTER_UP");
+                    final int pointerIndex = (event.getAction() & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+                    final int pointerId = event.getPointerId(pointerIndex);
+                    if (pointerId == _activePointerId) {
+                        // This was our active pointer going up. Choose a new
+                        // active pointer and adjust accordingly.
+                        final int newPointerIndex = pointerIndex == 0 ? 1 : 0;
+                        _lastTouchX = event.getX(newPointerIndex);
+                        _lastTouchY = event.getY(newPointerIndex);
+                        _activePointerId = event.getPointerId(newPointerIndex);
+                    }
+                    break;
+                }
             }
+        } catch (Throwable t) {
+            _logger.warning("Exception caught in RadarView.onTouchEvent. Exception: " + t.getMessage());
         }
         return true;
     }
