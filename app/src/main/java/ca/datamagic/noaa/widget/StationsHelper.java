@@ -46,16 +46,40 @@ public class StationsHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         db.delete("station", null, null);
         for (int ii = 0; ii < stations.size(); ii++) {
-            StationDTO station = stations.get(ii);
-            ContentValues values = new ContentValues();
-            values.put("station_id", station.getStationId());
-            values.put("station_name", station.getStationName());
-            values.put("state", station.getState());
-            values.put("wfo", station.getWFO());
-            values.put("radar", station.getRadar());
-            values.put("latitude", station.getLatitude());
-            values.put("longitude", station.getLongitude());
-            db.insert("station", null, values);
+            try {
+                StationDTO station = stations.get(ii);
+                ContentValues values = new ContentValues();
+                String stationId = station.getStationId();
+                if ((stationId == null) || stationId.length() < 1) {
+                    continue;
+                }
+                String stationName = station.getStationName();
+                if ((stationName == null) || stationName.length() < 1) {
+                    continue;
+                }
+                String state = station.getState();
+                if ((state == null) || state.length() < 1) {
+                    continue;
+                }
+                String wfo = station.getWFO();
+                if ((wfo == null) || wfo.length() < 1) {
+                    continue;
+                }
+                String radar = station.getRadar();
+                if ((radar == null) || radar.length() < 1) {
+                    continue;
+                }
+                values.put("station_id", stationId);
+                values.put("station_name", stationName);
+                values.put("state", state);
+                values.put("wfo", wfo);
+                values.put("radar", radar);
+                values.put("latitude", station.getLatitude());
+                values.put("longitude", station.getLongitude());
+                db.insert("station", null, values);
+            } catch (Throwable t) {
+                _logger.warning("Error in write stations. Exception: " + t.getMessage());
+            }
         }
     }
 
@@ -71,23 +95,42 @@ public class StationsHelper extends SQLiteOpenHelper {
             String sortOrder = "station_name ASC";
             cursor = db.query(tableName, projection, null, null, null, null, sortOrder);
             while (cursor.moveToNext()) {
-                String stationId = cursor.getString(cursor.getColumnIndexOrThrow("station_id"));
-                String stationName = cursor.getString(cursor.getColumnIndexOrThrow("station_name"));
-                String state = cursor.getString(cursor.getColumnIndexOrThrow("state"));
-                String wfo = cursor.getString(cursor.getColumnIndexOrThrow("wfo"));
-                String radar = cursor.getString(cursor.getColumnIndexOrThrow("radar"));
-                double latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"));
-                double longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"));
-                if (!stations.containsKey(stationId.toUpperCase())) {
-                    StationDTO station = new StationDTO();
-                    station.setStationId(stationId);
-                    station.setStationName(stationName);
-                    station.setState(state);
-                    station.setWFO(wfo);
-                    station.setRadar(radar);
-                    station.setLatitude(latitude);
-                    station.setLongitude(longitude);
-                    stations.put(stationId.toUpperCase(), station);
+                try {
+                    String stationId = cursor.getString(cursor.getColumnIndexOrThrow("station_id"));
+                    if ((stationId == null) || stationId.length() < 1) {
+                        continue;
+                    }
+                    String stationName = cursor.getString(cursor.getColumnIndexOrThrow("station_name"));
+                    if ((stationName == null) || stationName.length() < 1) {
+                        continue;
+                    }
+                    String state = cursor.getString(cursor.getColumnIndexOrThrow("state"));
+                    if ((state == null) || state.length() < 1) {
+                        continue;
+                    }
+                    String wfo = cursor.getString(cursor.getColumnIndexOrThrow("wfo"));
+                    if ((wfo == null) || wfo.length() < 1) {
+                        continue;
+                    }
+                    String radar = cursor.getString(cursor.getColumnIndexOrThrow("radar"));
+                    if ((radar == null) || radar.length() < 1) {
+                        continue;
+                    }
+                    double latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"));
+                    double longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"));
+                    if (!stations.containsKey(stationId.toUpperCase())) {
+                        StationDTO station = new StationDTO();
+                        station.setStationId(stationId);
+                        station.setStationName(stationName);
+                        station.setState(state);
+                        station.setWFO(wfo);
+                        station.setRadar(radar);
+                        station.setLatitude(latitude);
+                        station.setLongitude(longitude);
+                        stations.put(stationId.toUpperCase(), station);
+                    }
+                } catch (Throwable t) {
+                    _logger.warning("Write Stations Error. Exception: " + t.getMessage());
                 }
             }
             return new ArrayList<StationDTO>(stations.values());
