@@ -9,30 +9,35 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v4.view.PagerTitleStrip;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
+import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -108,6 +113,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
+    private LinearLayout _header = null;
     private MainPageAdapter _mainPageAdapter = null;
     private NonSwipeableViewPager _viewPager = null;
     private GoogleApiClient _googleApiClient = null;
@@ -296,14 +302,31 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         _preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
+        _header = (LinearLayout)findViewById(R.id.header);
         _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager(), getBaseContext());
+
+        for (int ii = 0; ii < _mainPageAdapter.getCount(); ii++) {
+            String html = MessageFormat.format("<strong>{0}</strong>", _mainPageAdapter.getPageTitle(ii));
+            TextView textView = new TextView(getBaseContext());
+            textView.setTextColor(Color.WHITE);
+            textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
+            textView.setText(Html.fromHtml(html));
+            textView.setPadding(10, 10, 10, 10);
+            textView.setTag(ii);
+            textView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    _viewPager.setCurrentItem((int)view.getTag());
+                }
+            });
+            _header.addView(textView);
+        }
+
         _viewPager = (NonSwipeableViewPager) findViewById(R.id.viewpager);
-        PagerTitleStrip titleStrip = (PagerTitleStrip)_viewPager.findViewById(R.id.pagerTitle);
         _viewPager.setAdapter(_mainPageAdapter);
         _viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-
             }
 
             @Override
@@ -311,16 +334,38 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.info("onPageSelected: " + position);
                 _logger.info("currentPage: " + _currentPage);
                 refreshView();
+                updateHeader();
                 _currentPage = position;
             }
 
             @Override
             public void onPageScrollStateChanged(int state) {
-
+                switch (state) {
+                    case ViewPager.SCROLL_STATE_DRAGGING:
+                        _logger.info("SCROLL_STATE_DRAGGING");
+                        break;
+                    case ViewPager.SCROLL_STATE_IDLE:
+                        _logger.info("SCROLL_STATE_IDLE");
+                        break;
+                    case ViewPager.SCROLL_STATE_SETTLING:
+                        _logger.info("SCROLL_STATE_SETTLING");
+                        break;
+                    default:
+                        _logger.info("Unexpected: " + state);
+                        break;
+                }
             }
         });
         readPreferences();
         myLocation();
+        updateHeader();
+    }
+
+    private void updateHeader() {
+        for (int ii = 0; ii < _mainPageAdapter.getCount(); ii++) {
+            int color = (_viewPager.getCurrentItem() == ii) ? Color.YELLOW : Color.WHITE;
+            ((TextView)_header.getChildAt(ii)).setTextColor(color);
+        }
     }
 
     private void initializeGoogleApiClient() {
