@@ -17,14 +17,15 @@ import java.text.DecimalFormat;
 import java.util.List;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
+import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.TimeStampDTO;
-import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -48,10 +49,10 @@ public class ForecastFragment extends Fragment implements Renderer {
         return null;
     }
 
-    public TimeZoneDTO getTimeZone() {
+    public String getTimeZoneId() {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            return mainActivity.getTimeZone();
+            return mainActivity.getTimeZoneId();
         }
         return null;
     }
@@ -99,9 +100,9 @@ public class ForecastFragment extends Fragment implements Renderer {
         int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
             ForecastsDTO forecasts = getForecasts();
-            TimeZoneDTO timeZone = getTimeZone();
-            if ((forecasts != null) && (timeZone != null)) {
-                TimeStampDTO timeStampDTO = new TimeStampDTO(timeZone.getTimeZoneId());
+            String timeZoneId = getTimeZoneId();
+            if ((forecasts != null) && (timeZoneId != null)) {
+                TimeStampDTO timeStampDTO = new TimeStampDTO(timeZoneId);
                 List<ForecastDTO> items = forecasts.getItems();
                 if (items != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
@@ -158,6 +159,10 @@ public class ForecastFragment extends Fragment implements Renderer {
                         int weatherSummaryViewPaddingRight = weatherSummaryView.getPaddingRight();
                         TextView temperatureView = (TextView) item.findViewById(R.id.temperature);
                         int temperatureViewWidth = convertDipToPixels(40);
+                        if ((preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.FC) == 0) || (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.CF) == 0)) {
+                            temperatureViewWidth = convertDipToPixels(47);
+                            temperatureView.setLayoutParams(new LinearLayout.LayoutParams(temperatureViewWidth, LinearLayout.LayoutParams.WRAP_CONTENT));
+                        }
                         int temperatureViewPaddingLeft = temperatureView.getPaddingLeft();
                         int temperatureViewPaddingRight = temperatureView.getPaddingRight();
                         int weatherSummaryViewWidth = (totalWidth - dayOfWeekViewPaddingLeft - dayOfWeekViewWidth - dayOfWeekViewPaddingRight - conditionsViewPaddingLeft - conditionsViewWidth - conditionsViewPaddingRight - weatherSummaryViewPaddingLeft - weatherSummaryViewPaddingRight - temperatureViewPaddingLeft - temperatureViewWidth - temperatureViewPaddingRight);
@@ -169,9 +174,23 @@ public class ForecastFragment extends Fragment implements Renderer {
                             dayOfWeekView.setText(items.get(ii).getPeriodName());
                         }
                         if (items.get(ii).getTemperature() != null) {
-                            Double temperature = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), preferencesDTO.getTemperatureUnits());
-                            if (temperature != null) {
-                                temperatureView.setText(_temperatureFormat.format(temperature.doubleValue()) + _degrees);
+                            if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.FC) == 0) {
+                                Double fahrenheit = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), TemperatureUnitsDTO.Fahrenheit);
+                                Double celsius = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), TemperatureUnitsDTO.Celsius);
+                                if ((fahrenheit != null) && (celsius != null)) {
+                                    temperatureView.setText(_temperatureFormat.format(fahrenheit.doubleValue()) + "/" + _temperatureFormat.format(celsius.doubleValue()) + _degrees);
+                                }
+                            } else if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.CF) == 0) {
+                                Double fahrenheit = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), TemperatureUnitsDTO.Fahrenheit);
+                                Double celsius = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), TemperatureUnitsDTO.Celsius);
+                                if ((fahrenheit != null) && (celsius != null)) {
+                                    temperatureView.setText(_temperatureFormat.format(celsius.doubleValue()) + "/" + _temperatureFormat.format(fahrenheit.doubleValue()) + _degrees);
+                                }
+                            } else {
+                                Double temperature = TemperatureCalculatorDTO.compute(items.get(ii).getTemperature(), items.get(ii).getTemperatureUnits(), preferencesDTO.getTemperatureUnits());
+                                if (temperature != null) {
+                                    temperatureView.setText(_temperatureFormat.format(temperature.doubleValue()) + _degrees);
+                                }
                             }
                         }
 
@@ -196,5 +215,6 @@ public class ForecastFragment extends Fragment implements Renderer {
                 }
             }
         }
+        (new AccountingTask("Daily", "Render")).execute((Void[])null);
     }
 }

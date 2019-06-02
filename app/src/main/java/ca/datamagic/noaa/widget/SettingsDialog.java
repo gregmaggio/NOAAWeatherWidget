@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -81,8 +82,10 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
             _temperatureUnits.check(R.id.temperatureUnitsFahrenheit);
         } else if ((temperatureUnits != null) && (temperatureUnits.compareToIgnoreCase(TemperatureUnitsDTO.Celsius) == 0)) {
             _temperatureUnits.check(R.id.temperatureUnitsCelsius);
-        } else {
-            _temperatureUnits.check(R.id.temperatureUnitsFahrenheit);
+        } else if ((temperatureUnits != null) && (temperatureUnits.compareToIgnoreCase(TemperatureUnitsDTO.FC) == 0)) {
+            _temperatureUnits.check(R.id.temperatureUnitsFC);
+        } else if ((temperatureUnits != null) && (temperatureUnits.compareToIgnoreCase(TemperatureUnitsDTO.CF) == 0)) {
+            _temperatureUnits.check(R.id.temperatureUnitsCF);
         }
         String windSpeedUnits = dto.getWindSpeedUnits();
         if ((windSpeedUnits != null) && (windSpeedUnits.compareToIgnoreCase(WindSpeedUnitsDTO.Knots) == 0)) {
@@ -122,6 +125,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         } else {
             _heightUnits.check(R.id.heightUnitsFeet);
         }
+        (new AccountingTask("Settings", "Show")).execute((Void[])null);
     }
 
     @Override
@@ -129,9 +133,11 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.saveSettings:
                 saveSettings();
+                (new AccountingTask("Settings", "Save")).execute((Void[])null);
                 break;
             case R.id.cancelSettings:
                 dismiss();
+                (new AccountingTask("Settings", "Cancel")).execute((Void[])null);
                 break;
         }
     }
@@ -153,6 +159,12 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
                     break;
                 case R.id.temperatureUnitsCelsius:
                     dto.setTemperatureUnits(TemperatureUnitsDTO.Celsius);
+                    break;
+                case R.id.temperatureUnitsFC:
+                    dto.setTemperatureUnits(TemperatureUnitsDTO.FC);
+                    break;
+                case R.id.temperatureUnitsCF:
+                    dto.setTemperatureUnits(TemperatureUnitsDTO.CF);
                     break;
             }
             switch (_windSpeedUnits.getCheckedRadioButtonId()) {

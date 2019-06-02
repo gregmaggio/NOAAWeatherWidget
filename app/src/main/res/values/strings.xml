@@ -32,6 +32,8 @@
     <string name="temperatureUnits">Temperature Units</string>
     <string name="fahrenheit">Fahrenheit</string>
     <string name="celsius">Celsius</string>
+    <string name="fahrenheitThenCelsius">F/C</string>
+    <string name="celsiusThenFahrenheit">C/F</string>
     <string name="windSpeedUnits">Wind Speed Units</string>
     <string name="knots">Knots</string>
     <string name="milesPerHour">mph</string>

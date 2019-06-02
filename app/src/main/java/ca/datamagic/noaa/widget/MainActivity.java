@@ -26,7 +26,6 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -45,6 +44,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.DWMLTask;
@@ -62,7 +62,6 @@ import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
-import ca.datamagic.noaa.dao.TimeZoneDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
@@ -72,13 +71,14 @@ import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
-import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
     private String _filesPath = null;
+    private Double _deviceLatitude = null;
+    private Double _deviceLongitude = null;
     private double _latitude = 38.9967;
     private double _longitude = -76.9275;
     private double _savedlatitude = _latitude;
@@ -105,7 +105,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private FeatureDTO _hourlyForecastFeature = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private TimeZoneDTO _timeZone = null;
+    private String _timeZoneId = null;
     private StationDTO _station = null;
     private RadarDTO _radar = null;
     private String _discussion = null;
@@ -139,6 +139,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _filesPath;
     }
 
+    public Double getDeviceLatitude() {
+        return _deviceLatitude;
+    }
+
+    public Double getDeviceLongitude() {
+        return _deviceLongitude;
+    }
+
     public MainPageAdapter getMainPageAdapter() {
         return _mainPageAdapter;
     }
@@ -163,8 +171,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _forecasts;
     }
 
-    public TimeZoneDTO getTimeZone() {
-        return _timeZone;
+    public String getTimeZoneId() {
+        return _timeZoneId;
     }
 
     public StationDTO getStation() {
@@ -255,7 +263,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         setContentView(R.layout.activity_main);
 
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
-        TimeZoneDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
         initializeLogging();
 
@@ -468,6 +475,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 actionSendError();
                 return true;
             case R.id.action_exit:
+                (new AccountingTask("Application", "Exit")).execute((Void[])null);
                 finish();
                 return true;
         }
@@ -499,6 +507,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         }
         actionRefresh();
+        (new AccountingTask("MyLocation", "Select")).execute((Void[])null);
     }
 
     public void actionRefresh() {
@@ -538,6 +547,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
             });
             refreshWorkflow.start();
+            (new AccountingTask("Refresh", "Current")).execute((Void[])null);
         } catch (Throwable t) {
             // TODO: Show Error
             _processing = false;
@@ -653,7 +663,23 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(Bundle bundle) {
-
+        try {
+            if (_googleApiClient != null) {
+                Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(_googleApiClient);
+                if (lastLocation != null) {
+                    _deviceLatitude = lastLocation.getLatitude();
+                    _deviceLongitude = lastLocation.getLongitude();
+                }
+            }
+        } catch (SecurityException ex) {
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Security Exception in onConnected.", ex);
+            }
+        } catch (Throwable t) {
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in onConnected.", t);
+            }
+        }
     }
 
     @Override
@@ -708,6 +734,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         cursor.addRow(temp);
                     }
                     _search.setSuggestionsAdapter(new PredictionsSearchAdapter(getBaseContext(), cursor));
+                    (new AccountingTask("Search", "Query")).execute((Void[])null);
                 }
                 _googlePredictionsTask = null;
             }
@@ -751,6 +778,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _search.clearFocus();
                     _search.onActionViewCollapsed();
                     actionRefresh();
+                    (new AccountingTask("Search", "Select")).execute((Void[])null);
                 }
                 _googlePlaceTask = null;
             }
@@ -763,6 +791,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void onStationAdded(StationDTO stationn) {
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _stationsAdapter.notifyDataSetChanged();
+        (new AccountingTask("Station", "Added")).execute((Void[])null);
     }
 
     @Override
@@ -773,6 +802,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _latitude = station.getLatitude();
         _longitude = station.getLongitude();
         actionRefresh();
+        (new AccountingTask("Station", "Select")).execute((Void[])null);
     }
 
     @Override
@@ -781,6 +811,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _stationsAdapter.notifyDataSetInvalidated();
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _drawerLayout.closeDrawer(Gravity.LEFT);
+        (new AccountingTask("Station", "Remove")).execute((Void[])null);
     }
 
     private class DWMLListener implements AsyncTaskListener<DWMLDTO> {
@@ -816,15 +847,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private class TimeZoneListener implements AsyncTaskListener<TimeZoneDTO> {
+    private class TimeZoneListener implements AsyncTaskListener<String> {
         @Override
-        public void completed(AsyncTaskResult<TimeZoneDTO> result) {
+        public void completed(AsyncTaskResult<String> result) {
             if (result.getThrowable() != null) {
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving time zone.", result.getThrowable());
                 }
             } else {
-                _timeZone = result.getResult();
+                _logger.info("timeZoneId: " + _timeZoneId);
+                _timeZoneId = result.getResult();
             }
         }
     }

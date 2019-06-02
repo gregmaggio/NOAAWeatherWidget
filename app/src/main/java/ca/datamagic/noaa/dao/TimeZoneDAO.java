@@ -1,40 +1,25 @@
 package ca.datamagic.noaa.dao;
 
-import org.json.JSONObject;
-
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.Calendar;
 import java.util.logging.Logger;
 
-import javax.net.ssl.HttpsURLConnection;
-
-import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class TimeZoneDAO {
     private static Logger _logger = LogFactory.getLogger(TimeZoneDAO.class);
-    private static String _apiKey = null;
 
-    public static String getApiKey() {
-        return _apiKey;
-    }
-
-    public static void setApiKey(String newVal) {
-        _apiKey = newVal;
-    }
-
-    public TimeZoneDTO loadTimeZone(double latitude, double longitude) throws MalformedURLException {
-        String timestamp = Long.toString((long)(Calendar.getInstance().getTimeInMillis() / 1000));
-        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/timezone/json?location={0},{1}&timestamp={2}&key={3}", latitude, longitude, timestamp, _apiKey));
+    public String loadTimeZone(double latitude, double longitude) throws MalformedURLException {
+        URL url = new URL(MessageFormat.format("http://datamagic.ca/TimeZone/api/{0}/{1}/timeZone", latitude, longitude));
         _logger.info("url: " + url.toString());
-        HttpsURLConnection connection = null;
+        HttpURLConnection connection = null;
         InputStream inputStream = null;
         try {
-            connection = (HttpsURLConnection)url.openConnection();
+            connection = (HttpURLConnection)url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
@@ -43,8 +28,14 @@ public class TimeZoneDAO {
             inputStream = connection.getInputStream();
             String responseText = IOUtils.readEntireStream(inputStream);
             _logger.info("responseText: " + responseText);
-            JSONObject responseObj = new JSONObject(responseText);
-            return new TimeZoneDTO(responseObj);
+            String timeZoneId = responseText.trim();
+            if (timeZoneId.startsWith("\"")) {
+                timeZoneId = timeZoneId.substring(1);
+            }
+            if (timeZoneId.endsWith("\"")) {
+                timeZoneId = timeZoneId.substring(0, timeZoneId.length() - 1);
+            }
+            return timeZoneId;
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
         } finally {

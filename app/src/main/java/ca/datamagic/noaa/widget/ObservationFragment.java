@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
@@ -33,7 +34,6 @@ import ca.datamagic.noaa.dto.PressureCalculatorDTO;
 import ca.datamagic.noaa.dto.PressureUnitsDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
-import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.dto.VisibilityCalculatorDTO;
 import ca.datamagic.noaa.dto.VisibilityUnitsDTO;
 import ca.datamagic.noaa.dto.WindSpeedCalculatorDTO;
@@ -72,10 +72,10 @@ public class ObservationFragment extends Fragment implements Renderer {
         return null;
     }
 
-    public TimeZoneDTO getTimeZone() {
+    public String getTimeZoneId() {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            return mainActivity.getTimeZone();
+            return mainActivity.getTimeZoneId();
         }
         return null;
     }
@@ -279,12 +279,12 @@ public class ObservationFragment extends Fragment implements Renderer {
             String sunrise = "";
             String sunset = "";
 
-            TimeZoneDTO timeZone = getTimeZone();
-            if ((latitude != null) && (longitude != null) && (timeZone != null)) {
-                TimeZone tz = TimeZone.getTimeZone(timeZone.getTimeZoneId());
+            String timeZoneId = getTimeZoneId();
+            if ((latitude != null) && (longitude != null) && (timeZoneId != null)) {
+                TimeZone tz = TimeZone.getTimeZone(timeZoneId);
                 Calendar today = Calendar.getInstance();
                 today.setTimeZone(tz);
-                SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(new Location(latitude, longitude), timeZone.getTimeZoneId());
+                SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(new Location(latitude, longitude), timeZoneId);
                 sunrise = calculator.getOfficialSunriseForDate(today);
                 sunset = calculator.getOfficialSunsetForDate(today);
             }
@@ -293,6 +293,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             row.addView(item);
             observationTable.addView(row);
         }
+        (new AccountingTask("Observation", "Render")).execute((Void[])null);
     }
 
     private String getFormattedCoordinates(Double latitude, Double longitude) {
@@ -344,14 +345,34 @@ public class ObservationFragment extends Fragment implements Renderer {
     private String getFormattedTemperature(Double temperature, String temperatureUnits, PreferencesDTO preferencesDTO) {
         StringBuffer buffer = new StringBuffer();
         if ((temperature != null) && (temperatureUnits != null)) {
-            temperature = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, preferencesDTO.getTemperatureUnits());
-            if (temperature != null) {
-                buffer.append(_temperatureFormat.format(temperature));
-                buffer.append(_degrees);
-                if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Fahrenheit) == 0) {
-                    buffer.append(getContext().getResources().getString(R.string.temperatureFahrenheit));
-                } else if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Celsius) == 0) {
-                    buffer.append(getContext().getResources().getString(R.string.temperatureCelsius));
+            if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.FC) == 0) {
+                Double fahrenheit = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, TemperatureUnitsDTO.Fahrenheit);
+                Double celsius = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, TemperatureUnitsDTO.Celsius);
+                if ((fahrenheit != null) && (celsius != null)) {
+                    buffer.append(_temperatureFormat.format(fahrenheit));
+                    buffer.append("/");
+                    buffer.append(_temperatureFormat.format(celsius));
+                    buffer.append(_degrees);
+                }
+            } else if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.CF) == 0) {
+                Double fahrenheit = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, TemperatureUnitsDTO.Fahrenheit);
+                Double celsius = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, TemperatureUnitsDTO.Celsius);
+                if ((fahrenheit != null) && (celsius != null)) {
+                    buffer.append(_temperatureFormat.format(celsius));
+                    buffer.append("/");
+                    buffer.append(_temperatureFormat.format(fahrenheit));
+                    buffer.append(_degrees);
+                }
+            } else {
+                temperature = TemperatureCalculatorDTO.compute(temperature, temperatureUnits, preferencesDTO.getTemperatureUnits());
+                if (temperature != null) {
+                    buffer.append(_temperatureFormat.format(temperature));
+                    buffer.append(_degrees);
+                    if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Fahrenheit) == 0) {
+                        buffer.append(getContext().getResources().getString(R.string.temperatureFahrenheit));
+                    } else if (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.Celsius) == 0) {
+                        buffer.append(getContext().getResources().getString(R.string.temperatureCelsius));
+                    }
                 }
             }
         }

@@ -3,10 +3,9 @@ package ca.datamagic.noaa.async;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.TimeZoneDAO;
-import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class TimeZoneTask extends AsyncTaskBase<Void, Void, TimeZoneDTO> {
+public class TimeZoneTask extends AsyncTaskBase<Void, Void, String> {
     private Logger _logger = LogFactory.getLogger(GooglePlaceTask.class);
     private TimeZoneDAO _dao = null;
     private double _latitude = 0;
@@ -19,18 +18,18 @@ public class TimeZoneTask extends AsyncTaskBase<Void, Void, TimeZoneDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<TimeZoneDTO> doInBackground(Void... voids) {
+    protected AsyncTaskResult<String> doInBackground(Void... voids) {
         try {
             _logger.info("Loading TimeZOne...");
-            TimeZoneDTO timeZone = _dao.loadTimeZone(_latitude, _longitude);
-            return new AsyncTaskResult<TimeZoneDTO>(timeZone);
+            String timeZoneId = _dao.loadTimeZone(_latitude, _longitude);
+            return new AsyncTaskResult<String>(timeZoneId);
         } catch (Throwable t) {
-            return new AsyncTaskResult<TimeZoneDTO>(t);
+            return new AsyncTaskResult<String>(t);
         }
     }
 
     @Override
-    protected void onPostExecute(AsyncTaskResult<TimeZoneDTO> result) {
+    protected void onPostExecute(AsyncTaskResult<String> result) {
         _logger.info("...TimeZone loaded.");
         fireCompleted(result);
     }

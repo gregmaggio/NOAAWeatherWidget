@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -44,6 +45,7 @@ public class DiscussionFragment extends Fragment implements Renderer {
                 discussionView.setText("Discussion not available");
             }
         }
+        (new AccountingTask("Discussion", "Render")).execute((Void[])null);
     }
 
     @Override

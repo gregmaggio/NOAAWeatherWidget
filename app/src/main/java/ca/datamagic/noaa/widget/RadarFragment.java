@@ -13,6 +13,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarBitmapsTask;
@@ -161,6 +162,7 @@ public class RadarFragment extends Fragment implements Renderer {
                 initializeRadarTimer(radarView, radarBitmaps);
             }
         }
+        (new AccountingTask("Radar", "Render")).execute((Void[])null);
     }
 
     @Override

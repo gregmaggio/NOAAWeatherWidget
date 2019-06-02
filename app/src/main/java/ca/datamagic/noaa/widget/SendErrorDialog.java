@@ -12,6 +12,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.SendErrorTask;
@@ -71,9 +72,11 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.sendErrorOK:
                 sendError();
+                (new AccountingTask("Error", "Send")).execute((Void[])null);
                 break;
             case R.id.sendErrorCancel:
                 dismiss();
+                (new AccountingTask("Error", "Cancel")).execute((Void[])null);
                 break;
         }
     }
