@@ -869,11 +869,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
                 }
                 _discussionTask.setWFO(null);
-                _radarTask.setWFO(null);
+                _radarTask.setRadar(null);
             } else {
                 _station = result.getResult();
                 _stationsAdapter.add(result.getResult());
-                _radarTask.setWFO(result.getResult().getWFO());
+                _radarTask.setRadar(result.getResult().getRadar());
                 _discussionTask.setWFO(result.getResult().getWFO());
             }
         }
@@ -888,6 +888,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving radar images.", result.getThrowable());
                 }
+                _radar = null;
             } else {
                 _mainPageAdapter.setBackgroundImages(result.getResult().getBackgroundImages());
                 _mainPageAdapter.setRadarImages(result.getResult().getRadarImages());
