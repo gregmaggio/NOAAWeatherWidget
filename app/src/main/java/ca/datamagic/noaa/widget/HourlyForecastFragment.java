@@ -63,7 +63,12 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
     public String getTimeZoneId() {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            return mainActivity.getTimeZoneId();
+            if ((mainActivity.getTimeZoneId() != null) && (mainActivity.getTimeZoneId().length() > 0)) {
+                return mainActivity.getTimeZoneId();
+            }
+        }
+        if (TimeZone.getDefault() != null) {
+            return TimeZone.getDefault().getID();
         }
         return null;
     }
@@ -117,11 +122,13 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
             }
             String timeZoneId = getTimeZoneId();
             StationDTO station = getStation();
-            if ((properties != null) && (timeZoneId != null) && (station != null)) {
+            SunriseSunsetCalculator calculator = null;
+            if ((properties != null) && (timeZoneId != null)) {
                 TimeStampDTO timeStampDTO = new TimeStampDTO(timeZoneId);
                 TimeZone tz = TimeZone.getTimeZone(timeZoneId);
-                SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(new Location(station.getLatitude(), station.getLongitude()), timeZoneId);
-
+                if (station != null) {
+                    calculator = new SunriseSunsetCalculator(new Location(station.getLatitude(), station.getLongitude()), timeZoneId);
+                }
                 PeriodDTO[] periods = properties.getPeriods();
                 if (periods != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
@@ -140,10 +147,12 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                             calendar = (Calendar)timeStampDTO.getCalendar().clone();
                             calendar.setTimeZone(tz);
                             _logger.info("Current Time: " + calendar.toString());
-                            sunrise = calculator.getOfficialSunriseCalendarForDate(calendar);
-                            _logger.info("sunrise: " + sunrise.toString());
-                            sunset = calculator.getOfficialSunsetCalendarForDate(calendar);
-                            _logger.info("sunset: " + sunset.toString());
+                            if (calculator != null) {
+                                sunrise = calculator.getOfficialSunriseCalendarForDate(calendar);
+                                _logger.info("sunrise: " + sunrise.toString());
+                                sunset = calculator.getOfficialSunsetCalendarForDate(calendar);
+                                _logger.info("sunset: " + sunset.toString());
+                            }
                         }
                         if (dayOfWeek != null) {
                             if ((currentDayOfWeek == null) || (currentDayOfWeek.compareToIgnoreCase(dayOfWeek) != 0)) {
@@ -175,17 +184,28 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                         row.setTag(ii);
 
-                        LinearLayout item = (LinearLayout)inflater.inflate(R.layout.hourly_forecast_item, null);
+                        LinearLayout item = null;
+                        if (preferencesDTO.isTextOnly()) {
+                            item = (LinearLayout) inflater.inflate(R.layout.hourly_forecast_item_text, null);
+                        } else {
+                            item = (LinearLayout) inflater.inflate(R.layout.hourly_forecast_item, null);
+                        }
                         item.setVisibility(View.VISIBLE);
 
                         TextView hourOfDayView = (TextView) item.findViewById(R.id.hourOfDay);
                         int hourOfDayViewWidth = convertDipToPixels(60);
                         int hourOfDayViewPaddingLeft = hourOfDayView.getPaddingLeft();
                         int hourOfDayViewPaddingRight = hourOfDayView.getPaddingRight();
-                        ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
-                        int conditionsViewWidth = convertDipToPixels(40);
-                        int conditionsViewPaddingLeft = conditionsView.getPaddingLeft();
-                        int conditionsViewPaddingRight = conditionsView.getPaddingRight();
+                        ImageView conditionsView = null;
+                        int conditionsViewWidth = 0;
+                        int conditionsViewPaddingLeft = 0;
+                        int conditionsViewPaddingRight = 0;
+                        if (!preferencesDTO.isTextOnly()) {
+                            conditionsView = (ImageView) item.findViewById(R.id.conditions);
+                            conditionsViewWidth = convertDipToPixels(40);
+                            conditionsViewPaddingLeft = conditionsView.getPaddingLeft();
+                            conditionsViewPaddingRight = conditionsView.getPaddingRight();
+                        }
                         TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
                         int weatherSummaryViewPaddingLeft = weatherSummaryView.getPaddingLeft();
                         int weatherSummaryViewPaddingRight = weatherSummaryView.getPaddingRight();
@@ -229,25 +249,26 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         row.addView(item);
                         forecastTable.addView(row);
 
-                        if ((periods[ii].getIcon() != null) && (periods[ii].getIcon().length() > 0)) {
-                            String iconUrl = periods[ii].getIcon();
-                            if ((calendar != null) && (sunrise != null) && (sunset != null)) {
-                                boolean afterSunrise = calendar.after(sunrise);
-                                _logger.info("afterSunrise: " + afterSunrise);
-                                boolean beforeSunset = calendar.before(sunset);
-                                _logger.info("beforeSunset: " + beforeSunset);
-                                boolean dayTime = afterSunrise && beforeSunset;
-                                _logger.info("dayTime: " + dayTime);
-                                if (dayTime) {
-                                    iconUrl = iconUrl.replace("night", "day");
-                                } else {
-                                    iconUrl = iconUrl.replace("day", "night");
+                        if (!preferencesDTO.isTextOnly()) {
+                            if ((periods[ii].getIcon() != null) && (periods[ii].getIcon().length() > 0)) {
+                                String iconUrl = periods[ii].getIcon();
+                                if ((calendar != null) && (sunrise != null) && (sunset != null)) {
+                                    boolean afterSunrise = calendar.after(sunrise);
+                                    _logger.info("afterSunrise: " + afterSunrise);
+                                    boolean beforeSunset = calendar.before(sunset);
+                                    _logger.info("beforeSunset: " + beforeSunset);
+                                    boolean dayTime = afterSunrise && beforeSunset;
+                                    _logger.info("dayTime: " + dayTime);
+                                    if (dayTime) {
+                                        iconUrl = iconUrl.replace("night", "day");
+                                    } else {
+                                        iconUrl = iconUrl.replace("day", "night");
+                                    }
                                 }
+                                ImageTask imageTask = new ImageTask(iconUrl, conditionsView, false);
+                                imageTask.execute((Void[]) null);
                             }
-                            ImageTask imageTask = new ImageTask(iconUrl, conditionsView, false);
-                            imageTask.execute((Void[]) null);
                         }
-
                         currentDayOfWeek = dayOfWeek;
                     }
                 }

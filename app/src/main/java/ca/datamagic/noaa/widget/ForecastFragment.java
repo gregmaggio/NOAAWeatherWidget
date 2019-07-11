@@ -13,8 +13,10 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
+import java.sql.Time;
 import java.text.DecimalFormat;
 import java.util.List;
+import java.util.TimeZone;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.AccountingTask;
@@ -52,7 +54,12 @@ public class ForecastFragment extends Fragment implements Renderer {
     public String getTimeZoneId() {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            return mainActivity.getTimeZoneId();
+            if ((mainActivity.getTimeZoneId() != null) && (mainActivity.getTimeZoneId().length() > 0)) {
+                return mainActivity.getTimeZoneId();
+            }
+        }
+        if (TimeZone.getDefault() != null) {
+            return TimeZone.getDefault().getID();
         }
         return null;
     }
@@ -143,17 +150,28 @@ public class ForecastFragment extends Fragment implements Renderer {
                         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
                         row.setTag(ii);
 
-                        LinearLayout item = (LinearLayout)inflater.inflate(R.layout.forecast_item, null);
+                        LinearLayout item = null;
+                        if (preferencesDTO.isTextOnly()) {
+                            item = (LinearLayout)inflater.inflate(R.layout.forecast_item_text, null);
+                        } else {
+                            item = (LinearLayout)inflater.inflate(R.layout.forecast_item, null);
+                        }
                         item.setVisibility(View.VISIBLE);
 
                         TextView dayOfWeekView = (TextView) item.findViewById(R.id.dayOfWeek);
                         int dayOfWeekViewWidth = convertDipToPixels(120);
                         int dayOfWeekViewPaddingLeft = dayOfWeekView.getPaddingLeft();
                         int dayOfWeekViewPaddingRight = dayOfWeekView.getPaddingRight();
-                        ImageView conditionsView = (ImageView) item.findViewById(R.id.conditions);
-                        int conditionsViewWidth = convertDipToPixels(40);
-                        int conditionsViewPaddingLeft = conditionsView.getPaddingLeft();
-                        int conditionsViewPaddingRight = conditionsView.getPaddingRight();
+                        ImageView conditionsView = null;
+                        int conditionsViewWidth = 0;
+                        int conditionsViewPaddingLeft = 0;
+                        int conditionsViewPaddingRight = 0;
+                        if (!preferencesDTO.isTextOnly()) {
+                            conditionsView = (ImageView) item.findViewById(R.id.conditions);
+                            conditionsViewWidth = convertDipToPixels(40);
+                            conditionsViewPaddingLeft = conditionsView.getPaddingLeft();
+                            conditionsViewPaddingRight = conditionsView.getPaddingRight();
+                        }
                         TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
                         int weatherSummaryViewPaddingLeft = weatherSummaryView.getPaddingLeft();
                         int weatherSummaryViewPaddingRight = weatherSummaryView.getPaddingRight();
@@ -205,9 +223,11 @@ public class ForecastFragment extends Fragment implements Renderer {
                         spacerRow.addView(forecastDivider);
                         forecastTable.addView(spacerRow);
 
-                        if ((items.get(ii).getImageUrl() != null) && (items.get(ii).getImageUrl().length() > 0)) {
-                            ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView, false);
-                            imageTask.execute((Void[]) null);
+                        if (!preferencesDTO.isTextOnly()) {
+                            if ((items.get(ii).getImageUrl() != null) && (items.get(ii).getImageUrl().length() > 0)) {
+                                ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView, false);
+                                imageTask.execute((Void[]) null);
+                            }
                         }
 
                         prevDayOfMonth = currDayOfMonth;

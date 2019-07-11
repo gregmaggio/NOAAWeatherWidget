@@ -3,10 +3,11 @@ package ca.datamagic.noaa.dao;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
+
+import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
@@ -16,11 +17,11 @@ public class StationDAO {
     private static Logger _logger = LogFactory.getLogger(StationDAO.class);
 
     public StationDTO read(double latitude, double longitude) throws Throwable {
-        HttpURLConnection connection = null;
+        HttpsURLConnection connection = null;
         try {
-            URL url = new URL(MessageFormat.format("http://datamagic.ca/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
+            URL url = new URL(MessageFormat.format("https://datamagic.ca/Station/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude)));
             _logger.info("url: " + url.toString());
-            connection = (HttpURLConnection)url.openConnection();
+            connection = (HttpsURLConnection)url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
@@ -30,7 +31,11 @@ public class StationDAO {
             StationDTO station = parseJSON(json);
             return station;
         } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
+            String message = t.getMessage();
+            _logger.warning("Exception: " + message);
+            if ((message != null) && message.toLowerCase().contains("failed to connect")) {
+                return null;
+            }
         } finally {
             if (connection != null) {
                 try {

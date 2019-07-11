@@ -37,7 +37,7 @@ public class DWMLDAO {
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5000);
+            connection.setConnectTimeout(2000);
             connection.connect();
             String responseText = IOUtils.readEntireStream(connection.getInputStream());
             _logger.info("responseLength: " + responseText.length());
@@ -51,7 +51,11 @@ public class DWMLDAO {
             DWMLDTO dwml = handler.parse(responseText);
             return  dwml;
         } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
+            String message = t.getMessage();
+            _logger.warning("Exception: " + message);
+            if ((message != null) && message.toLowerCase().contains("failed to connect")) {
+                return null;
+            }
         } finally {
             if (connection != null) {
                 try {

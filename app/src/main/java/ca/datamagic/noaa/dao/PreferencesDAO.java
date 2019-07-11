@@ -30,6 +30,7 @@ public class PreferencesDAO {
         dto.setPressureUnits(_preferences.getString("pressureUnits", PressureUnitsDTO.InchesOfMercury));
         dto.setVisibilityUnits(_preferences.getString("visibilityUnits", VisibilityUnitsDTO.StatuteMiles));
         dto.setHeightUnits(_preferences.getString("heightUnits", HeightUnitsDTO.Feet));
+        dto.setTextOnly(_preferences.getBoolean("textOnly", Boolean.FALSE));
         return dto;
     }
 
@@ -44,6 +45,7 @@ public class PreferencesDAO {
         String pressureUnits = (dto.getPressureUnits() != null) ? dto.getPressureUnits() : PressureUnitsDTO.InchesOfMercury;
         String visibilityUnits = (dto.getVisibilityUnits() != null) ? dto.getVisibilityUnits() : VisibilityUnitsDTO.StatuteMiles;
         String heightUnits = (dto.getHeightUnits() != null) ? dto.getHeightUnits() : HeightUnitsDTO.Feet;
+        Boolean textOnly = (dto.isTextOnly() != null) ? dto.isTextOnly() : Boolean.FALSE;
         SharedPreferences.Editor editor = _preferences.edit();
         editor.putFloat("latitude", (float)latitude);
         editor.putFloat("longitude", (float)longitude);
@@ -55,6 +57,7 @@ public class PreferencesDAO {
         editor.putString("pressureUnits", pressureUnits);
         editor.putString("visibilityUnits", visibilityUnits);
         editor.putString("heightUnits", heightUnits);
+        editor.putBoolean("textOnly", textOnly);
         editor.commit();
     }
 }

@@ -517,8 +517,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             resetView();
 
-            _processing = true;
+            PreferencesDAO preferencesDAO = new PreferencesDAO(getBaseContext());
+            PreferencesDTO preferencesDTO = preferencesDAO.read();
 
+            _processing = true;
             _spinner.setVisibility(View.VISIBLE);
             _year = Calendar.getInstance().get(Calendar.YEAR);
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
@@ -529,13 +531,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _stationTask = new StationTask(_latitude, _longitude);
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
+            _mainPageAdapter.setBackgroundImages(null);
+            _mainPageAdapter.setRadarImages(null);
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_timeZoneTask, _timeZoneListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
-            refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
+            if ((preferencesDTO.isTextOnly() == null) || !preferencesDTO.isTextOnly().booleanValue()) {
+                refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
+            }
             refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
@@ -827,8 +833,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // TODO: Reset to last good state
             } else {
                 _dwml = result.getResult();
-                _obervation = ObservationDAO.getObservation(_dwml);
-                _forecasts = ForecastsDAO.getForecasts(_dwml);
+                if (_dwml != null) {
+                    _obervation = ObservationDAO.getObservation(_dwml);
+                    _forecasts = ForecastsDAO.getForecasts(_dwml);
+                }
             }
         }
     }
@@ -872,9 +880,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _radarTask.setRadar(null);
             } else {
                 _station = result.getResult();
-                _stationsAdapter.add(result.getResult());
-                _radarTask.setRadar(result.getResult().getRadar());
-                _discussionTask.setWFO(result.getResult().getWFO());
+                if (_station != null) {
+                    _stationsAdapter.add(_station);
+                    _radarTask.setRadar(_station.getRadar());
+                    _discussionTask.setWFO(_station.getWFO());
+                } else {
+                    _discussionTask.setWFO(null);
+                    _radarTask.setRadar(null);
+                }
             }
         }
     }
@@ -890,9 +903,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
                 _radar = null;
             } else {
-                _mainPageAdapter.setBackgroundImages(result.getResult().getBackgroundImages());
-                _mainPageAdapter.setRadarImages(result.getResult().getRadarImages());
                 _radar = result.getResult();
+                if (_radar != null) {
+                    _mainPageAdapter.setBackgroundImages(_radar.getBackgroundImages());
+                    _mainPageAdapter.setRadarImages(_radar.getRadarImages());
+                } else {
+                    _mainPageAdapter.setBackgroundImages(null);
+                    _mainPageAdapter.setRadarImages(null);
+                }
             }
         }
     }

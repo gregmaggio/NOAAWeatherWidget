@@ -8,8 +8,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingLeft="8px"
-        android:paddingRight="8px"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/temperatureUnits" />
     <RadioGroup
         android:id="@+id/temperatureUnits"
@@ -47,8 +47,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingLeft="8px"
-        android:paddingRight="8px"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/windSpeedUnits"
         android:buttonTint="@color/colorPrimary"/>
     <RadioGroup
@@ -81,8 +81,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingLeft="8px"
-        android:paddingRight="8px"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/pressureUnits"
         android:buttonTint="@color/colorPrimary"/>
     <RadioGroup
@@ -115,8 +115,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingLeft="8px"
-        android:paddingRight="8px"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/visibilityUnits" />
     <RadioGroup
         android:id="@+id/visibilityUnits"
@@ -148,8 +148,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingLeft="8px"
-        android:paddingRight="8px"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:text="@string/heightUnits" />
     <RadioGroup
         android:id="@+id/heightUnits"
@@ -170,12 +170,18 @@
             android:text="@string/meters"
             android:buttonTint="@color/colorPrimary"/>
     </RadioGroup>
+    <CheckBox
+        android:id="@+id/textOnly"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/textOnly"
+        android:buttonTint="@color/colorPrimary"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:paddingLeft="8px"
-        android:paddingRight="8px"
+        android:paddingLeft="8dp"
+        android:paddingRight="8dp"
         android:orientation="horizontal">
         <Button
             android:id="@+id/saveSettings"

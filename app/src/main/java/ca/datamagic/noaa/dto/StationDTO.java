@@ -79,4 +79,17 @@ public class StationDTO {
     public void setLongitude(Double newVal) {
         _longitude = newVal;
     }
+
+    @Override
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("stationId=" + ((_stationId != null) ? _stationId : "null"));
+        buffer.append(",stationName=" + ((_stationName != null) ? _stationName : "null"));
+        buffer.append(",state=" + ((_state != null) ? _state : "null"));
+        buffer.append(",wfo=" + ((_wfo != null) ? _wfo : "null"));
+        buffer.append(",radar=" + ((_radar != null) ? _radar : "null"));
+        buffer.append(",latitude=" + ((_latitude != null) ? Double.toString(_latitude.doubleValue()) : "null"));
+        buffer.append(",longitude=" + ((_longitude != null) ? Double.toString(_longitude.doubleValue()) : "null"));
+        return buffer.toString();
+    }
 }

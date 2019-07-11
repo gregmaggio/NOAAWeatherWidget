@@ -3,6 +3,7 @@ package ca.datamagic.noaa.dao;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,7 +35,7 @@ public class GooglePlacesDAO {
         _apiKey = newVal;
     }
 
-    public List<PredictionDTO> loadAutoCompletePredictions(String searchText) throws MalformedURLException {
+    public List<PredictionDTO> loadAutoCompletePredictions(String searchText) throws IOException {
         URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/autocomplete/json?input={0}&types=geocode&language=en&key={1}", searchText, _apiKey));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
@@ -44,7 +45,7 @@ public class GooglePlacesDAO {
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5000);
+            connection.setConnectTimeout(2000);
             connection.connect();
             inputStream = connection.getInputStream();
             String responseText = IOUtils.readEntireStream(inputStream);
@@ -60,7 +61,11 @@ public class GooglePlacesDAO {
             }
             return list;
         } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
+            String message = t.getMessage();
+            _logger.warning("Exception: " + message);
+            if ((message != null) && message.toLowerCase().contains("failed to connect")) {
+                return null;
+            }
         } finally {
             IOUtils.closeQuietly(inputStream);
             if (connection != null) {

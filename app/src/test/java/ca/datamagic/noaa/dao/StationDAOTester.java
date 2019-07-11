@@ -5,16 +5,14 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
+import ca.datamagic.noaa.dto.StationDTO;
 
-/**
- * Created by Greg on 1/2/2016.
- */
 @RunWith(JUnit4.class)
-public class DiscussionDAOTester extends BaseTester {
+public class StationDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
-        DiscussionDAO dao = new DiscussionDAO();
-        String discussion = dao.load("LWX");
-        System.out.println(discussion);
+        StationDAO dao = new StationDAO();
+        StationDTO station = dao.read(39.0103,-76.9124);
+        System.out.println("station: " + station);
     }
 }

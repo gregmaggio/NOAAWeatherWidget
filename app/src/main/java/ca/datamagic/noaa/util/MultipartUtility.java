@@ -42,6 +42,7 @@ public class MultipartUtility {
 
         URL url = new URL(_uri);
         _connection = (HttpURLConnection)url.openConnection();
+        _connection.setConnectTimeout(2000);
         _connection.setUseCaches(false);
         _connection.setDoOutput(true);    // indicates POST method
         _connection.setDoInput(true);

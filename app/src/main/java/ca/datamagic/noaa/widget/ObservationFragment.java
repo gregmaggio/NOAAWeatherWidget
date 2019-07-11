@@ -167,7 +167,12 @@ public class ObservationFragment extends Fragment implements Renderer {
             row.setVisibility(View.VISIBLE);
             row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
-            LinearLayout item = (LinearLayout)inflater.inflate(R.layout.observation_item, null);
+            LinearLayout item = null;
+            if (preferencesDTO.isTextOnly()) {
+                item = (LinearLayout)inflater.inflate(R.layout.observation_item_text, null);
+            } else {
+                item = (LinearLayout)inflater.inflate(R.layout.observation_item, null);
+            }
             item.setVisibility(View.VISIBLE);
 
             if ((description != null) && (description.length() > 0)) {
@@ -199,10 +204,12 @@ public class ObservationFragment extends Fragment implements Renderer {
                 }
             }
 
-            if (conditionsIcon != null) {
-                ImageView currentConditionsImage = (ImageView) item.findViewById(R.id.currentConditionsImage);
-                ImageTask imageTask = new ImageTask(conditionsIcon, currentConditionsImage);
-                imageTask.execute((Void[]) null);
+            if (!preferencesDTO.isTextOnly()) {
+                if (conditionsIcon != null) {
+                    ImageView currentConditionsImage = (ImageView) item.findViewById(R.id.currentConditionsImage);
+                    ImageTask imageTask = new ImageTask(conditionsIcon, currentConditionsImage);
+                    imageTask.execute((Void[]) null);
+                }
             }
 
             TextView temperatureText = (TextView) item.findViewById(R.id.temperature);

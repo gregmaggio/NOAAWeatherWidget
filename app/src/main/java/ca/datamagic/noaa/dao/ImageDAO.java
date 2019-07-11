@@ -69,7 +69,7 @@ public class ImageDAO {
             connection = (HttpURLConnection)url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
-            connection.setConnectTimeout(5000);
+            connection.setConnectTimeout(2000);
             connection.connect();
             inputStream = connection.getInputStream();
             List<Byte> bytesArray = new ArrayList<Byte>();
@@ -89,7 +89,11 @@ public class ImageDAO {
             }
             return BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
         } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
+            String message = t.getMessage();
+            _logger.warning("Exception: " + message);
+            if ((message != null) && message.toLowerCase().contains("failed to connect")) {
+                return null;
+            }
         } finally {
             if (inputStream != null) {
                 try {

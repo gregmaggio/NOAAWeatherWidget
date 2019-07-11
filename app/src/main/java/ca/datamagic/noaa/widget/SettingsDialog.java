@@ -2,7 +2,6 @@ package ca.datamagic.noaa.widget;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -10,9 +9,8 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.CheckBox;
 import android.widget.ProgressBar;
-import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
 import ca.datamagic.noaa.async.AccountingTask;
@@ -30,6 +28,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
     private RadioGroup _pressureUnits = null;
     private RadioGroup _visibilityUnits = null;
     private RadioGroup _heightUnits = null;
+    private CheckBox _textOnly = null;
     private Button _saveSettingsButton = null;
     private Button _cancelSettingsButton = null;
     private ProgressBar _saveSettingsProgress = null;
@@ -68,6 +67,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         _pressureUnits = (RadioGroup)findViewById(R.id.pressureUnits);
         _visibilityUnits = (RadioGroup)findViewById(R.id.visibilityUnits);
         _heightUnits = (RadioGroup)findViewById(R.id.heightUnits);
+        _textOnly = (CheckBox)findViewById(R.id.textOnly);
         _saveSettingsButton = (Button)findViewById(R.id.saveSettings);
         _cancelSettingsButton = (Button)findViewById(R.id.cancelSettings);
         _saveSettingsProgress = (ProgressBar)findViewById(R.id.saveSettingsProgress);
@@ -124,6 +124,11 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
             _heightUnits.check(R.id.heightUnitsMeters);
         } else {
             _heightUnits.check(R.id.heightUnitsFeet);
+        }
+        if (dto.isTextOnly() != null) {
+            _textOnly.setChecked(dto.isTextOnly());
+        } else {
+            _textOnly.setChecked(false);
         }
         (new AccountingTask("Settings", "Show")).execute((Void[])null);
     }
@@ -207,6 +212,11 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
                 case R.id.heightUnitsMeters:
                     dto.setHeightUnits(HeightUnitsDTO.Meters);
                     break;
+            }
+            if (_textOnly.isChecked()) {
+                dto.setTextOnly(true);
+            } else {
+                dto.setTextOnly(false);
             }
             dao.write(dto);
 

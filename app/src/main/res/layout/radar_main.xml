@@ -9,4 +9,10 @@
         android:layout_height="fill_parent"
         android:fillViewport="true"
         android:id="@+id/radarView" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Radar not available in text mode"
+        android:visibility="gone"
+        android:id="@+id/radarViewNotAvailable"/>
 </RelativeLayout>

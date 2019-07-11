@@ -11,6 +11,7 @@ public class PreferencesDTO {
     private String _pressureUnits = null;
     private String _visibilityUnits = null;
     private String _heightUnits = null;
+    private Boolean _textOnly = Boolean.FALSE;
 
     public Double getLatitude() {
         return _latitude;
@@ -52,6 +53,8 @@ public class PreferencesDTO {
         return _heightUnits;
     }
 
+    public Boolean isTextOnly() { return _textOnly; }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -91,4 +94,6 @@ public class PreferencesDTO {
     public void setHeightUnits(String newVal) {
         _heightUnits = newVal;
     }
+
+    public void setTextOnly(Boolean newVal) { _textOnly = newVal; }
 }

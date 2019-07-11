@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -17,7 +18,9 @@ import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarBitmapsTask;
+import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.BitmapsDTO;
+import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StringListDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
@@ -144,6 +147,18 @@ public class RadarFragment extends Fragment implements Renderer {
         View view = getView();
         if (view != null) {
             RadarView radarView = (RadarView)view.findViewById(R.id.radarView);
+            TextView radarViewNotAvailable = (TextView)view.findViewById(R.id.radarViewNotAvailable);
+            PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
+            PreferencesDTO preferencesDTO = preferencesDAO.read();
+            if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
+                radarViewNotAvailable.setVisibility(View.VISIBLE);
+                radarView.setVisibility(View.GONE);
+                return;
+            } else {
+                radarViewNotAvailable.setVisibility(View.GONE);
+                radarView.setVisibility(View.VISIBLE);
+            }
+
             StringListDTO backgroundImages = getBackgroundImages();
             BitmapsDTO backgroundBitmaps = getBackgroundBitmaps();
             if ((backgroundImages != null) && (backgroundBitmaps == null)) {

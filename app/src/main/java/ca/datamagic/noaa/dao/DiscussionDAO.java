@@ -30,7 +30,7 @@ public class DiscussionDAO {
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
-            connection.setConnectTimeout(5000);
+            connection.setConnectTimeout(2000);
             connection.connect();
             int responseCode = connection.getResponseCode();
             _logger.info("responseCode: " + responseCode);
@@ -79,7 +79,11 @@ public class DiscussionDAO {
             }
             return responseText;
         } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
+            String message = t.getMessage();
+            _logger.warning("Exception: " + message);
+            if ((message != null) && message.toLowerCase().contains("timeout")) {
+                return null;
+            }
         } finally {
             if (connection != null) {
                 try {
