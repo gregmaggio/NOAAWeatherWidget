@@ -52,7 +52,7 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _elevationFormat = new DecimalFormat("0.0");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
     private static DecimalFormat _humidityFormat = new DecimalFormat("0%");
-    private static DecimalFormat _pressureFormat = new DecimalFormat("0");
+    private static DecimalFormat _pressureFormat = new DecimalFormat("0.00");
     private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
 
