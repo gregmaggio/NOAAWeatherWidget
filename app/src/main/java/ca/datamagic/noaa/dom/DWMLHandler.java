@@ -278,6 +278,10 @@ public class DWMLHandler {
                             traverseConditionsIcon(parameters, (Element) child);
                             continue;
                         }
+                        if (child.getNodeName().toLowerCase().contains(HazardsDTO.NodeName.toLowerCase())) {
+                            traverseHazards(parameters, (Element) child);
+                            continue;
+                        }
                         if (child.getNodeName().toLowerCase().contains(WordedForecastDTO.NodeName.toLowerCase())) {
                             traverseWordedForecast(parameters, (Element) child);
                             continue;
@@ -644,7 +648,7 @@ public class DWMLHandler {
                     }
                 }
             }
-            parameters.setHazards(hazards);
+            parameters.addHazards(hazards);
         }
     }
 

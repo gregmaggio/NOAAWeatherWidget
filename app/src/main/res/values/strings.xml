@@ -21,6 +21,7 @@
     <string name="hourlyforecast_page_title">Hourly</string>
     <string name="forecast_page_title">Forecast</string>
     <string name="discussion_page_title">Discussion</string>
+    <string name="hazards_page_title">Watches/Warnings</string>
     <string name="skewt_page_title">SkewT</string>
     <string name="radar_page_title">Radar</string>
     <string name="send_error_mailfrom">Mail From</string>
@@ -71,4 +72,6 @@
     <string name="sunset">Sunset</string>
     <string name="back">Back</string>
     <string name="textOnly">Text Only</string>
+    <string name="close">Close</string>
+    <string name="hazardsInstructions">USE THE BACK BUTTON DISMISS</string>
 </resources>

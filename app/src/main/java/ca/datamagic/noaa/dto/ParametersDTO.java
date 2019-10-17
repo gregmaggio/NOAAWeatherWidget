@@ -99,7 +99,7 @@ public class ParametersDTO {
 	private WeatherDTO _weather = null;
 	private ConditionsIconDTO _conditionsIcon = null;
 	private WordedForecastDTO _wordedForecast = null;
-	private HazardsDTO _hazards = null;
+	private List<HazardsDTO> _hazards = new ArrayList<HazardsDTO>();
 	private DirectionDTO _direction = null;
     private List<WindSpeedDTO> _windSpeeds = new ArrayList<WindSpeedDTO>();
     private PressureDTO _pressure = null;
@@ -160,12 +160,12 @@ public class ParametersDTO {
 		_wordedForecast = newVal;
 	}
 
-	public HazardsDTO getHazards() {
+	public List<HazardsDTO> getHazards() {
 		return _hazards;
 	}
 	
-	public void setHazards(HazardsDTO newVal) {
-		_hazards = newVal;
+	public void addHazards(HazardsDTO newVal) {
+		_hazards.add(newVal);
 	}
 
     public DirectionDTO getDirection() {

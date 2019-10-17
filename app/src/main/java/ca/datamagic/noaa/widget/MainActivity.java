@@ -51,6 +51,7 @@ import ca.datamagic.noaa.async.DWMLTask;
 import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
+import ca.datamagic.noaa.async.HazardsTask;
 import ca.datamagic.noaa.async.HourlyForecastTask;
 import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.TimeZoneTask;
@@ -90,18 +91,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private String _unit = "e";
     private String _format = "24 hourly";
     private DWMLTask _dwmlTask = null;
+    private HazardsTask _hazardsTask = null;
     private HourlyForecastTask _hourlyForecastTask = null;
     private TimeZoneTask _timeZoneTask = null;
     private StationTask _stationTask = null;
     private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
+    private HazardsListener _hazardsListener = new HazardsListener();
     private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
     private TimeZoneListener _timeZoneListener = new TimeZoneListener();
     private StationListener _stationListener = new StationListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private DWMLDTO _dwml = null;
+    private List<String> _hazards = null;
     private FeatureDTO _hourlyForecastFeature = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
@@ -158,6 +162,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public DWMLDTO getDWML() {
         return _dwml;
     }
+
+    public List<String> getHazards() { return _hazards; }
 
     public FeatureDTO getHourlyForecastFeature() {
         return _hourlyForecastFeature;
@@ -526,6 +532,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
             _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
             _dwmlTask = new DWMLTask(_latitude, _longitude);
+            _hazardsTask = new HazardsTask();
             _hourlyForecastTask = new HourlyForecastTask(_latitude, _longitude);
             _timeZoneTask = new TimeZoneTask(_latitude, _longitude);
             _stationTask = new StationTask(_latitude, _longitude);
@@ -536,6 +543,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
+            refreshWorkflow.addStep(new WorkflowStep(_hazardsTask, _hazardsListener));
             refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_timeZoneTask, _timeZoneListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
@@ -833,10 +841,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // TODO: Reset to last good state
             } else {
                 _dwml = result.getResult();
+                _hazardsTask.setDWML(_dwml);
                 if (_dwml != null) {
                     _obervation = ObservationDAO.getObservation(_dwml);
                     _forecasts = ForecastsDAO.getForecasts(_dwml);
                 }
+            }
+        }
+    }
+
+    private class HazardsListener implements AsyncTaskListener<List<String>> {
+        @Override
+        public void completed(AsyncTaskResult<List<String>> result) {
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving hazards.", result.getThrowable());
+                }
+                _hazards = null;
+            } else {
+                _hazards = result.getResult();
             }
         }
     }

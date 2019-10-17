@@ -4,6 +4,9 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.URLSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +22,7 @@ import com.luckycatlabs.sunrisesunset.dto.Location;
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
 import java.util.Calendar;
+import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
@@ -47,7 +51,7 @@ import ca.datamagic.noaa.util.WindDirectionConverter;
  */
 public class ObservationFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(ObservationFragment.class);
-    private static char _degrees = (char)0x00B0;;
+    private static char _degrees = (char)0x00B0;
     private static DecimalFormat _coordinatesFormat = new DecimalFormat("0.0");
     private static DecimalFormat _elevationFormat = new DecimalFormat("0.0");
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
@@ -76,6 +80,14 @@ public class ObservationFragment extends Fragment implements Renderer {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
             return mainActivity.getTimeZoneId();
+        }
+        return null;
+    }
+
+    public List<String> getHazards() {
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            return mainActivity.getHazards();
         }
         return null;
     }
@@ -297,6 +309,25 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
             sunriseText.setText(sunrise);
             sunsetText.setText(sunset);
+
+            LinearLayout hazardsLayout = (LinearLayout)item.findViewById(R.id.hazardsLayout);
+            List<String> hazardList = getHazards();
+            if ((hazardList != null) && (hazardList.size() > 0)) {
+                TextView hazards = (TextView)item.findViewById(R.id.hazards);
+                CharSequence text = hazards.getText();
+                SpannableString spannableString = new SpannableString( text );
+                spannableString.setSpan(new URLSpan(""), 0, spannableString.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                hazards.setText(spannableString, TextView.BufferType.SPANNABLE);
+                hazards.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        HazardsDialog dialog = new HazardsDialog(getContext());
+                        dialog.show();
+                    }
+                });
+            } else {
+                hazardsLayout.setVisibility(View.GONE);
+            }
             row.addView(item);
             observationTable.addView(row);
         }

@@ -38,15 +38,12 @@ public class DWMLDAO {
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(2000);
+            connection.setRequestProperty("Sec-Fetch-Mode", "navigate");
+            connection.setRequestProperty("Sec-Fetch-Site", "none");
             connection.connect();
             String responseText = IOUtils.readEntireStream(connection.getInputStream());
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
-            String locationRedirect = getLocationRedirect(responseText);
-            _logger.info("locationRedirect: " + locationRedirect);
-            if (locationRedirect != null) {
-                return null;
-            }
             DWMLHandler handler = new DWMLHandler();
             DWMLDTO dwml = handler.parse(responseText);
             return  dwml;
@@ -64,13 +61,6 @@ public class DWMLDAO {
                     _logger.warning("Exception: " + t.getMessage());
                 }
             }
-        }
-        return null;
-    }
-
-    private static String getLocationRedirect(String responseText) {
-        if (responseText.toLowerCase().indexOf("window.location.href") > -1) {
-            return responseText;
         }
         return null;
     }

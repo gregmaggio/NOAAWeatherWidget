@@ -65,4 +65,13 @@ public class DWMLDAOTester extends BaseTester {
             }
         }
     }
+
+    @Test
+    public void test4() throws Throwable {
+        DWMLDAO dao = new DWMLDAO();
+        DWMLDTO dwml = dao.load(41.31136689999999, -105.5911007, "e");
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(dwml);
+        System.out.println("json: " + json);
+    }
 }
