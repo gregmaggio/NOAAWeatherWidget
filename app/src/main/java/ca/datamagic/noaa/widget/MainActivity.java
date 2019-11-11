@@ -84,6 +84,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private double _longitude = -76.9275;
     private double _savedlatitude = _latitude;
     private double _savedLongitude = _longitude;
+    private double _lastRequestedLatitude = 38.9967;
+    private double _lastRequestedLongitude = -76.9275;
     private int _year = Calendar.getInstance().get(Calendar.YEAR);
     private int _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
     private int _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
@@ -157,6 +159,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public NonSwipeableViewPager getViewPager() {
         return _viewPager;
+    }
+
+    public double getLastRequestedLatitude() {
+        return _lastRequestedLatitude;
+    }
+
+    public double getLastRequestedLongitude() {
+        return _lastRequestedLongitude;
     }
 
     public DWMLDTO getDWML() {
@@ -527,6 +537,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             PreferencesDTO preferencesDTO = preferencesDAO.read();
 
             _processing = true;
+            _lastRequestedLatitude = _latitude;
+            _lastRequestedLongitude = _longitude;
             _spinner.setVisibility(View.VISIBLE);
             _year = Calendar.getInstance().get(Calendar.YEAR);
             _month = Calendar.getInstance().get(Calendar.MONTH) + 1;

@@ -98,6 +98,10 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
             StringBuffer mailBody = new StringBuffer();
             mailBody.append(errorInformation);
             mailBody.append("\n");
+            mailBody.append("Last Requested Latitude: " + Double.toString(MainActivity.getThisInstance().getLastRequestedLatitude()));
+            mailBody.append("\n");
+            mailBody.append("Last Requested Longitude: " + Double.toString(MainActivity.getThisInstance().getLastRequestedLongitude()));
+            mailBody.append("\n");
             SendErrorTask task = new SendErrorTask(logPath, mailFrom, mailSubject, mailBody.toString());
             task.addListener(new AsyncTaskListener<Void>() {
                 @Override
