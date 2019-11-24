@@ -35,7 +35,7 @@ public class RadarTask extends AsyncTaskBase<Void, Void, RadarDTO> {
                 backgroundImages.add(MessageFormat.format("https://radar.weather.gov/ridge/Overlays/County/Short/{0}_County_Short.gif", _radar));
                 backgroundImages.add(MessageFormat.format("https://radar.weather.gov/ridge/Overlays/Rivers/Short/{0}_Rivers_Short.gif", _radar));
                 backgroundImages.add(MessageFormat.format("https://radar.weather.gov/ridge/Overlays/Highways/Short/{0}_Highways_Short.gif", _radar));
-                backgroundImages.add(MessageFormat.format("https://radar.weather.gov/ridge/Overlays/Cities/Short/{0}_Highways_City.gif", _radar));
+                backgroundImages.add(MessageFormat.format("https://radar.weather.gov/ridge/Overlays/Cities/Short/{0}_City_Short.gif", _radar));
                 List<String> radarImages = _radarImagesDAO.loadRadarImages(_radar);
                 List<String> recentImages = new ArrayList<String>();
                 if ((radarImages != null) && (radarImages.size() > 0)) {
