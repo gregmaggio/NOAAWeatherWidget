@@ -88,12 +88,19 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
     public void add(StationDTO station) {
         boolean exists = false;
         for (int ii = 0; ii < _stations.size(); ii++) {
-            if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
-                exists = true;
-                break;
-            } else if (_stations.get(ii).getStationName().compareToIgnoreCase(station.getStationName()) == 0) {
-                exists = true;
-                break;
+            if ((_stations.get(ii).getStationId() != null) && (_stations.get(ii).getStationId().length() > 0) &&
+                (station.getStationId() != null) && (station.getStationId().length() > 0)) {
+                if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
+                    exists = true;
+                    break;
+                }
+            }
+            if ((_stations.get(ii).getStationName() != null) && (_stations.get(ii).getStationName().length() > 0) &&
+                (station.getStationName() != null) && (station.getStationName().length() > 0)) {
+                if (_stations.get(ii).getStationName().compareToIgnoreCase(station.getStationName()) == 0) {
+                    exists = true;
+                    break;
+                }
             }
         }
         if (!exists) {
@@ -104,9 +111,19 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
 
     public void remove(StationDTO station) {
         for (int ii = 0; ii < _stations.size(); ii++) {
-            if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
-                _stations.remove(ii);
-                break;
+            if ((_stations.get(ii).getStationId() != null) && (_stations.get(ii).getStationId().length() > 0) &&
+                (station.getStationId() != null) && (station.getStationId().length() > 0)) {
+                if (_stations.get(ii).getStationId().compareToIgnoreCase(station.getStationId()) == 0) {
+                    _stations.remove(ii);
+                    break;
+                }
+            }
+            if ((_stations.get(ii).getStationName() != null) && (_stations.get(ii).getStationName().length() > 0) &&
+                (station.getStationName() != null) && (station.getStationName().length() > 0)) {
+                if (_stations.get(ii).getStationName().compareToIgnoreCase(station.getStationName()) == 0) {
+                    _stations.remove(ii);
+                    break;
+                }
             }
         }
     }

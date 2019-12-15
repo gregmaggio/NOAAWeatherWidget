@@ -916,6 +916,30 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             } else {
                 _station = result.getResult();
                 if (_station != null) {
+                    boolean observationDifferent = false;
+                    if ((_obervation.getLatitude() != null) && (_station.getLatitude() != null)) {
+                        double difference = Math.abs(_obervation.getLatitude().doubleValue() - _station.getLatitude().doubleValue());
+                        if (difference > 0.001) {
+                            observationDifferent = true;
+                        }
+                    }
+                    if ((_obervation.getLongitude() != null) && (_station.getLongitude() != null)) {
+                        double difference = Math.abs(_obervation.getLongitude().doubleValue() - _station.getLongitude().doubleValue());
+                        if (difference > 0.001) {
+                            observationDifferent = true;
+                        }
+                    }
+                    if (observationDifferent) {
+                        if ((_obervation.getDescription() != null) && (_obervation.getDescription().length() > 0)) {
+                            _station.setStationName(_obervation.getDescription());
+                        }
+                        if (_obervation.getLatitude() != null) {
+                            _station.setLatitude(_obervation.getLatitude());
+                        }
+                        if (_obervation.getLongitude() != null) {
+                            _station.setLongitude(_obervation.getLongitude());
+                        }
+                    }
                     _stationsAdapter.add(_station);
                     _radarTask.setRadar(_station.getRadar());
                     _discussionTask.setWFO(_station.getWFO());
