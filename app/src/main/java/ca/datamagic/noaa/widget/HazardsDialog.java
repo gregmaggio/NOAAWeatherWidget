@@ -48,9 +48,14 @@ public class HazardsDialog extends Dialog {
         StringBuilder builder = new StringBuilder();
         builder.append(getContext().getResources().getString(R.string.hazardsInstructions));
         List<String> hazards = MainActivity.getThisInstance().getHazards();
-        for (int ii = 0; ii < hazards.size(); ii++) {
-            builder.append("\n");
-            builder.append(hazards.get(ii));
+        if (hazards != null) {
+            for (int ii = 0; ii < hazards.size(); ii++) {
+                String hazard = hazards.get(ii);
+                if ((hazard != null) && (hazard.length() > 0)) {
+                    builder.append("\n");
+                    builder.append(hazards.get(ii));
+                }
+            }
         }
         hazardsView.setText(builder.toString());
         (new AccountingTask("Hazards", "Show")).execute((Void[])null);

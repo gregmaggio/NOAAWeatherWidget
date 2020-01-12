@@ -23,5 +23,19 @@ public class GooglePlacesDAOTester extends BaseTester {
         System.out.println("Name: " + place.getName());
         System.out.println("Latitude: " + place.getLatitude());
         System.out.println("Longitude: " + place.getLongitude());
+        System.out.println("City: " + place.getCity());
+        System.out.println("State: " + place.getState());
+    }
+
+    @Test
+    public void test2() throws Throwable {
+        GooglePlacesDAO dao = new GooglePlacesDAO();
+        List<PredictionDTO> predictions = dao.loadAutoCompletePredictions("Colville,WA");
+        PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId());
+        System.out.println("Name: " + place.getName());
+        System.out.println("Latitude: " + place.getLatitude());
+        System.out.println("Longitude: " + place.getLongitude());
+        System.out.println("City: " + place.getCity());
+        System.out.println("State: " + place.getState());
     }
 }

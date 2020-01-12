@@ -112,6 +112,9 @@ public class ForecastsDAO {
         if (data != null) {
             LocationDTO location = data.getLocation();
             if (location != null) {
+                forecasts.setDescription(location.getDescription());
+                forecasts.setCity(location.getCity());
+                forecasts.setState(location.getState());
                 PointDTO point = location.getPoint();
                 if (point != null) {
                     Double latitude = point.getLatitude();

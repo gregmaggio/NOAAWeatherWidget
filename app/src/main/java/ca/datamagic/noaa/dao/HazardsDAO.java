@@ -98,22 +98,24 @@ public class HazardsDAO {
 
     public List<String> getHazards(DWMLDTO dwml) throws Throwable {
         List<String> watchesAndWarnings = new ArrayList<String>();
-        DataDTO forecast = dwml.getForecast();
-        if (forecast != null) {
-            ParametersDTO parameters = forecast.getParameters();
-            if (parameters != null) {
-                List<HazardsDTO> hazards = parameters.getHazards();
-                if (hazards != null) {
-                    for (int ii = 0; ii < hazards.size(); ii++) {
-                        HazardConditionsDTO hazardConditions = hazards.get(ii).getHazardConditions();
-                        if (hazardConditions != null) {
-                            List<HazardDTO> hazardList = hazardConditions.getHazards();
-                            if (hazardList != null) {
-                                for (int jj = 0; jj < hazardList.size(); jj++) {
-                                    HazardDTO hazard = hazardList.get(jj);
-                                    List<String> hazardTextList = downloadHazards(hazard.getHazardTextUrl());
-                                    if (hazardTextList != null) {
-                                        watchesAndWarnings.addAll(hazardTextList);
+        if (dwml != null) {
+            DataDTO forecast = dwml.getForecast();
+            if (forecast != null) {
+                ParametersDTO parameters = forecast.getParameters();
+                if (parameters != null) {
+                    List<HazardsDTO> hazards = parameters.getHazards();
+                    if (hazards != null) {
+                        for (int ii = 0; ii < hazards.size(); ii++) {
+                            HazardConditionsDTO hazardConditions = hazards.get(ii).getHazardConditions();
+                            if (hazardConditions != null) {
+                                List<HazardDTO> hazardList = hazardConditions.getHazards();
+                                if (hazardList != null) {
+                                    for (int jj = 0; jj < hazardList.size(); jj++) {
+                                        HazardDTO hazard = hazardList.get(jj);
+                                        List<String> hazardTextList = downloadHazards(hazard.getHazardTextUrl());
+                                        if (hazardTextList != null) {
+                                            watchesAndWarnings.addAll(hazardTextList);
+                                        }
                                     }
                                 }
                             }

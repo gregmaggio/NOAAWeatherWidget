@@ -1,5 +1,8 @@
 package ca.datamagic.noaa.dto;
 
+import android.renderscript.ScriptGroup;
+
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -14,6 +17,7 @@ public class PlaceDTO {
     private String _name = null;
     private Double _latitude = null;
     private Double _longtitude = null;
+    private AddressComponentDTO[] _addressComponents = null;
 
     public PlaceDTO() {
 
@@ -35,6 +39,12 @@ public class PlaceDTO {
                         _latitude = location.getDouble("lat");
                         _longtitude = location.getDouble("lng");
                     }
+                }
+            } else if (key.compareToIgnoreCase("address_components") == 0) {
+                JSONArray addressComponents = obj.getJSONArray(key);
+                _addressComponents = new AddressComponentDTO[addressComponents.length()];
+                for (int ii = 0; ii < addressComponents.length(); ii++) {
+                    _addressComponents[ii] = new AddressComponentDTO(addressComponents.getJSONObject(ii));
                 }
             }
         }
@@ -70,5 +80,51 @@ public class PlaceDTO {
 
     public void setLongitude(Double newVal) {
         _longtitude = newVal;
+    }
+
+    public AddressComponentDTO[] getAddressComponents() {
+        return _addressComponents;
+    }
+
+    public void setAddressComponents(AddressComponentDTO[] newVal) {
+        _addressComponents = newVal;
+    }
+
+    public String getCity() {
+        if (_addressComponents != null) {
+            for (int ii = 0; ii < _addressComponents.length; ii++) {
+                if (_addressComponents[ii].isCity()) {
+                    return _addressComponents[ii].getLongName();
+                }
+            }
+        }
+        return null;
+    }
+
+    public String getState() {
+        if (_addressComponents != null) {
+            for (int ii = 0; ii < _addressComponents.length; ii++) {
+                if (_addressComponents[ii].isState()) {
+                    return _addressComponents[ii].getShortName();
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        String name = getName();
+        String city = getCity();
+        String state = getState();
+        if ((city != null) && (city.length() > 0) && (state != null) && (state.length() > 0)) {
+            builder.append(city);
+            builder.append(", ");
+            builder.append(state);
+        } else if ((name != null) && (name.length() > 0)) {
+            builder.append(name);
+        }
+        return builder.toString();
     }
 }

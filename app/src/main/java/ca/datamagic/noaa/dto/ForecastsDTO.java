@@ -7,6 +7,9 @@ import java.util.List;
  */
 
 public class ForecastsDTO {
+    private String _description = null;
+    private String _city = null;
+    private String _state = null;
     private Double _latitude = null;
     private Double _longitude = null;
     private Double _elevation = null;
@@ -15,6 +18,30 @@ public class ForecastsDTO {
 
     public ForecastsDTO() {
 
+    }
+
+    public String getDescription() {
+        return _description;
+    }
+
+    public void setDescription(String newVal) {
+        _description = newVal;
+    }
+
+    public String getCity() {
+        return _city;
+    }
+
+    public void setCity(String newVal) {
+        _city = newVal;
+    }
+
+    public String getState() {
+        return _state;
+    }
+
+    public void setState(String newVal) {
+        _state = newVal;
     }
 
     public Double getLatitude() {

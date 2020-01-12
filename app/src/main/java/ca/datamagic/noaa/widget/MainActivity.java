@@ -86,6 +86,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private double _savedLongitude = _longitude;
     private double _lastRequestedLatitude = 38.9967;
     private double _lastRequestedLongitude = -76.9275;
+    private PlaceDTO _selectedPlace = null;
+    private StationDTO _selectedStation = null;
     private int _year = Calendar.getInstance().get(Calendar.YEAR);
     private int _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
     private int _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
@@ -507,6 +509,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _savedLongitude = _longitude;
                     _latitude = lastLocation.getLatitude();
                     _longitude = lastLocation.getLongitude();
+                    _selectedPlace = null;
+                    _selectedStation = null;
                 } else {
                     // TODO
                 }
@@ -784,6 +788,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         int index = cursor.getColumnIndex("placeId");
         String placeId = cursor.getString(index);
 
+        _selectedPlace = null;
+        _selectedStation = null;
         _googlePlaceTask = new GooglePlaceTask(placeId);
         _googlePlaceTask.addListener(new AsyncTaskListener<PlaceDTO>() {
             @Override
@@ -795,6 +801,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 } else {
                     _savedlatitude = _latitude;
                     _savedLongitude = _longitude;
+                    _selectedPlace = result.getResult();
                     _latitude = result.getResult().getLatitude();
                     _longitude = result.getResult().getLongitude();
                     _mainMenu.findItem(R.id.search).collapseActionView();
@@ -827,6 +834,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _savedLongitude = _longitude;
         _latitude = station.getLatitude();
         _longitude = station.getLongitude();
+        _selectedPlace = null;
+        _selectedStation = station;
         actionRefresh();
         (new AccountingTask("Station", "Select")).execute((Void[])null);
     }
@@ -915,29 +924,46 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _radarTask.setRadar(null);
             } else {
                 _station = result.getResult();
-                if (_station != null) {
-                    boolean observationDifferent = false;
-                    if ((_obervation.getLatitude() != null) && (_station.getLatitude() != null)) {
-                        double difference = Math.abs(_obervation.getLatitude().doubleValue() - _station.getLatitude().doubleValue());
-                        if (difference > 0.001) {
-                            observationDifferent = true;
+                if ((_station != null) && (_selectedStation == null)) {
+                    if (_selectedPlace != null) {
+                        if (_selectedPlace.getLatitude() != null) {
+                            _station.setLatitude(_selectedPlace.getLatitude());
                         }
-                    }
-                    if ((_obervation.getLongitude() != null) && (_station.getLongitude() != null)) {
-                        double difference = Math.abs(_obervation.getLongitude().doubleValue() - _station.getLongitude().doubleValue());
-                        if (difference > 0.001) {
-                            observationDifferent = true;
+                        if (_selectedPlace.getLongitude() != null) {
+                            _station.setLongitude(_selectedPlace.getLongitude());
                         }
-                    }
-                    if (observationDifferent) {
-                        if ((_obervation.getDescription() != null) && (_obervation.getDescription().length() > 0)) {
-                            _station.setStationName(_obervation.getDescription());
+                        String name = _selectedPlace.toString();
+                        if ((name != null) && (name.length() > 0)) {
+                            _station.setStationName(name);
                         }
-                        if (_obervation.getLatitude() != null) {
-                            _station.setLatitude(_obervation.getLatitude());
+                        String state = _selectedPlace.getState();
+                        if ((state != null) && (state.length() > 0)) {
+                            _station.setState(state);
                         }
-                        if (_obervation.getLongitude() != null) {
-                            _station.setLongitude(_obervation.getLongitude());
+                    } else {
+                        boolean observationDifferent = false;
+                        if ((_obervation.getLatitude() != null) && (_station.getLatitude() != null)) {
+                            double difference = Math.abs(_obervation.getLatitude().doubleValue() - _station.getLatitude().doubleValue());
+                            if (difference > 0.001) {
+                                observationDifferent = true;
+                            }
+                        }
+                        if ((_obervation.getLongitude() != null) && (_station.getLongitude() != null)) {
+                            double difference = Math.abs(_obervation.getLongitude().doubleValue() - _station.getLongitude().doubleValue());
+                            if (difference > 0.001) {
+                                observationDifferent = true;
+                            }
+                        }
+                        if (observationDifferent) {
+                            if ((_obervation.getDescription() != null) && (_obervation.getDescription().length() > 0)) {
+                                _station.setStationName(_obervation.getDescription());
+                            }
+                            if (_obervation.getLatitude() != null) {
+                                _station.setLatitude(_obervation.getLatitude());
+                            }
+                            if (_obervation.getLongitude() != null) {
+                                _station.setLongitude(_obervation.getLongitude());
+                            }
                         }
                     }
                     _stationsAdapter.add(_station);
