@@ -107,6 +107,17 @@ public class ForecastFragment extends Fragment implements Renderer {
         int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
             ForecastsDTO forecasts = getForecasts();
+            if (forecasts.getDescription() != null) {
+                TableRow descriptionRow = new TableRow(getContext());
+                descriptionRow.setVisibility(View.VISIBLE);
+                descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                LinearLayout description = (LinearLayout)inflater.inflate(R.layout.forecast_description, null);
+                TextView descriptionText = description.findViewById(R.id.description);
+                descriptionText.setText(forecasts.getDescription());
+                description.setVisibility(View.VISIBLE);
+                descriptionRow.addView(description);
+                forecastTable.addView(descriptionRow);
+            }
             String timeZoneId = getTimeZoneId();
             if ((forecasts != null) && (timeZoneId != null)) {
                 TimeStampDTO timeStampDTO = new TimeStampDTO(timeZoneId);
