@@ -107,7 +107,7 @@ public class ForecastFragment extends Fragment implements Renderer {
         int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
             ForecastsDTO forecasts = getForecasts();
-            if (forecasts.getDescription() != null) {
+            if ((forecasts != null) && (forecasts.getDescription() != null)) {
                 TableRow descriptionRow = new TableRow(getContext());
                 descriptionRow.setVisibility(View.VISIBLE);
                 descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));

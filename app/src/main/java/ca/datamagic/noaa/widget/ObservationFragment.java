@@ -168,7 +168,6 @@ public class ObservationFragment extends Fragment implements Renderer {
             Double windGust = observation.getWindGust();
             String windGustUnits = observation.getWindGustUnits();
             Double humidity = observation.getRelativeHumidity();
-            Double feelsLike = FeelsLikeTemperatureCalculator.computeFeelsLikeTemperature(temperature, humidity, windSpeed);
             Double pressure = observation.getPressure();
             String pressureUnits = observation.getPressureUnits();
             String conditionsIcon = observation.getIconUrl();
@@ -232,7 +231,7 @@ public class ObservationFragment extends Fragment implements Renderer {
                 temperatureText.setText(R.string.not_available);
             }
 
-            TextView feelsLikeTemperatureText = (TextView)item.findViewById(R.id.feelsLikeTemperature);
+            TextView feelsLikeTemperatureText = (TextView) item.findViewById(R.id.feelsLikeTemperature);
             String formattedFeelsLikeTemperature = getFormattedFeelsLikeTemperature(temperature, temperatureUnits, humidity, windSpeed, preferencesDTO);
             if (formattedFeelsLikeTemperature.length() > 0) {
                 feelsLikeTemperatureText.setVisibility(View.VISIBLE);
