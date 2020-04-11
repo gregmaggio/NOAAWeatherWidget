@@ -4,11 +4,36 @@
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:fillViewport="true">
-    <ca.datamagic.noaa.widget.RadarView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
-        android:fillViewport="true"
-        android:id="@+id/radarView" />
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:id="@+id/radarLayout">
+		<LinearLayout
+		android:orientation="horizontal"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content">
+			<ImageButton
+				android:id="@+id/playPauseButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@null"
+				android:tag="pause"
+				android:src="@drawable/pause"
+				android:visibility="invisible" />		
+			<TextView
+				android:padding="5dip"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text=""
+				android:id="@+id/radarTime" />
+		</LinearLayout>
+		<ca.datamagic.noaa.widget.RadarView
+			android:layout_width="fill_parent"
+			android:layout_height="fill_parent"
+			android:fillViewport="true"
+			android:id="@+id/radarView" />
+	</LinearLayout>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

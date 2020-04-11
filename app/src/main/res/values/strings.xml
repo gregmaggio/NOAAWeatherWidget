@@ -74,4 +74,6 @@
     <string name="textOnly">Text Only</string>
     <string name="close">Close</string>
     <string name="hazardsInstructions">USE THE BACK BUTTON DISMISS</string>
+	<string name="dateFormat">Date Format</string>
+	<string name="timeFormat">Time Format</string>
 </resources>

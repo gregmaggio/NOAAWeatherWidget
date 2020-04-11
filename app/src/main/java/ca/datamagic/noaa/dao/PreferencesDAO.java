@@ -31,6 +31,8 @@ public class PreferencesDAO {
         dto.setVisibilityUnits(_preferences.getString("visibilityUnits", VisibilityUnitsDTO.StatuteMiles));
         dto.setHeightUnits(_preferences.getString("heightUnits", HeightUnitsDTO.Feet));
         dto.setTextOnly(_preferences.getBoolean("textOnly", Boolean.FALSE));
+        dto.setDateFormat(_preferences.getString("dateFormat", "yyyy-MM-dd"));
+        dto.setTimeFormat(_preferences.getString("timeFormat", "HH:mm"));
         return dto;
     }
 
@@ -46,6 +48,8 @@ public class PreferencesDAO {
         String visibilityUnits = (dto.getVisibilityUnits() != null) ? dto.getVisibilityUnits() : VisibilityUnitsDTO.StatuteMiles;
         String heightUnits = (dto.getHeightUnits() != null) ? dto.getHeightUnits() : HeightUnitsDTO.Feet;
         Boolean textOnly = (dto.isTextOnly() != null) ? dto.isTextOnly() : Boolean.FALSE;
+        String dateFormat = (dto.getDateFormat() != null) ? dto.getDateFormat() : "yyyy-MM-dd";
+        String timeFormat = (dto.getTimeFormat() != null) ? dto.getTimeFormat() : "HH:mm";
         SharedPreferences.Editor editor = _preferences.edit();
         editor.putFloat("latitude", (float)latitude);
         editor.putFloat("longitude", (float)longitude);
@@ -58,6 +62,8 @@ public class PreferencesDAO {
         editor.putString("visibilityUnits", visibilityUnits);
         editor.putString("heightUnits", heightUnits);
         editor.putBoolean("textOnly", textOnly);
+        editor.putString("dateFormat", dateFormat);
+        editor.putString("timeFormat", timeFormat);
         editor.commit();
     }
 }

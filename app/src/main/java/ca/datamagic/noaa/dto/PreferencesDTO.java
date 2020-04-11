@@ -12,6 +12,8 @@ public class PreferencesDTO {
     private String _visibilityUnits = null;
     private String _heightUnits = null;
     private Boolean _textOnly = Boolean.FALSE;
+    private String _dateFormat = "yyyy-MM-dd";
+    private String _timeFormat = "HH:mm";
 
     public Double getLatitude() {
         return _latitude;
@@ -55,6 +57,14 @@ public class PreferencesDTO {
 
     public Boolean isTextOnly() { return _textOnly; }
 
+    public String getDateFormat() {
+        return _dateFormat;
+    }
+
+    public String getTimeFormat() {
+        return _timeFormat;
+    }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -96,4 +106,12 @@ public class PreferencesDTO {
     }
 
     public void setTextOnly(Boolean newVal) { _textOnly = newVal; }
+
+    public void setDateFormat(String newVal) {
+        _dateFormat = newVal;
+    }
+
+    public void setTimeFormat(String newVal) {
+        _timeFormat = newVal;
+    }
 }

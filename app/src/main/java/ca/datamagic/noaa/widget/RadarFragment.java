@@ -8,8 +8,14 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
@@ -23,6 +29,7 @@ import ca.datamagic.noaa.dto.BitmapsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StringListDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.util.NumberUtils;
 
 public class RadarFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(RadarFragment.class);
@@ -31,6 +38,7 @@ public class RadarFragment extends Fragment implements Renderer {
     private BitmapsDTO _radarBitmaps = null;
     private Timer _radarTimer = null;
     private RadarTimerTask _radarTimerTask = null;
+    private SimpleDateFormat _dateFormat = null;
 
     public static RadarFragment newInstance(StringListDTO backgroundImages, StringListDTO radarImages) {
         RadarFragment fragment = new RadarFragment();
@@ -146,17 +154,25 @@ public class RadarFragment extends Fragment implements Renderer {
     public void render() {
         View view = getView();
         if (view != null) {
+            LinearLayout radarLayout = (LinearLayout)view.findViewById(R.id.radarLayout);
+            TextView radarTime = (TextView)view.findViewById(R.id.radarTime);
+            ImageButton playPauseButton = (ImageButton)getView().findViewById(R.id.playPauseButton);
             RadarView radarView = (RadarView)view.findViewById(R.id.radarView);
             TextView radarViewNotAvailable = (TextView)view.findViewById(R.id.radarViewNotAvailable);
             PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
             PreferencesDTO preferencesDTO = preferencesDAO.read();
+            String dateFormat = preferencesDTO.getDateFormat();
+            String timeFormat = preferencesDTO.getTimeFormat();
+            if ((dateFormat != null) && (dateFormat.length() > 0) && (timeFormat != null) && (timeFormat.length() > 0)) {
+                _dateFormat = new SimpleDateFormat(dateFormat + " " + timeFormat);
+            }
             if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
                 radarViewNotAvailable.setVisibility(View.VISIBLE);
-                radarView.setVisibility(View.GONE);
+                radarLayout.setVisibility(View.GONE);
                 return;
             } else {
                 radarViewNotAvailable.setVisibility(View.GONE);
-                radarView.setVisibility(View.VISIBLE);
+                radarLayout.setVisibility(View.VISIBLE);
             }
 
             StringListDTO backgroundImages = getBackgroundImages();
@@ -174,7 +190,7 @@ public class RadarFragment extends Fragment implements Renderer {
             if ((radarImages != null) && (radarBitmaps == null)) {
                 initializeRadarBitmaps(radarImages);
             } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-                initializeRadarTimer(radarView, radarBitmaps);
+                initializeRadarTimer(radarTime, playPauseButton, radarView, radarBitmaps);
             }
         }
         (new AccountingTask("Radar", "Render")).execute((Void[])null);
@@ -236,8 +252,10 @@ public class RadarFragment extends Fragment implements Renderer {
                     if ((radarImages != null) && (radarBitmaps == null)) {
                         initializeRadarBitmaps(radarImages);
                     } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
+                        TextView radarTime = getView().findViewById(R.id.radarTime);
+                        ImageButton playPauseButton = getView().findViewById(R.id.playPauseButton);
                         RadarView radarView = getView().findViewById(R.id.radarView);
-                        initializeRadarTimer(radarView, radarBitmaps);
+                        initializeRadarTimer(radarTime, playPauseButton, radarView, radarBitmaps);
                     }
                 }
             }
@@ -262,8 +280,10 @@ public class RadarFragment extends Fragment implements Renderer {
                 } else {
                     setRadarBitmaps(result.getResult());
                     try {
+                        TextView radarTime = getView().findViewById(R.id.radarTime);
+                        ImageButton playPauseButton = getView().findViewById(R.id.playPauseButton);
                         RadarView radarView = getView().findViewById(R.id.radarView);
-                        initializeRadarTimer(radarView, result.getResult());
+                        initializeRadarTimer(radarTime, playPauseButton, radarView, result.getResult());
                     } catch (Throwable t) {
                         _logger.warning("Exception: " + result.getThrowable().getMessage());
                     }
@@ -273,7 +293,7 @@ public class RadarFragment extends Fragment implements Renderer {
         task.execute((Void)null);
     }
 
-    private void initializeRadarTimer(RadarView radarView, BitmapsDTO radarBitmaps) {
+    private void initializeRadarTimer(TextView radarTime, ImageButton playPauseButton, RadarView radarView, BitmapsDTO radarBitmaps) {
         if (_radarTimer != null) {
             _radarTimer.cancel();
             _radarTimer = null;
@@ -284,20 +304,33 @@ public class RadarFragment extends Fragment implements Renderer {
         }
         if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
             _radarTimer = new Timer();
-            _radarTimerTask = new RadarTimerTask(radarView, getRadarBitmaps());
+            _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, getRadarBitmaps(), radarBitmaps.size() - 1);
             _radarTimer.scheduleAtFixedRate(_radarTimerTask, 1000, 1000);
         }
     }
 
-    private class RadarTimerTask extends TimerTask {
+    private void initializeRadarTimer(TextView radarTime, ImageButton playPauseButton, RadarView radarView, BitmapsDTO radarBitmaps, int index) {
+        if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
+            _radarTimer = new Timer();
+            _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, getRadarBitmaps(), index);
+            _radarTimer.scheduleAtFixedRate(_radarTimerTask, 1000, 1000);
+        }
+    }
+
+    private class RadarTimerTask extends TimerTask implements View.OnClickListener {
+        private TextView _radarTime = null;
         private RadarView _radarView = null;
         private BitmapsDTO _radarBitmaps = null;
+        private ImageButton _playPauseButton = null;
         private int _index = 0;
 
-        public RadarTimerTask(RadarView radarView, BitmapsDTO radarBitmaps) {
+        public RadarTimerTask(TextView radarTime, ImageButton playPauseButton, RadarView radarView, BitmapsDTO radarBitmaps, int index) {
+            _radarTime = radarTime;
+            _playPauseButton = playPauseButton;
             _radarView = radarView;
             _radarBitmaps = radarBitmaps;
-            _index = _radarBitmaps.size() - 1;
+            _index = index;
+            _playPauseButton.setOnClickListener(this);
         }
 
         @Override
@@ -306,6 +339,60 @@ public class RadarFragment extends Fragment implements Renderer {
                 _index = _radarBitmaps.size() - 1;
             }
             Bitmap radarBitmap = _radarBitmaps.get(_index);
+            StringListDTO radarImages = getRadarImages();
+            if ((_dateFormat != null) && (radarImages != null) && (_index < radarImages.size())) {
+                String radarImage = getRadarImages().get(_index);
+                _logger.info("radarImage: " + radarImage);
+                int lastSlash = radarImage.lastIndexOf('/');
+                if (lastSlash > -1) {
+                    String radarFile = radarImage.substring(lastSlash + 1);
+                    _logger.info("radarFile: " + radarFile);
+                    String[] radarFileParts = radarFile.split("_");
+                    if (radarFileParts.length > 2) {
+                        String date = radarFileParts[1];
+                        _logger.info("date: " + date);
+                        Integer year = null;
+                        Integer month = null;
+                        Integer day = null;
+                        if (date.length() > 7) {
+                            year = NumberUtils.toInteger(date.substring(0, 4));
+                            month = NumberUtils.toInteger(date.substring(4, 6));
+                            day = NumberUtils.toInteger(date.substring(6));
+                        }
+                        String time = radarFileParts[2];
+                        _logger.info("time: " + time);
+                        Integer hour = null;
+                        Integer minute = null;
+                        if (time.length() > 3) {
+                            hour = NumberUtils.toInteger(time.substring(0, 2));
+                            minute = NumberUtils.toInteger(time.substring(2));
+                        }
+                        if ((year != null) && (month != null) && (day != null) && (hour != null) && (minute != null)) {
+                            final Calendar calendar = Calendar.getInstance();
+                            calendar.set(Calendar.YEAR, year);
+                            calendar.set(Calendar.MONTH, month.intValue() - 1);
+                            calendar.set(Calendar.DAY_OF_MONTH, day);
+                            calendar.set(Calendar.HOUR_OF_DAY, hour);
+                            calendar.set(Calendar.MINUTE, minute);
+                            calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+                            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    _radarTime.setText(_dateFormat.format(calendar.getTime()));
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+            if (_playPauseButton.getVisibility() == View.INVISIBLE) {
+                MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        _playPauseButton.setVisibility(View.VISIBLE);
+                    }
+                });
+            }
             try {
                 _radarView.setRadarBitmap(radarBitmap);
                 _radarView.invalidate();
@@ -313,6 +400,25 @@ public class RadarFragment extends Fragment implements Renderer {
                 // TODO
             }
             --_index;
+        }
+
+        @Override
+        public void onClick(View v) {
+            String tag = (String)_playPauseButton.getTag();
+            _logger.info("tag: " + tag);
+            if (tag != null) {
+                if (tag.compareToIgnoreCase("pause") == 0) {
+                    _playPauseButton.setImageResource(R.drawable.play);
+                    _playPauseButton.setTag("play");
+                    _radarTimer.cancel();
+                    _radarTimer = null;
+                    _radarTimerTask = null;
+                } else if (tag.compareToIgnoreCase("play") == 0) {
+                    _playPauseButton.setImageResource(R.drawable.pause);
+                    _playPauseButton.setTag("pause");
+                    initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps, _index);
+                }
+            }
         }
     }
 }

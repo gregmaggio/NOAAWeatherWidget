@@ -11,7 +11,11 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
@@ -29,6 +33,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
     private RadioGroup _visibilityUnits = null;
     private RadioGroup _heightUnits = null;
     private CheckBox _textOnly = null;
+    private RadioGroup _dateFormats = null;
     private Button _saveSettingsButton = null;
     private Button _cancelSettingsButton = null;
     private ProgressBar _saveSettingsProgress = null;
@@ -68,6 +73,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         _visibilityUnits = (RadioGroup)findViewById(R.id.visibilityUnits);
         _heightUnits = (RadioGroup)findViewById(R.id.heightUnits);
         _textOnly = (CheckBox)findViewById(R.id.textOnly);
+        _dateFormats = (RadioGroup)findViewById(R.id.dateFormats);
         _saveSettingsButton = (Button)findViewById(R.id.saveSettings);
         _cancelSettingsButton = (Button)findViewById(R.id.cancelSettings);
         _saveSettingsProgress = (ProgressBar)findViewById(R.id.saveSettingsProgress);
@@ -130,7 +136,28 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         } else {
             _textOnly.setChecked(false);
         }
+        if (dto.getDateFormat() != null) {
+            if (dto.getDateFormat().compareToIgnoreCase("yyyy-MM-dd") == 0) {
+                _dateFormats.check(R.id.dateFormatsYYYYMMDDDashes);
+            } else if (dto.getDateFormat().compareToIgnoreCase("MM/dd/yyyy") == 0) {
+                _dateFormats.check(R.id.dateFormatsMMDDYYYYSlashes);
+            } else if (dto.getDateFormat().compareToIgnoreCase("dd/MM/yyyy") == 0) {
+                _dateFormats.check(R.id.dateFormatsDDMMYYYYSlashes);
+            } else if (dto.getDateFormat().compareToIgnoreCase("dd-MM-yyyy") == 0) {
+                _dateFormats.check(R.id.dateFormatsDDMMYYYYDashes);
+            }
+        }
+        this.setDateTimeHint(R.id.dateFormatsYYYYMMDDDashes);
+        this.setDateTimeHint(R.id.dateFormatsMMDDYYYYSlashes);
+        this.setDateTimeHint(R.id.dateFormatsDDMMYYYYSlashes);
+        this.setDateTimeHint(R.id.dateFormatsDDMMYYYYDashes);
         (new AccountingTask("Settings", "Show")).execute((Void[])null);
+    }
+
+    private void setDateTimeHint(int id) {
+        RadioButton radioButton = (RadioButton)findViewById(id);
+        SimpleDateFormat dateFormat = new SimpleDateFormat(radioButton.getText().toString());
+        radioButton.setHint(dateFormat.format(new Date()));
     }
 
     @Override
@@ -218,6 +245,9 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
             } else {
                 dto.setTextOnly(false);
             }
+            RadioButton selectedDateFormat = (RadioButton)findViewById(_dateFormats.getCheckedRadioButtonId());
+            dto.setDateFormat(selectedDateFormat.getText().toString());
+
             dao.write(dto);
 
             _saveSettingsProgress.setVisibility(View.GONE);
