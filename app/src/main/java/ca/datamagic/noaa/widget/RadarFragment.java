@@ -340,7 +340,7 @@ public class RadarFragment extends Fragment implements Renderer {
             }
             Bitmap radarBitmap = _radarBitmaps.get(_index);
             StringListDTO radarImages = getRadarImages();
-            if ((_dateFormat != null) && (radarImages != null) && (_index < radarImages.size())) {
+            if ((_dateFormat != null) && (radarImages != null) && (_index < radarImages.size()) && (_radarTime != null)) {
                 String radarImage = getRadarImages().get(_index);
                 _logger.info("radarImage: " + radarImage);
                 int lastSlash = radarImage.lastIndexOf('/');
@@ -404,19 +404,23 @@ public class RadarFragment extends Fragment implements Renderer {
 
         @Override
         public void onClick(View v) {
-            String tag = (String)_playPauseButton.getTag();
-            _logger.info("tag: " + tag);
-            if (tag != null) {
-                if (tag.compareToIgnoreCase("pause") == 0) {
-                    _playPauseButton.setImageResource(R.drawable.play);
-                    _playPauseButton.setTag("play");
-                    _radarTimer.cancel();
-                    _radarTimer = null;
-                    _radarTimerTask = null;
-                } else if (tag.compareToIgnoreCase("play") == 0) {
-                    _playPauseButton.setImageResource(R.drawable.pause);
-                    _playPauseButton.setTag("pause");
-                    initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps, _index);
+            if (_playPauseButton != null) {
+                String tag = (String) _playPauseButton.getTag();
+                _logger.info("tag: " + tag);
+                if (tag != null) {
+                    if (tag.compareToIgnoreCase("pause") == 0) {
+                        _playPauseButton.setImageResource(R.drawable.play);
+                        _playPauseButton.setTag("play");
+                        if (_radarTimer != null) {
+                            _radarTimer.cancel();
+                        }
+                        _radarTimer = null;
+                        _radarTimerTask = null;
+                    } else if (tag.compareToIgnoreCase("play") == 0) {
+                        _playPauseButton.setImageResource(R.drawable.pause);
+                        _playPauseButton.setTag("pause");
+                        initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps, _index);
+                    }
                 }
             }
         }
