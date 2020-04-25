@@ -6,6 +6,7 @@ import org.json.JSONObject;
 public class FeatureDTO {
     private String _id = null;
     private String _type = null;
+    private GeometryDTO _geometry = null;
     private FeaturePropertiesDTO _properties = null;
 
     public FeatureDTO() {
@@ -15,6 +16,10 @@ public class FeatureDTO {
     public FeatureDTO(JSONObject obj) throws JSONException {
         _id = obj.optString("id", "");
         _type = obj.optString("type", "");
+        JSONObject geometryObj = obj.optJSONObject("geometry");
+        if (geometryObj != null) {
+            _geometry = new GeometryDTO(geometryObj);
+        }
         JSONObject propertiesObj = obj.optJSONObject("properties");
         if (propertiesObj != null) {
             _properties = new FeaturePropertiesDTO(propertiesObj);
@@ -29,6 +34,10 @@ public class FeatureDTO {
         return _type;
     }
 
+    public GeometryDTO getGeometry() {
+        return _geometry;
+    }
+
     public FeaturePropertiesDTO getProperties() {
         return _properties;
     }
@@ -39,6 +48,10 @@ public class FeatureDTO {
 
     public void setType(String newVal) {
         _type = newVal;
+    }
+
+    public void setGeometry(GeometryDTO newVal) {
+        _geometry = newVal;
     }
 
     public void setProperties(FeaturePropertiesDTO newVal) {

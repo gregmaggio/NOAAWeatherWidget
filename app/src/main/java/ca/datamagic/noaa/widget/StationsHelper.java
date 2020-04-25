@@ -11,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.quadtree.Station;
 
 public class StationsHelper extends SQLiteOpenHelper {
     private static Logger _logger = LogFactory.getLogger(StationsHelper.class);
@@ -41,13 +41,13 @@ public class StationsHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public void writeStations(List<StationDTO> stations) {
+    public void writeStations(List<Station> stations) {
         _logger.info("writeStations: " + stations.size());
         SQLiteDatabase db = getWritableDatabase();
         db.delete("station", null, null);
         for (int ii = 0; ii < stations.size(); ii++) {
             try {
-                StationDTO station = stations.get(ii);
+                Station station = stations.get(ii);
                 ContentValues values = new ContentValues();
                 String stationId = station.getStationId();
                 if ((stationId == null) || stationId.length() < 1) {
@@ -83,10 +83,10 @@ public class StationsHelper extends SQLiteOpenHelper {
         }
     }
 
-    public List<StationDTO> readStations() {
+    public List<Station> readStations() {
         Cursor cursor = null;
         try {
-            HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
+            HashMap<String, Station> stations = new HashMap<String, Station>();
 
             SQLiteDatabase db = getReadableDatabase();
 
@@ -119,7 +119,7 @@ public class StationsHelper extends SQLiteOpenHelper {
                     double latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"));
                     double longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"));
                     if (!stations.containsKey(stationId.toUpperCase())) {
-                        StationDTO station = new StationDTO();
+                        Station station = new Station();
                         station.setStationId(stationId);
                         station.setStationName(stationName);
                         station.setState(state);
@@ -133,7 +133,7 @@ public class StationsHelper extends SQLiteOpenHelper {
                     _logger.warning("Write Stations Error. Exception: " + t.getMessage());
                 }
             }
-            return new ArrayList<StationDTO>(stations.values());
+            return new ArrayList<Station>(stations.values());
         } finally {
             if (cursor != null) {
                 cursor.close();

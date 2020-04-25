@@ -36,6 +36,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
+import java.io.ObjectInputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -54,7 +55,6 @@ import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.HazardsTask;
 import ca.datamagic.noaa.async.HourlyForecastTask;
 import ca.datamagic.noaa.async.RadarTask;
-import ca.datamagic.noaa.async.TimeZoneTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
@@ -71,12 +71,14 @@ import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
-import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.quadtree.Quad;
+import ca.datamagic.quadtree.Station;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
+    private Quad _tree = null;
     private String _filesPath = null;
     private Double _deviceLatitude = null;
     private Double _deviceLongitude = null;
@@ -86,8 +88,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private double _savedLongitude = _longitude;
     private double _lastRequestedLatitude = 38.9967;
     private double _lastRequestedLongitude = -76.9275;
-    private PlaceDTO _selectedPlace = null;
-    private StationDTO _selectedStation = null;
     private int _year = Calendar.getInstance().get(Calendar.YEAR);
     private int _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
     private int _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
@@ -97,14 +97,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private DWMLTask _dwmlTask = null;
     private HazardsTask _hazardsTask = null;
     private HourlyForecastTask _hourlyForecastTask = null;
-    private TimeZoneTask _timeZoneTask = null;
     private StationTask _stationTask = null;
     private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
     private HazardsListener _hazardsListener = new HazardsListener();
     private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
-    private TimeZoneListener _timeZoneListener = new TimeZoneListener();
     private StationListener _stationListener = new StationListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
@@ -113,8 +111,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private FeatureDTO _hourlyForecastFeature = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private String _timeZoneId = null;
-    private StationDTO _station = null;
+    private Station _station = null;
     private RadarDTO _radar = null;
     private String _discussion = null;
     private StationsHelper _stationsHelper = null;
@@ -141,6 +138,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     public static MainActivity getThisInstance() {
         return _thisInstance;
+    }
+
+    public Quad getTree() {
+        return _tree;
     }
 
     public String getFilesPath() {
@@ -189,11 +190,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _forecasts;
     }
 
-    public String getTimeZoneId() {
-        return _timeZoneId;
-    }
-
-    public StationDTO getStation() {
+    public Station getStation() {
         return _station;
     }
 
@@ -232,13 +229,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         LocationsHelper locationsHelper = new LocationsHelper(getBaseContext());
         OldStationsHelper oldStationsHelper = new OldStationsHelper(getBaseContext());
 
-        HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
-        List<StationDTO> stations1 = _stationsHelper.readStations();
-        List<StationDTO> stations2 = locationsHelper.readStations();
-        List<StationDTO> stations3 = oldStationsHelper.readStations();
+        HashMap<String, Station> stations = new HashMap<String, Station>();
+        List<Station> stations1 = _stationsHelper.readStations();
+        List<Station> stations2 = locationsHelper.readStations();
+        List<Station> stations3 = oldStationsHelper.readStations();
         if (stations1 != null) {
             for (int ii = 0; ii < stations1.size(); ii++) {
-                StationDTO station = stations1.get(ii);
+                Station station = stations1.get(ii);
                 String key = station.getStationName().toLowerCase();
                 if (!stations.containsKey(key)) {
                     stations.put(key, station);
@@ -247,7 +244,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         if (stations2 != null) {
             for (int ii = 0; ii < stations2.size(); ii++) {
-                StationDTO station = stations2.get(ii);
+                Station station = stations2.get(ii);
                 String key = station.getStationName().toLowerCase();
                 if (!stations.containsKey(key)) {
                     stations.put(key, station);
@@ -256,14 +253,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         if (stations3 != null) {
             for (int ii = 0; ii < stations3.size(); ii++) {
-                StationDTO station = stations3.get(ii);
+                Station station = stations3.get(ii);
                 String key = station.getStationName().toLowerCase();
                 if (!stations.containsKey(key)) {
                     stations.put(key, station);
                 }
             }
         }
-        List<StationDTO> stationsList = new ArrayList<StationDTO>(stations.values());
+        List<Station> stationsList = new ArrayList<Station>(stations.values());
         _stationsAdapter = new StationsAdapter(this, stationsList);
         _stationsAdapter.addListener(this);
     }
@@ -284,6 +281,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         initializeLogging();
 
+        try {
+            ObjectInputStream inputStream = new ObjectInputStream(getResources().openRawResource(R.raw.tree));
+            _tree = (Quad)inputStream.readObject();
+            inputStream.close();
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+        }
         _spinner = (ProgressBar)findViewById(R.id.progressBar);
 
         readCurrentState();
@@ -509,8 +513,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _savedLongitude = _longitude;
                     _latitude = lastLocation.getLatitude();
                     _longitude = lastLocation.getLongitude();
-                    _selectedPlace = null;
-                    _selectedStation = null;
                 } else {
                     // TODO
                 }
@@ -550,7 +552,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _dwmlTask = new DWMLTask(_latitude, _longitude);
             _hazardsTask = new HazardsTask();
             _hourlyForecastTask = new HourlyForecastTask(_latitude, _longitude);
-            _timeZoneTask = new TimeZoneTask(_latitude, _longitude);
             _stationTask = new StationTask(_latitude, _longitude);
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
@@ -561,7 +562,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(_hazardsTask, _hazardsListener));
             refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
-            refreshWorkflow.addStep(new WorkflowStep(_timeZoneTask, _timeZoneListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
             if ((preferencesDTO.isTextOnly() == null) || !preferencesDTO.isTextOnly().booleanValue()) {
                 refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
@@ -788,8 +788,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         int index = cursor.getColumnIndex("placeId");
         String placeId = cursor.getString(index);
 
-        _selectedPlace = null;
-        _selectedStation = null;
         _googlePlaceTask = new GooglePlaceTask(placeId);
         _googlePlaceTask.addListener(new AsyncTaskListener<PlaceDTO>() {
             @Override
@@ -801,7 +799,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 } else {
                     _savedlatitude = _latitude;
                     _savedLongitude = _longitude;
-                    _selectedPlace = result.getResult();
                     _latitude = result.getResult().getLatitude();
                     _longitude = result.getResult().getLongitude();
                     _mainMenu.findItem(R.id.search).collapseActionView();
@@ -821,27 +818,25 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onStationAdded(StationDTO stationn) {
+    public void onStationAdded(Station stationn) {
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _stationsAdapter.notifyDataSetChanged();
         (new AccountingTask("Station", "Added")).execute((Void[])null);
     }
 
     @Override
-    public void onStationSelect(StationDTO station) {
+    public void onStationSelect(Station station) {
         _drawerLayout.closeDrawer(Gravity.LEFT);
         _savedlatitude = _latitude;
         _savedLongitude = _longitude;
         _latitude = station.getLatitude();
         _longitude = station.getLongitude();
-        _selectedPlace = null;
-        _selectedStation = station;
         actionRefresh();
         (new AccountingTask("Station", "Select")).execute((Void[])null);
     }
 
     @Override
-    public void onStationRemove(StationDTO station) {
+    public void onStationRemove(Station station) {
         _stationsAdapter.remove(station);
         _stationsAdapter.notifyDataSetInvalidated();
         _stationsHelper.writeStations(_stationsAdapter.getStations());
@@ -899,23 +894,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private class TimeZoneListener implements AsyncTaskListener<String> {
+    private class StationListener implements AsyncTaskListener<Station> {
         @Override
-        public void completed(AsyncTaskResult<String> result) {
-            if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving time zone.", result.getThrowable());
-                }
-            } else {
-                _logger.info("timeZoneId: " + _timeZoneId);
-                _timeZoneId = result.getResult();
-            }
-        }
-    }
-
-    private class StationListener implements AsyncTaskListener<StationDTO> {
-        @Override
-        public void completed(AsyncTaskResult<StationDTO> result) {
+        public void completed(AsyncTaskResult<Station> result) {
             if (result.getThrowable() != null) {
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
@@ -924,51 +905,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _radarTask.setRadar(null);
             } else {
                 _station = result.getResult();
-                if ((_station != null) && (_selectedStation == null)) {
-                    if (_selectedPlace != null) {
-                        if (_selectedPlace.getLatitude() != null) {
-                            _station.setLatitude(_selectedPlace.getLatitude());
-                        }
-                        if (_selectedPlace.getLongitude() != null) {
-                            _station.setLongitude(_selectedPlace.getLongitude());
-                        }
-                        String name = _selectedPlace.toString();
-                        if ((name != null) && (name.length() > 0)) {
-                            _station.setStationName(name);
-                        }
-                        String state = _selectedPlace.getState();
-                        if ((state != null) && (state.length() > 0)) {
-                            _station.setState(state);
-                        }
-                    } else {
-                        boolean observationDifferent = false;
-                        if ((_obervation.getLatitude() != null) && (_station.getLatitude() != null)) {
-                            double difference = Math.abs(_obervation.getLatitude().doubleValue() - _station.getLatitude().doubleValue());
-                            if (difference > 0.001) {
-                                observationDifferent = true;
-                            }
-                        }
-                        if ((_obervation.getLongitude() != null) && (_station.getLongitude() != null)) {
-                            double difference = Math.abs(_obervation.getLongitude().doubleValue() - _station.getLongitude().doubleValue());
-                            if (difference > 0.001) {
-                                observationDifferent = true;
-                            }
-                        }
-                        if (observationDifferent) {
-                            if ((_obervation.getDescription() != null) && (_obervation.getDescription().length() > 0)) {
-                                _station.setStationName(_obervation.getDescription());
-                            }
-                            if (_obervation.getLatitude() != null) {
-                                _station.setLatitude(_obervation.getLatitude());
-                            }
-                            if (_obervation.getLongitude() != null) {
-                                _station.setLongitude(_obervation.getLongitude());
-                            }
-                        }
-                    }
+                if (_station != null) {
                     _stationsAdapter.add(_station);
-                    _radarTask.setRadar(_station.getRadar());
                     _discussionTask.setWFO(_station.getWFO());
+                    _radarTask.setRadar(_station.getRadar());
                 } else {
                     _discussionTask.setWFO(null);
                     _radarTask.setRadar(null);

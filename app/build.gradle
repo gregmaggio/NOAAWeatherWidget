@@ -7,8 +7,8 @@ android {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 55
-        versionName "1.62"
+        versionCode 56
+        versionName "1.63"
     }
     buildTypes {
         release {
@@ -27,6 +27,8 @@ android {
 }
 
 repositories {
+    mavenCentral()
+    mavenLocal()
 }
 
 dependencies {
@@ -36,11 +38,13 @@ dependencies {
     testImplementation 'org.json:json:20140107'
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.5'
     testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
-    implementation 'com.android.support:appcompat-v7:27.1.0'
-    implementation 'com.android.support:design:27.1.0'
+
+    implementation 'com.android.support:appcompat-v7:27.0.1'
+    implementation 'com.android.support:design:27.0.1'
     implementation 'com.google.android.gms:play-services-location:9.4.0'
     implementation 'com.google.android.gms:play-services-places:9.4.0'
-    implementation 'com.android.support:support-core-utils:27.1.0'
+    implementation 'com.android.support:support-core-utils:27.0.1'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     implementation 'it.sephiroth.android.library.imagezoom:imagezoom:+'
+    implementation 'datamagic:quadtree:1.0.3'
 }

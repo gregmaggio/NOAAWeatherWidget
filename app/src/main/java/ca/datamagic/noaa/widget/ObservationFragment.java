@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.HeightCalculatorDTO;
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
@@ -77,11 +78,22 @@ public class ObservationFragment extends Fragment implements Renderer {
     }
 
     public String getTimeZoneId() {
+        String timeZoneId = null;
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            return mainActivity.getTimeZoneId();
+            if (mainActivity.getStation() != null) {
+                timeZoneId = mainActivity.getStation().getTimeZoneId();
+            }
+            if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
+                if (mainActivity.getHourlyForecastFeature() != null) {
+                    FeaturePropertiesDTO featureProperties = mainActivity.getHourlyForecastFeature().getProperties();
+                    if (featureProperties != null) {
+                        timeZoneId = featureProperties.getTimeZone();
+                    }
+                }
+            }
         }
-        return null;
+        return timeZoneId;
     }
 
     public List<String> getHazards() {
@@ -291,12 +303,12 @@ public class ObservationFragment extends Fragment implements Renderer {
                 pressureText.setText(R.string.not_available);
             }
 
+            LinearLayout sunriseLayout = (LinearLayout) item.findViewById(R.id.sunriseLayout);
+            LinearLayout sunsetLayout = (LinearLayout) item.findViewById(R.id.sunsetLayout);
             TextView sunriseText = (TextView) item.findViewById(R.id.sunrise);
             TextView sunsetText = (TextView) item.findViewById(R.id.sunset);
-
             String sunrise = "";
             String sunset = "";
-
             String timeZoneId = getTimeZoneId();
             if ((latitude != null) && (longitude != null) && (timeZoneId != null)) {
                 TimeZone tz = TimeZone.getTimeZone(timeZoneId);
@@ -306,8 +318,13 @@ public class ObservationFragment extends Fragment implements Renderer {
                 sunrise = calculator.getOfficialSunriseForDate(today);
                 sunset = calculator.getOfficialSunsetForDate(today);
             }
-            sunriseText.setText(sunrise);
-            sunsetText.setText(sunset);
+            if ((sunrise != null) && (sunrise.length() > 0) && (sunset != null) && (sunset.length() > 0)) {
+                sunriseText.setText(sunrise);
+                sunsetText.setText(sunset);
+            } else {
+                sunriseLayout.setVisibility(View.GONE);
+                sunsetLayout.setVisibility(View.GONE);
+            }
 
             LinearLayout hazardsLayout = (LinearLayout)item.findViewById(R.id.hazardsLayout);
             List<String> hazardList = getHazards();

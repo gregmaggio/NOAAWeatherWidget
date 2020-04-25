@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.quadtree.Station;
 
 public class OldStationsHelper extends SQLiteOpenHelper {
     private static Logger _logger = LogFactory.getLogger(OldStationsHelper.class);
@@ -43,7 +43,7 @@ public class OldStationsHelper extends SQLiteOpenHelper {
         // Do Nothing!!!
     }
 
-    public List<StationDTO> readStations() {
+    public List<Station> readStations() {
         File file = new File(_databaseFileName);
         if (!file.exists()) {
             return null;
@@ -51,7 +51,7 @@ public class OldStationsHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = null;
         Cursor cursor = null;
         try {
-            HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
+            HashMap<String, Station> stations = new HashMap<String, Station>();
             db = getReadableDatabase();
             String tableName = "station";
             String[] projection = {"station_id", "station_name", "street_number", "street_name", "city", "state_code", "state_name", "zip", "country_code", "country_name", "latitude", "longitude", "has_radiosonde"};
@@ -64,7 +64,7 @@ public class OldStationsHelper extends SQLiteOpenHelper {
                 double latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"));
                 double longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"));
                 if (!stations.containsKey(stationId.toUpperCase())) {
-                    StationDTO station = new StationDTO();
+                    Station station = new Station();
                     station.setStationId(stationId);
                     station.setStationName(stationName);
                     station.setState(stateCode);
@@ -73,7 +73,7 @@ public class OldStationsHelper extends SQLiteOpenHelper {
                     stations.put(stationId.toUpperCase(), station);
                 }
             }
-            return new ArrayList<StationDTO>(stations.values());
+            return new ArrayList<Station>(stations.values());
         } finally {
             if (cursor != null) {
                 cursor.close();

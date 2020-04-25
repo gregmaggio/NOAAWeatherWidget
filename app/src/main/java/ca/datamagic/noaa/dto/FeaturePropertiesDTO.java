@@ -7,6 +7,8 @@ import org.json.JSONObject;
 public class FeaturePropertiesDTO {
     private String _forecast = null;
     private String _forecastHourly = null;
+    private String _timeZone = null;
+    private String _radarStation = null;
     private PeriodDTO[] _periods = null;
 
     public FeaturePropertiesDTO() {
@@ -16,6 +18,8 @@ public class FeaturePropertiesDTO {
     public FeaturePropertiesDTO(JSONObject obj) throws JSONException {
         _forecast = obj.optString("forecast", "");
         _forecastHourly = obj.optString("forecastHourly", "");
+        _timeZone = obj.optString("timeZone", "");
+        _radarStation = obj.optString("radarStation", "");
         JSONArray periodsArray = obj.optJSONArray("periods");
         if (periodsArray != null) {
             _periods = new PeriodDTO[periodsArray.length()];
@@ -33,12 +37,28 @@ public class FeaturePropertiesDTO {
         return _forecastHourly;
     }
 
+    public String getTimeZone() {
+        return _timeZone;
+    }
+
+    public String getRadarStation() {
+        return _radarStation;
+    }
+
     public void setForecast(String newVal) {
         _forecast = newVal;
     }
 
     public void setForecastHourly(String newVal) {
         _forecastHourly = newVal;
+    }
+
+    public void setTimeZone(String newVal) {
+        _timeZone = newVal;
+    }
+
+    public void setRadarStation(String newVal) {
+        _radarStation = newVal;
     }
 
     public PeriodDTO[] getPeriods() {

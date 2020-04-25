@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.ForecastDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -52,16 +53,22 @@ public class ForecastFragment extends Fragment implements Renderer {
     }
 
     public String getTimeZoneId() {
+        String timeZoneId = null;
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            if ((mainActivity.getTimeZoneId() != null) && (mainActivity.getTimeZoneId().length() > 0)) {
-                return mainActivity.getTimeZoneId();
+            if (mainActivity.getStation() != null) {
+                timeZoneId = mainActivity.getStation().getTimeZoneId();
+            }
+            if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
+                if (mainActivity.getHourlyForecastFeature() != null) {
+                    FeaturePropertiesDTO featureProperties = mainActivity.getHourlyForecastFeature().getProperties();
+                    if (featureProperties != null) {
+                        timeZoneId = featureProperties.getTimeZone();
+                    }
+                }
             }
         }
-        if (TimeZone.getDefault() != null) {
-            return TimeZone.getDefault().getID();
-        }
-        return null;
+        return timeZoneId;
     }
 
     public static ForecastFragment newInstance() {

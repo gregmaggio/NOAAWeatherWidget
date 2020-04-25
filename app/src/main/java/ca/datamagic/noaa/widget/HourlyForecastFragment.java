@@ -26,9 +26,9 @@ import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
+import ca.datamagic.noaa.dto.GeometryDTO;
 import ca.datamagic.noaa.dto.PeriodDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
-import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.TimeStampDTO;
@@ -52,25 +52,23 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         return null;
     }
 
-    public StationDTO getStation() {
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            return mainActivity.getStation();
-        }
-        return null;
-    }
-
     public String getTimeZoneId() {
+        String timeZoneId = null;
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
-            if ((mainActivity.getTimeZoneId() != null) && (mainActivity.getTimeZoneId().length() > 0)) {
-                return mainActivity.getTimeZoneId();
+            if (mainActivity.getStation() != null) {
+                timeZoneId = mainActivity.getStation().getTimeZoneId();
+            }
+            if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
+                if (mainActivity.getHourlyForecastFeature() != null) {
+                    FeaturePropertiesDTO featureProperties = mainActivity.getHourlyForecastFeature().getProperties();
+                    if (featureProperties != null) {
+                        timeZoneId = featureProperties.getTimeZone();
+                    }
+                }
             }
         }
-        if (TimeZone.getDefault() != null) {
-            return TimeZone.getDefault().getID();
-        }
-        return null;
+        return timeZoneId;
     }
 
     public static HourlyForecastFragment newInstance() {
@@ -116,18 +114,25 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
             FeatureDTO hourlyForecastFeature = getHourlyForecastFeature();
+            GeometryDTO geometry = null;
             FeaturePropertiesDTO properties = null;
             if (hourlyForecastFeature != null) {
                 properties = hourlyForecastFeature.getProperties();
+                geometry = hourlyForecastFeature.getGeometry();
+            }
+            Double latitude = null;
+            Double longitude = null;
+            if (geometry != null) {
+                latitude = geometry.getLatitude();
+                longitude = geometry.getLongitude();
             }
             String timeZoneId = getTimeZoneId();
-            StationDTO station = getStation();
             SunriseSunsetCalculator calculator = null;
             if ((properties != null) && (timeZoneId != null)) {
                 TimeStampDTO timeStampDTO = new TimeStampDTO(timeZoneId);
                 TimeZone tz = TimeZone.getTimeZone(timeZoneId);
-                if (station != null) {
-                    calculator = new SunriseSunsetCalculator(new Location(station.getLatitude(), station.getLongitude()), timeZoneId);
+                if ((latitude != null) && (longitude != null)) {
+                    calculator = new SunriseSunsetCalculator(new Location(latitude, longitude), timeZoneId);
                 }
                 PeriodDTO[] periods = properties.getPeriods();
                 if (periods != null) {

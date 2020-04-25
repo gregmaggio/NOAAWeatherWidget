@@ -12,10 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.LocationDTO;
-import ca.datamagic.noaa.dto.PointDTO;
-import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.quadtree.Station;
 
 /**
  * Created by Greg on 2/11/2017.
@@ -49,7 +47,7 @@ public class LocationsHelper extends SQLiteOpenHelper {
         // Do Nothing!!!
     }
 
-    public List<StationDTO> readStations() {
+    public List<Station> readStations() {
         File file = new File(_databaseFileName);
         if (!file.exists()) {
             return null;
@@ -57,7 +55,7 @@ public class LocationsHelper extends SQLiteOpenHelper {
         Cursor cursor = null;
         SQLiteDatabase db = null;
         try {
-            HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
+            HashMap<String, Station> stations = new HashMap<String, Station>();
             db = getReadableDatabase();
             String tableName = "location";
             String[] projection = {"description", "city", "state_code", "latitude", "longitude" };
@@ -69,7 +67,7 @@ public class LocationsHelper extends SQLiteOpenHelper {
                 double latitude = cursor.getDouble(cursor.getColumnIndexOrThrow("latitude"));
                 double longitude = cursor.getDouble(cursor.getColumnIndexOrThrow("longitude"));
                 if (!stations.containsKey(description.toUpperCase())) {
-                    StationDTO station = new StationDTO();
+                    Station station = new Station();
                     station.setStationName(description);
                     station.setState(stateCode);
                     station.setLatitude(latitude);
@@ -77,7 +75,7 @@ public class LocationsHelper extends SQLiteOpenHelper {
                     stations.put(description.toUpperCase(), station);
                 }
             }
-            return new ArrayList<StationDTO>(stations.values());
+            return new ArrayList<Station>(stations.values());
         } finally {
             if (cursor != null) {
                 cursor.close();
