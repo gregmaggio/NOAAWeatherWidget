@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
+import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
@@ -135,10 +136,19 @@ public class ObservationFragment extends Fragment implements Renderer {
 
     @Override
     public void render() {
-        View view = getView();
-        LayoutInflater inflater = getLayoutInflater();
-        if ((view != null) && (inflater != null)) {
-            render(view, inflater);
+        try {
+            if (!MainActivity.getThisInstance().isFragmentActive(this)) {
+                return;
+            }
+            View view = getView();
+            LayoutInflater inflater = getLayoutInflater();
+            if ((view != null) && (inflater != null)) {
+                render(view, inflater);
+            }
+        } catch (IllegalStateException ex) {
+            _logger.warning("IllegalStateException: " + ex.getMessage());
+            RenderTask renderTask = new RenderTask(this);
+            renderTask.execute((Void[])null);
         }
     }
 

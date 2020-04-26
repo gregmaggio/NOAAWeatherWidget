@@ -24,6 +24,7 @@ import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarBitmapsTask;
+import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.BitmapsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -152,48 +153,57 @@ public class RadarFragment extends Fragment implements Renderer {
 
     @Override
     public void render() {
-        View view = getView();
-        if (view != null) {
-            LinearLayout radarLayout = (LinearLayout)view.findViewById(R.id.radarLayout);
-            TextView radarTime = (TextView)view.findViewById(R.id.radarTime);
-            ImageButton playPauseButton = (ImageButton)getView().findViewById(R.id.playPauseButton);
-            RadarView radarView = (RadarView)view.findViewById(R.id.radarView);
-            TextView radarViewNotAvailable = (TextView)view.findViewById(R.id.radarViewNotAvailable);
-            PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
-            PreferencesDTO preferencesDTO = preferencesDAO.read();
-            String dateFormat = preferencesDTO.getDateFormat();
-            String timeFormat = preferencesDTO.getTimeFormat();
-            if ((dateFormat != null) && (dateFormat.length() > 0) && (timeFormat != null) && (timeFormat.length() > 0)) {
-                _dateFormat = new SimpleDateFormat(dateFormat + " " + timeFormat);
-            }
-            if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
-                radarViewNotAvailable.setVisibility(View.VISIBLE);
-                radarLayout.setVisibility(View.GONE);
+        try {
+            if (!MainActivity.getThisInstance().isFragmentActive(this)) {
                 return;
-            } else {
-                radarViewNotAvailable.setVisibility(View.GONE);
-                radarLayout.setVisibility(View.VISIBLE);
             }
+            View view = getView();
+            if (view != null) {
+                LinearLayout radarLayout = (LinearLayout) view.findViewById(R.id.radarLayout);
+                TextView radarTime = (TextView) view.findViewById(R.id.radarTime);
+                ImageButton playPauseButton = (ImageButton) getView().findViewById(R.id.playPauseButton);
+                RadarView radarView = (RadarView) view.findViewById(R.id.radarView);
+                TextView radarViewNotAvailable = (TextView) view.findViewById(R.id.radarViewNotAvailable);
+                PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
+                PreferencesDTO preferencesDTO = preferencesDAO.read();
+                String dateFormat = preferencesDTO.getDateFormat();
+                String timeFormat = preferencesDTO.getTimeFormat();
+                if ((dateFormat != null) && (dateFormat.length() > 0) && (timeFormat != null) && (timeFormat.length() > 0)) {
+                    _dateFormat = new SimpleDateFormat(dateFormat + " " + timeFormat);
+                }
+                if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
+                    radarViewNotAvailable.setVisibility(View.VISIBLE);
+                    radarLayout.setVisibility(View.GONE);
+                    return;
+                } else {
+                    radarViewNotAvailable.setVisibility(View.GONE);
+                    radarLayout.setVisibility(View.VISIBLE);
+                }
 
-            StringListDTO backgroundImages = getBackgroundImages();
-            BitmapsDTO backgroundBitmaps = getBackgroundBitmaps();
-            if ((backgroundImages != null) && (backgroundBitmaps == null)) {
-                initializeBackgroundBitmaps(backgroundImages);
-                return;
-            } else {
-                radarView.setBackgroundBitmaps(backgroundBitmaps);
-                radarView.invalidate();
-            }
+                StringListDTO backgroundImages = getBackgroundImages();
+                BitmapsDTO backgroundBitmaps = getBackgroundBitmaps();
+                if ((backgroundImages != null) && (backgroundBitmaps == null)) {
+                    initializeBackgroundBitmaps(backgroundImages);
+                    return;
+                } else {
+                    radarView.setBackgroundBitmaps(backgroundBitmaps);
+                    radarView.invalidate();
+                }
 
-            StringListDTO radarImages = getRadarImages();
-            BitmapsDTO radarBitmaps = getRadarBitmaps();
-            if ((radarImages != null) && (radarBitmaps == null)) {
-                initializeRadarBitmaps(radarImages);
-            } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-                initializeRadarTimer(radarTime, playPauseButton, radarView, radarBitmaps);
+                StringListDTO radarImages = getRadarImages();
+                BitmapsDTO radarBitmaps = getRadarBitmaps();
+                if ((radarImages != null) && (radarBitmaps == null)) {
+                    initializeRadarBitmaps(radarImages);
+                } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
+                    initializeRadarTimer(radarTime, playPauseButton, radarView, radarBitmaps);
+                }
             }
+            (new AccountingTask("Radar", "Render")).execute((Void[]) null);
+        } catch (IllegalStateException ex) {
+            _logger.warning("IllegalStateException: " + ex.getMessage());
+            RenderTask renderTask = new RenderTask(this);
+            renderTask.execute((Void[])null);
         }
-        (new AccountingTask("Radar", "Render")).execute((Void[])null);
     }
 
     @Override

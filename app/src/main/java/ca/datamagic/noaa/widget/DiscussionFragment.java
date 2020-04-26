@@ -10,6 +10,7 @@ import android.widget.TextView;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.AccountingTask;
+import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -31,21 +32,30 @@ public class DiscussionFragment extends Fragment implements Renderer {
 
     @Override
     public void render() {
-        View view = getView();
-        if (view != null) {
-            String discussion = null;
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                discussion = mainActivity.getDiscussion();
+        try {
+            if (!MainActivity.getThisInstance().isFragmentActive(this)) {
+                return;
             }
-            TextView discussionView = (TextView) view.findViewById(R.id.discussionView);
-            if ((discussion != null) && (discussion.length() > 0)) {
-                discussionView.setText(discussion);
-            } else {
-                discussionView.setText("Discussion not available");
+            View view = getView();
+            if (view != null) {
+                String discussion = null;
+                MainActivity mainActivity = MainActivity.getThisInstance();
+                if (mainActivity != null) {
+                    discussion = mainActivity.getDiscussion();
+                }
+                TextView discussionView = (TextView) view.findViewById(R.id.discussionView);
+                if ((discussion != null) && (discussion.length() > 0)) {
+                    discussionView.setText(discussion);
+                } else {
+                    discussionView.setText("Discussion not available");
+                }
             }
+            (new AccountingTask("Discussion", "Render")).execute((Void[]) null);
+        } catch (IllegalStateException ex) {
+            _logger.warning("IllegalStateException: " + ex.getMessage());
+            RenderTask renderTask = new RenderTask(this);
+            renderTask.execute((Void[])null);
         }
-        (new AccountingTask("Discussion", "Render")).execute((Void[])null);
     }
 
     @Override
