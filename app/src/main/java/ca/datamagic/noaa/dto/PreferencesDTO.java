@@ -1,5 +1,7 @@
 package ca.datamagic.noaa.dto;
 
+import android.graphics.Color;
+
 public class PreferencesDTO {
     private Double _latitude = null;
     private Double _longitude = null;
@@ -14,6 +16,7 @@ public class PreferencesDTO {
     private Boolean _textOnly = Boolean.FALSE;
     private String _dateFormat = "yyyy-MM-dd";
     private String _timeFormat = "HH:mm";
+    private Integer _widgetFontColor = Color.WHITE;
 
     public Double getLatitude() {
         return _latitude;
@@ -65,6 +68,10 @@ public class PreferencesDTO {
         return _timeFormat;
     }
 
+    public Integer getWidgetFontColor() {
+        return _widgetFontColor;
+    }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -113,5 +120,9 @@ public class PreferencesDTO {
 
     public void setTimeFormat(String newVal) {
         _timeFormat = newVal;
+    }
+
+    public void setWidgetFontColor(Integer newVal) {
+        _widgetFontColor = newVal;
     }
 }

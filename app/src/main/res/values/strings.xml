@@ -74,6 +74,9 @@
     <string name="textOnly">Text Only</string>
     <string name="close">Close</string>
     <string name="hazardsInstructions">USE THE BACK BUTTON DISMISS</string>
-	<string name="dateFormat">Date Format</string>
-	<string name="timeFormat">Time Format</string>
+    <string name="dateFormat">Date Format</string>
+    <string name="timeFormat">Time Format</string>
+    <string name="add_widget">Add widget</string>
+	<string name="widgetFontColor">Widget Font Color</string>
+    <string name="service_name">NOAA Weather Widget</string>
 </resources>
