@@ -12,7 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.List;
 
-import ca.datamagic.quadtree.Station;
+import ca.datamagic.noaa.dto.StationDTO;
 
 /**
  * Created by Greg on 1/28/2017.
@@ -20,10 +20,10 @@ import ca.datamagic.quadtree.Station;
 
 public class StationsAdapter extends BaseAdapter implements View.OnClickListener {
     private LayoutInflater _inflater = null;
-    private List<Station> _stations = null;
+    private List<StationDTO> _stations = null;
     private List<StationsAdapterListener> _listeners = new ArrayList<StationsAdapterListener>();
 
-    public StationsAdapter(Context context, List<Station> stations) {
+    public StationsAdapter(Context context, List<StationDTO> stations) {
         _inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         _stations = stations;
     }
@@ -36,7 +36,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         _listeners.remove(listener);
     }
 
-    private void fireStationAdded(Station station) {
+    private void fireStationAdded(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
                 _listeners.get(ii).onStationAdded(station);
@@ -46,7 +46,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
     }
 
-    private void fireStationSelect(Station station) {
+    private void fireStationSelect(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
                 _listeners.get(ii).onStationSelect(station);
@@ -56,7 +56,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
     }
 
-    private void fireStationRemove(Station station) {
+    private void fireStationRemove(StationDTO station) {
         for (int ii = 0; ii < _listeners.size(); ii++) {
             try {
                 _listeners.get(ii).onStationRemove(station);
@@ -81,11 +81,11 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         return position;
     }
 
-    public List<Station> getStations() {
+    public List<StationDTO> getStations() {
         return _stations;
     }
 
-    public void add(Station station) {
+    public void add(StationDTO station) {
         boolean exists = false;
         for (int ii = 0; ii < _stations.size(); ii++) {
             if ((_stations.get(ii).getStationId() != null) && (_stations.get(ii).getStationId().length() > 0) &&
@@ -109,7 +109,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
     }
 
-    public void remove(Station station) {
+    public void remove(StationDTO station) {
         for (int ii = 0; ii < _stations.size(); ii++) {
             if ((_stations.get(ii).getStationId() != null) && (_stations.get(ii).getStationId().length() > 0) &&
                 (station.getStationId() != null) && (station.getStationId().length() > 0)) {
@@ -131,7 +131,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
     @NonNull
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        Station station = null;
+        StationDTO station = null;
         if (_stations.size() > 0) {
             station = _stations.get(position);
         }
@@ -164,19 +164,19 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
     public void onClick(View v) {
         Object tag = v.getTag();
         if (tag != null) {
-            if (tag instanceof Station) {
+            if (tag instanceof StationDTO) {
                 if (v instanceof TextView) {
-                    fireStationSelect((Station) tag);
+                    fireStationSelect((StationDTO) tag);
                 } else  if (v instanceof ImageView) {
-                    fireStationRemove((Station) tag);
+                    fireStationRemove((StationDTO) tag);
                 }
             }
         }
     }
 
     public interface StationsAdapterListener {
-        public void onStationAdded(Station station);
-        public void onStationSelect(Station station);
-        public void onStationRemove(Station station);
+        public void onStationAdded(StationDTO station);
+        public void onStationSelect(StationDTO station);
+        public void onStationRemove(StationDTO station);
     }
 }

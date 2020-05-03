@@ -37,7 +37,7 @@ import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
 import java.io.File;
-import java.io.ObjectInputStream;
+import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -64,6 +64,7 @@ import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dao.StationDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
@@ -72,14 +73,13 @@ import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
-import ca.datamagic.quadtree.Quad;
-import ca.datamagic.quadtree.Station;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
-    private Quad _tree = null;
+    private StationDAO _stationDAO = null;
     private String _filesPath = null;
     private Double _deviceLatitude = null;
     private Double _deviceLongitude = null;
@@ -112,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private FeatureDTO _hourlyForecastFeature = null;
     private ObservationDTO _obervation = null;
     private ForecastsDTO _forecasts = null;
-    private Station _station = null;
+    private StationDTO _station = null;
     private RadarDTO _radar = null;
     private String _discussion = null;
     private StationsHelper _stationsHelper = null;
@@ -141,8 +141,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _thisInstance;
     }
 
-    public Quad getTree() {
-        return _tree;
+    public StationDAO getStationDAO() {
+        return _stationDAO;
     }
 
     public String getFilesPath() {
@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _forecasts;
     }
 
-    public Station getStation() {
+    public StationDTO getStation() {
         return _station;
     }
 
@@ -230,13 +230,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         LocationsHelper locationsHelper = new LocationsHelper(getBaseContext());
         OldStationsHelper oldStationsHelper = new OldStationsHelper(getBaseContext());
 
-        HashMap<String, Station> stations = new HashMap<String, Station>();
-        List<Station> stations1 = _stationsHelper.readStations();
-        List<Station> stations2 = locationsHelper.readStations();
-        List<Station> stations3 = oldStationsHelper.readStations();
+        HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
+        List<StationDTO> stations1 = _stationsHelper.readStations();
+        List<StationDTO> stations2 = locationsHelper.readStations();
+        List<StationDTO> stations3 = oldStationsHelper.readStations();
         if (stations1 != null) {
             for (int ii = 0; ii < stations1.size(); ii++) {
-                Station station = stations1.get(ii);
+                StationDTO station = stations1.get(ii);
                 String key = station.getStationName().toLowerCase();
                 if (!stations.containsKey(key)) {
                     stations.put(key, station);
@@ -245,7 +245,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         if (stations2 != null) {
             for (int ii = 0; ii < stations2.size(); ii++) {
-                Station station = stations2.get(ii);
+                StationDTO station = stations2.get(ii);
                 String key = station.getStationName().toLowerCase();
                 if (!stations.containsKey(key)) {
                     stations.put(key, station);
@@ -254,14 +254,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         if (stations3 != null) {
             for (int ii = 0; ii < stations3.size(); ii++) {
-                Station station = stations3.get(ii);
+                StationDTO station = stations3.get(ii);
                 String key = station.getStationName().toLowerCase();
                 if (!stations.containsKey(key)) {
                     stations.put(key, station);
                 }
             }
         }
-        List<Station> stationsList = new ArrayList<Station>(stations.values());
+        List<StationDTO> stationsList = new ArrayList<StationDTO>(stations.values());
         _stationsAdapter = new StationsAdapter(this, stationsList);
         _stationsAdapter.addListener(this);
     }
@@ -283,8 +283,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         initializeLogging();
 
         try {
-            ObjectInputStream inputStream = new ObjectInputStream(getResources().openRawResource(R.raw.tree));
-            _tree = (Quad)inputStream.readObject();
+            InputStream inputStream = getResources().openRawResource(R.raw.stations);
+            _stationDAO = new StationDAO(inputStream);
             inputStream.close();
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
@@ -829,14 +829,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onStationAdded(Station stationn) {
+    public void onStationAdded(StationDTO stationn) {
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _stationsAdapter.notifyDataSetChanged();
         (new AccountingTask("Station", "Added")).execute((Void[])null);
     }
 
     @Override
-    public void onStationSelect(Station station) {
+    public void onStationSelect(StationDTO station) {
         _drawerLayout.closeDrawer(Gravity.LEFT);
         _savedlatitude = _latitude;
         _savedLongitude = _longitude;
@@ -847,7 +847,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onStationRemove(Station station) {
+    public void onStationRemove(StationDTO station) {
         _stationsAdapter.remove(station);
         _stationsAdapter.notifyDataSetInvalidated();
         _stationsHelper.writeStations(_stationsAdapter.getStations());
@@ -905,9 +905,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
-    private class StationListener implements AsyncTaskListener<Station> {
+    private class StationListener implements AsyncTaskListener<StationDTO> {
         @Override
-        public void completed(AsyncTaskResult<Station> result) {
+        public void completed(AsyncTaskResult<StationDTO> result) {
             if (result.getThrowable() != null) {
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());

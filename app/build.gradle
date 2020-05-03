@@ -7,8 +7,8 @@ android {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 21
         targetSdkVersion 28
-        versionCode 57
-        versionName "1.64"
+        versionCode 58
+        versionName "1.65"
     }
     buildTypes {
         release {
@@ -46,5 +46,5 @@ dependencies {
     implementation 'com.android.support:support-core-utils:27.0.1'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.11.3'
     implementation 'it.sephiroth.android.library.imagezoom:imagezoom:+'
-    implementation 'datamagic:quadtree:1.0.3'
+    implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.8.4'
 }

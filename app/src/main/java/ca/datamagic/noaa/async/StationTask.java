@@ -2,12 +2,12 @@ package ca.datamagic.noaa.async;
 
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.dao.StationDAO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.widget.MainActivity;
-import ca.datamagic.quadtree.Quad;
-import ca.datamagic.quadtree.Station;
 
-public class StationTask extends AsyncTaskBase<Void, Void, Station> {
+public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
     private static final Logger _logger = LogFactory.getLogger(StationTask.class);
     private static final double distance = 75;
     private static final String units = "statute miles";
@@ -20,22 +20,22 @@ public class StationTask extends AsyncTaskBase<Void, Void, Station> {
     }
 
     @Override
-    protected AsyncTaskResult<Station> doInBackground(Void... params) {
+    protected AsyncTaskResult<StationDTO> doInBackground(Void... params) {
         try {
             _logger.info("Loading Station...");
-            Station station = null;
-            Quad tree = MainActivity.getThisInstance().getTree();
-            if (tree != null) {
-                station = tree.readNearest(_latitude, _longitude, distance, units);
+            StationDTO station = null;
+            StationDAO dao = MainActivity.getThisInstance().getStationDAO();
+            if (dao != null) {
+                station = dao.readNearest(_latitude, _longitude, distance, units);
             }
-            return new AsyncTaskResult<Station>(station);
+            return new AsyncTaskResult<StationDTO>(station);
         } catch (Throwable t) {
-            return new AsyncTaskResult<Station>(t);
+            return new AsyncTaskResult<StationDTO>(t);
         }
     }
 
     @Override
-    protected void onPostExecute(AsyncTaskResult<Station> result) {
+    protected void onPostExecute(AsyncTaskResult<StationDTO> result) {
         _logger.info("...station loaded.");
         fireCompleted(result);
     }
