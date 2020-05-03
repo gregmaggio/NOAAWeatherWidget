@@ -2,6 +2,7 @@ package ca.datamagic.noaa.widget;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -34,6 +35,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
     private RadioGroup _heightUnits = null;
     private CheckBox _textOnly = null;
     private RadioGroup _dateFormats = null;
+    private RadioGroup _widgetFontColor = null;
     private Button _saveSettingsButton = null;
     private Button _cancelSettingsButton = null;
     private ProgressBar _saveSettingsProgress = null;
@@ -74,6 +76,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         _heightUnits = (RadioGroup)findViewById(R.id.heightUnits);
         _textOnly = (CheckBox)findViewById(R.id.textOnly);
         _dateFormats = (RadioGroup)findViewById(R.id.dateFormats);
+        _widgetFontColor = (RadioGroup)findViewById(R.id.widgetFontColor);
         _saveSettingsButton = (Button)findViewById(R.id.saveSettings);
         _cancelSettingsButton = (Button)findViewById(R.id.cancelSettings);
         _saveSettingsProgress = (ProgressBar)findViewById(R.id.saveSettingsProgress);
@@ -145,6 +148,21 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
                 _dateFormats.check(R.id.dateFormatsDDMMYYYYSlashes);
             } else if (dto.getDateFormat().compareToIgnoreCase("dd-MM-yyyy") == 0) {
                 _dateFormats.check(R.id.dateFormatsDDMMYYYYDashes);
+            }
+        }
+        if (dto.getWidgetFontColor() != null) {
+            if (dto.getWidgetFontColor().intValue() == Color.BLACK) {
+                _widgetFontColor.check(R.id.widgetFontColorBlack);
+            } else if (dto.getWidgetFontColor().intValue() == Color.WHITE) {
+                _widgetFontColor.check(R.id.widgetFontColorWhite);
+            } else if (dto.getWidgetFontColor().intValue() == Color.RED) {
+                _widgetFontColor.check(R.id.widgetFontColorRed);
+            } else if (dto.getWidgetFontColor().intValue() == Color.GREEN) {
+                _widgetFontColor.check(R.id.widgetFontColorGreen);
+            } else if (dto.getWidgetFontColor().intValue() == Color.BLUE) {
+                _widgetFontColor.check(R.id.widgetFontColorBlue);
+            } else if (dto.getWidgetFontColor().intValue() == Color.YELLOW) {
+                _widgetFontColor.check(R.id.widgetFontColorYellow);
             }
         }
         this.setDateTimeHint(R.id.dateFormatsYYYYMMDDDashes);
@@ -247,6 +265,27 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
             }
             RadioButton selectedDateFormat = (RadioButton)findViewById(_dateFormats.getCheckedRadioButtonId());
             dto.setDateFormat(selectedDateFormat.getText().toString());
+
+            switch (_widgetFontColor.getCheckedRadioButtonId()) {
+                case R.id.widgetFontColorBlack:
+                    dto.setWidgetFontColor(Color.BLACK);
+                    break;
+                case R.id.widgetFontColorWhite:
+                    dto.setWidgetFontColor(Color.WHITE);
+                    break;
+                case R.id.widgetFontColorRed:
+                    dto.setWidgetFontColor(Color.RED);
+                    break;
+                case R.id.widgetFontColorGreen:
+                    dto.setWidgetFontColor(Color.GREEN);
+                    break;
+                case R.id.widgetFontColorBlue:
+                    dto.setWidgetFontColor(Color.BLUE);
+                    break;
+                case R.id.widgetFontColorYellow:
+                    dto.setWidgetFontColor(Color.YELLOW);
+                    break;
+            }
 
             dao.write(dto);
 

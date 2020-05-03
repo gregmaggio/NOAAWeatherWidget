@@ -529,7 +529,7 @@ public class ObservationFragment extends Fragment implements Renderer {
 
     private String getFormattedPressure(Double pressure, String pressureUnits, Double elevation, String elevationUnits, PreferencesDTO preferencesDTO) {
         StringBuffer buffer = new StringBuffer();
-        if ((pressure != null) && (pressureUnits != null)) {
+        if ((pressure != null) && (pressureUnits != null) && (elevation != null) && (elevationUnits != null)) {
             pressure = PressureCalculatorDTO.compute(pressure, pressureUnits, preferencesDTO.getPressureUnits(), elevation, elevationUnits);
             if (pressure != null) {
                 buffer.append(_pressureFormat.format(pressure.doubleValue()));

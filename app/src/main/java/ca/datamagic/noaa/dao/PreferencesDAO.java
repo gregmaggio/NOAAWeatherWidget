@@ -2,6 +2,7 @@ package ca.datamagic.noaa.dao;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.preference.PreferenceManager;
 
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
@@ -33,6 +34,7 @@ public class PreferencesDAO {
         dto.setTextOnly(_preferences.getBoolean("textOnly", Boolean.FALSE));
         dto.setDateFormat(_preferences.getString("dateFormat", "yyyy-MM-dd"));
         dto.setTimeFormat(_preferences.getString("timeFormat", "HH:mm"));
+        dto.setWidgetFontColor(_preferences.getInt("widgetFontColor", Color.WHITE));
         return dto;
     }
 
@@ -50,6 +52,7 @@ public class PreferencesDAO {
         Boolean textOnly = (dto.isTextOnly() != null) ? dto.isTextOnly() : Boolean.FALSE;
         String dateFormat = (dto.getDateFormat() != null) ? dto.getDateFormat() : "yyyy-MM-dd";
         String timeFormat = (dto.getTimeFormat() != null) ? dto.getTimeFormat() : "HH:mm";
+        Integer widgetFontColor = (dto.getWidgetFontColor() != null) ? dto.getWidgetFontColor() : Color.WHITE;
         SharedPreferences.Editor editor = _preferences.edit();
         editor.putFloat("latitude", (float)latitude);
         editor.putFloat("longitude", (float)longitude);
@@ -64,6 +67,7 @@ public class PreferencesDAO {
         editor.putBoolean("textOnly", textOnly);
         editor.putString("dateFormat", dateFormat);
         editor.putString("timeFormat", timeFormat);
+        editor.putInt("widgetFontColor", widgetFontColor);
         editor.commit();
     }
 }
