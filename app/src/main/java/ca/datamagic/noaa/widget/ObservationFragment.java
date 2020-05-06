@@ -21,7 +21,9 @@ import com.luckycatlabs.sunrisesunset.dto.Location;
 
 import java.text.DecimalFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
 import java.util.logging.Logger;
@@ -166,6 +168,7 @@ public class ObservationFragment extends Fragment implements Renderer {
             PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
             PreferencesDTO preferencesDTO = preferencesDAO.read();
 
+            Date observationTimeUTC = observation.getObservationTimeUTC();
             String description = observation.getDescription();
             Double latitude = observation.getLatitude();
             Double longitude = observation.getLongitude();
@@ -208,6 +211,13 @@ public class ObservationFragment extends Fragment implements Renderer {
             }
             item.setVisibility(View.VISIBLE);
 
+            if (observationTimeUTC != null) {
+                TextView observationTime = (TextView) item.findViewById(R.id.observationTime);
+                observationTime.setText(getFormattedObservationTime(observationTimeUTC, preferencesDTO));
+            } else {
+                LinearLayout observationTimeLayout = item.findViewById(R.id.observationTimeLayout);
+                observationTimeLayout.setVisibility(View.GONE);
+            }
             if ((description != null) && (description.length() > 0)) {
                 TextView locationView = (TextView) item.findViewById(R.id.location);
                 locationView.setText(description);
@@ -358,6 +368,29 @@ public class ObservationFragment extends Fragment implements Renderer {
             observationTable.addView(row);
         }
         (new AccountingTask("Observation", "Render")).execute((Void[])null);
+    }
+
+    private String getFormattedObservationTime(Date observationTimeUTC, PreferencesDTO preferences) {
+        StringBuffer buffer = new StringBuffer();
+        String dateFormat = preferences.getDateFormat();
+        if ((dateFormat != null) && (dateFormat.length() > 0)) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
+            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            if (buffer.length() > 0) {
+                buffer.append(" ");
+            }
+            buffer.append(simpleDateFormat.format(observationTimeUTC));
+        }
+        String timeFormat = preferences.getTimeFormat();
+        if ((timeFormat != null) && (timeFormat.length() > 0)) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
+            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            if (buffer.length() > 0) {
+                buffer.append(" ");
+            }
+            buffer.append(simpleDateFormat.format(observationTimeUTC));
+        }
+        return buffer.toString();
     }
 
     private String getFormattedCoordinates(Double latitude, Double longitude) {

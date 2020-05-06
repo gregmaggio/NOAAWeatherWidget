@@ -1,6 +1,11 @@
 package ca.datamagic.noaa.dao;
 
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import ca.datamagic.noaa.dto.ConditionsIconDTO;
 import ca.datamagic.noaa.dto.DWMLDTO;
@@ -14,6 +19,8 @@ import ca.datamagic.noaa.dto.ParametersDTO;
 import ca.datamagic.noaa.dto.PointDTO;
 import ca.datamagic.noaa.dto.PressureDTO;
 import ca.datamagic.noaa.dto.TemperatureDTO;
+import ca.datamagic.noaa.dto.TimeLayoutDTO;
+import ca.datamagic.noaa.dto.ValidTimeDTO;
 import ca.datamagic.noaa.dto.ValueDTO;
 import ca.datamagic.noaa.dto.VisibilityDTO;
 import ca.datamagic.noaa.dto.WeatherConditionsDTO;
@@ -25,11 +32,51 @@ import ca.datamagic.noaa.dto.WindSpeedDTO;
  */
 
 public class ObservationDAO {
+    private static final Pattern _observationTimePattern = Pattern.compile("(\\d{4})-(\\d{2})-(\\d{2})T(\\d{2}):(\\d{2}):(\\d{2})(\\x2D|\\x2B)(\\d{2}):(\\d{2})", Pattern.CASE_INSENSITIVE);
+
     public static ObservationDTO getObservation(DWMLDTO dwml) {
         ObservationDTO observation = new ObservationDTO();
         if (dwml != null) {
             DataDTO data = dwml.getObservation();
             if (data != null) {
+                List<TimeLayoutDTO> timeLayouts = data.getTimeLayouts();
+                if ((timeLayouts != null) && (timeLayouts.size() > 0)) {
+                    TimeLayoutDTO timeLayout = timeLayouts.get(0);
+                    List<ValidTimeDTO> startTimes = timeLayout.getStartTimes();
+                    if ((startTimes != null) && (startTimes.size() > 0)) {
+                        ValidTimeDTO startTime = startTimes.get(0);
+                        String timeStamp = startTime.getTimeStamp();
+                        if (timeStamp != null) {
+                            Matcher observationTimeMatcher = _observationTimePattern.matcher(timeStamp);
+                            if (observationTimeMatcher.matches()) {
+                                int year = Integer.parseInt(observationTimeMatcher.group(1));
+                                int month = Integer.parseInt(observationTimeMatcher.group(2));
+                                int day = Integer.parseInt(observationTimeMatcher.group(3));
+                                int hour = Integer.parseInt(observationTimeMatcher.group(4));
+                                int minute = Integer.parseInt(observationTimeMatcher.group(5));
+                                int second = Integer.parseInt(observationTimeMatcher.group(6));
+                                String sign = observationTimeMatcher.group(7);
+                                int hourAdjust = Integer.parseInt(observationTimeMatcher.group(8));
+                                if (sign.compareToIgnoreCase("+") == 0) {
+                                    hourAdjust *= -1;
+                                }
+                                int minuteAdjust = Integer.parseInt(observationTimeMatcher.group(9));
+                                Calendar calendar = Calendar.getInstance();
+                                calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+                                calendar.set(Calendar.YEAR, year);
+                                calendar.set(Calendar.MONTH, month - 1);
+                                calendar.set(Calendar.DAY_OF_MONTH, day);
+                                calendar.set(Calendar.HOUR_OF_DAY, hour);
+                                calendar.set(Calendar.MINUTE, minute);
+                                calendar.set(Calendar.SECOND, second);
+                                calendar.add(Calendar.HOUR_OF_DAY, hourAdjust);
+                                calendar.add(Calendar.MINUTE, minuteAdjust);
+                                Date dateUTC = calendar.getTime();
+                                observation.setObservationTimeUTC(dateUTC);
+                            }
+                        }
+                    }
+                }
                 LocationDTO location = data.getLocation();
                 if (location != null) {
                     observation.setDescription(location.getDescription());

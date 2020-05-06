@@ -3,6 +3,24 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+	<LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+		android:id="@+id/observationTimeLayout">
+        <TextView
+            android:padding="6dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Observation Time"
+            android:id="@+id/observationTimeLabel" />
+			<TextView
+            android:padding="6dip"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:id="@+id/observationTime" />
+    </LinearLayout>
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"

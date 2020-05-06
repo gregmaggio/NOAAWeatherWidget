@@ -59,10 +59,13 @@ public class StationDAO {
         StationDTO nearest = null;
         double nearestDistance = Double.NaN;
         distance = distanceToMeters(distance, units);
+        //System.out.println("distance: " + distance);
         for (int ii = 0; ii < _stations.size(); ii++) {
             StationDTO station = _stations.get(ii);
             double distanceToStation = computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
             if (distanceToStation <= distance) {
+                //System.out.println("StationName: " + station.getStationName());
+                //System.out.println("distanceToStation: " + distanceToStation);
                 if (nearest == null) {
                     nearest = station;
                     nearestDistance = distanceToStation;
@@ -71,6 +74,10 @@ public class StationDAO {
                     nearestDistance = distanceToStation;
                 }
             }
+        }
+        if (nearest != null) {
+            //System.out.println("nearest: " + nearest.getStationName());
+            //System.out.println("nearestDistance: " + nearestDistance);
         }
         return nearest;
     }
@@ -83,13 +90,15 @@ public class StationDAO {
     }
 
     public static double computeDistance(double latitude1, double longitude1, double latitude2, double longitude2) {
+        double deltaLatitude = Math.toRadians(latitude2 - latitude1);
+        double deltaLongitude = Math.toRadians(longitude2 - longitude1);
         latitude1 = Math.toRadians(latitude1);
         latitude2 = Math.toRadians(latitude2);
-        double deltaLatitude = Math.toRadians(Math.abs(latitude1 - latitude2));
-        double deltaLongitude = Math.toRadians(Math.abs(longitude1 - longitude2));
-        double a = Math.sin(deltaLatitude / 2) * Math.sin(deltaLatitude / 2) +
+        double sinDeltaLatitudeOverTwo = Math.sin(deltaLatitude / 2);
+        double sinDeltaLongitudeOverTwo = Math.sin(deltaLongitude / 2);
+        double a = sinDeltaLatitudeOverTwo * sinDeltaLatitudeOverTwo +
                 Math.cos(latitude1) * Math.cos(latitude2) *
-                        Math.sin(deltaLongitude / 2) * Math.sin(deltaLongitude / 2);
+                        sinDeltaLongitudeOverTwo * sinDeltaLongitudeOverTwo;
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = _radiusOfEarthMeters * c;
         return distance;

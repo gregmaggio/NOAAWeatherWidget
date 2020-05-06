@@ -33,7 +33,7 @@ public class DateTimeUTC {
         _year = _calendar.get(Calendar.YEAR);
         _month = _calendar.get(Calendar.MONTH) + 1;
         _day = _calendar.get(Calendar.DAY_OF_MONTH);
-        _hours = _calendar.get(Calendar.HOUR);
+        _hours = _calendar.get(Calendar.HOUR_OF_DAY);
         _minutes = _calendar.get(Calendar.MINUTE);
         _seconds = _calendar.get(Calendar.SECOND);
         _milliseconds = _calendar.get(Calendar.MILLISECOND);
@@ -46,7 +46,21 @@ public class DateTimeUTC {
         _year = _calendar.get(Calendar.YEAR);
         _month = _calendar.get(Calendar.MONTH) + 1;
         _day = _calendar.get(Calendar.DAY_OF_MONTH);
-        _hours = _calendar.get(Calendar.HOUR);
+        _hours = _calendar.get(Calendar.HOUR_OF_DAY);
+        _minutes = _calendar.get(Calendar.MINUTE);
+        _seconds = _calendar.get(Calendar.SECOND);
+        _milliseconds = _calendar.get(Calendar.MILLISECOND);
+    }
+
+    public DateTimeUTC(Date date) {
+        _calendar = Calendar.getInstance();
+        _calendar.setTime(date);
+        _calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+        _date = _calendar.getTime();
+        _year = _calendar.get(Calendar.YEAR);
+        _month = _calendar.get(Calendar.MONTH) + 1;
+        _day = _calendar.get(Calendar.DAY_OF_MONTH);
+        _hours = _calendar.get(Calendar.HOUR_OF_DAY);
         _minutes = _calendar.get(Calendar.MINUTE);
         _seconds = _calendar.get(Calendar.SECOND);
         _milliseconds = _calendar.get(Calendar.MILLISECOND);
@@ -55,13 +69,13 @@ public class DateTimeUTC {
     public DateTimeUTC(String dataTimeString) throws Exception {
         Matcher dateMatcher = getDatePattern().matcher(dataTimeString);
         if (!dateMatcher.matches()) {
-            throw new Exception(MessageFormat.format("The string '{0}' does not match the pattern 'yyyy-MM-dd HH:mm:ss'.", new Object[]{dataTimeString}));
+            throw new Exception(MessageFormat.format("The string '{0}' does not match the pattern 'yyyy-MM-ddTHH:mm:ssZ'.", new Object[]{dataTimeString}));
         }
         _calendar = Calendar.getInstance();
         _calendar.set(Calendar.YEAR, Integer.parseInt(dateMatcher.group(1)));
         _calendar.set(Calendar.MONTH, Integer.parseInt(dateMatcher.group(2)) - 1);
         _calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateMatcher.group(3)));
-        _calendar.set(Calendar.HOUR, Integer.parseInt(dateMatcher.group(4)));
+        _calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(dateMatcher.group(4)));
         _calendar.set(Calendar.MINUTE, Integer.parseInt(dateMatcher.group(5)));
         _calendar.set(Calendar.SECOND, Integer.parseInt(dateMatcher.group(6)));
         _calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
@@ -69,7 +83,7 @@ public class DateTimeUTC {
         _year = _calendar.get(Calendar.YEAR);
         _month = _calendar.get(Calendar.MONTH) + 1;
         _day = _calendar.get(Calendar.DAY_OF_MONTH);
-        _hours = _calendar.get(Calendar.HOUR);
+        _hours = _calendar.get(Calendar.HOUR_OF_DAY);
         _minutes = _calendar.get(Calendar.MINUTE);
         _seconds = _calendar.get(Calendar.SECOND);
         _milliseconds = _calendar.get(Calendar.MILLISECOND);

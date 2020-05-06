@@ -3,11 +3,16 @@ package ca.datamagic.noaa.dto;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import java.util.Date;
+
+import ca.datamagic.noaa.util.DateTimeUTC;
+
 /**
  * Created by Greg on 4/14/2018.
  */
 
 public class ObservationDTO implements Parcelable {
+    private Date _observationTimeUTC = null;
     private String _description = null;
     private Double _latitude = null;
     private Double _longitude = null;
@@ -36,6 +41,13 @@ public class ObservationDTO implements Parcelable {
     }
 
     public ObservationDTO(Parcel in) {
+        String observationTimeUTC = in.readString();
+        try {
+            DateTimeUTC dateTimeUTC = new DateTimeUTC(observationTimeUTC);
+            _observationTimeUTC = dateTimeUTC.getDate();
+        } catch (Throwable t) {
+            _observationTimeUTC = null;
+        }
         _description = in.readString();
         _latitude = in.readDouble();
         _longitude = in.readDouble();
@@ -58,6 +70,14 @@ public class ObservationDTO implements Parcelable {
         _windGustUnits = in.readString();
         _pressure = in.readDouble();
         _pressureUnits = in.readString();
+    }
+
+    public Date getObservationTimeUTC() {
+        return _observationTimeUTC;
+    }
+
+    public void setObservationTimeUTC(Date newVal) {
+        _observationTimeUTC = newVal;
     }
 
     public String getDescription() {
@@ -243,6 +263,12 @@ public class ObservationDTO implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel out, int flags) {
+        String observationTimeUTC = "";
+        if (_observationTimeUTC != null) {
+            DateTimeUTC dateTimeUTC = new DateTimeUTC(_observationTimeUTC);
+            observationTimeUTC = dateTimeUTC.toString();
+        }
+        out.writeString(observationTimeUTC);
         out.writeString(((_description == null) ? "" : _description));
         out.writeDouble(((_latitude == null) ? Double.NaN : _latitude));
         out.writeDouble(((_longitude == null) ? Double.NaN : _longitude));

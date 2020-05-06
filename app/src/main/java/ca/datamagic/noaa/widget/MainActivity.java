@@ -80,7 +80,6 @@ import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
-import ca.datamagic.noaa.service.AppService;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
@@ -284,8 +283,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        startService(new Intent(this, AppService.class));
-
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
         initializeLogging();
@@ -429,7 +426,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.ALL, _filesPath, true);
+            LogFactory.initialize(Level.WARNING, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
@@ -593,7 +590,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _processing = false;
                     _spinner.setVisibility(View.GONE);
                     refreshView();
-                    refreshWidgets();
                 }
             });
             refreshWorkflow.start();
@@ -604,57 +600,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _spinner.setVisibility(View.GONE);
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in refresh.", t);
-            }
-        }
-    }
-
-    private void refreshWidgets() {
-        try {
-            _logger.info("refreshWidgets");
-            AppWidgetManager manager = AppWidgetManager.getInstance(getApplicationContext());
-            //ca.datamagic.noaaweatherwidget
-            ComponentName componentName = new ComponentName("ca.datamagic.noaaweatherwidget", "ca.datamagic.noaa.widget.CurrentTemperatureWidget");
-            int[] ids = manager.getAppWidgetIds(componentName);
-            Intent updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(BaseWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
-
-            /*
-            AppWidgetManager manager = AppWidgetManager.getInstance(getApplicationContext());
-            Enumeration<BaseWidget> widgets = BaseWidget.getWidgets();
-            while (widgets.hasMoreElements()) {
-                BaseWidget widget = widgets.nextElement();
-                int[] ids = manager.getAppWidgetIds(new ComponentName(getApplicationContext(), widget.getClass()));
-                for (int jj = 0; jj < ids.length; ++jj) {
-                    _logger.info("updateAppWidget: " + ids[jj]);
-                    manager.updateAppWidget(ids[jj], widget.getViews());
-                }
-            }
-             */
-            /*
-            int[] layoutResourceIds = new int[]
-                {
-                    R.layout.current_temperature_widget,
-                    R.layout.current_pressure_widget
-                };
-            Class<?>[] widgetClasses = new Class[]
-                {
-                    CurrentTemperatureWidget.class,
-                    CurrentPressureWidget.class
-                };
-            for (int ii = 0; ii < layoutResourceIds.length; ii++) {
-                RemoteViews remoteViews = new RemoteViews(getApplicationContext().getPackageName(), layoutResourceIds[ii]);
-                int[] ids = manager.getAppWidgetIds(new ComponentName(getApplicationContext(), widgetClasses[ii]));
-                for (int jj = 0; jj < ids.length; ++jj) {
-                    _logger.info("updateAppWidget: " + ids[jj]);
-                    manager.updateAppWidget(ids[jj], remoteViews);
-                }
-            }
-             */
-        } catch (Throwable t) {
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in refresh widgets.", t);
             }
         }
     }
