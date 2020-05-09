@@ -66,6 +66,11 @@
     <string name="feelsLikeTemperatureFormat">(Feels Like {0})</string>
     <string name="forecastDate">Day</string>
     <string name="temperature">Temperature</string>
+	<string name="visibility">Visibility</string>
+	<string name="pressure">Pressure</string>
+	<string name="dewPoint">Dew Point</string>
+	<string name="humidity">Humidity</string>
+	<string name="wind">Wind</string>
     <string name="pop">Precipitation</string>
     <string name="popMeaning">Percentage of the forecast area that will see at least some precipitation.</string>
     <string name="sunrise">Sunrise</string>
@@ -79,4 +84,6 @@
     <string name="add_widget">Add widget</string>
 	<string name="widgetFontColor">Widget Font Color</string>
     <string name="service_name">NOAA Weather Widget</string>
+	<string name="channel_name">NOAAWeatherChannel</string>
+	<string name="channel_description">NOAA Weather Channel</string>
 </resources>

@@ -80,6 +80,7 @@ import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.service.AppService;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
@@ -192,6 +193,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _obervation;
     }
 
+    public void setObervation(ObservationDTO newVal) {
+        _obervation = newVal;
+    }
+
     public ForecastsDTO getForecasts() {
         return _forecasts;
     }
@@ -297,6 +302,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _spinner = (ProgressBar)findViewById(R.id.progressBar);
 
         readCurrentState();
+        startService(new Intent(this, AppService.class));
 
         ListView leftDrawer = (ListView)findViewById(R.id.left_drawer);
         leftDrawer.setAdapter(_stationsAdapter);
@@ -589,6 +595,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     writeCurrentState();
                     _processing = false;
                     _spinner.setVisibility(View.GONE);
+                    refreshWidgets();
                     refreshView();
                 }
             });
@@ -649,6 +656,58 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             }
             showError("Some Android weirdness occurred when rendering the widget. Wait a second and try refresh or my location from the menu.");
+        }
+    }
+
+    public void refreshWidgets() {
+        try {
+            _logger.info("refreshWidgets");
+            AppWidgetManager manager = AppWidgetManager.getInstance(getApplicationContext());
+            ComponentName componentName = new ComponentName(CurrentTemperatureWidget.PACKAGE_NAME, CurrentTemperatureWidget.CLASS_NAME);
+            int[] ids = manager.getAppWidgetIds(componentName);
+            Intent updateIntent = new Intent();
+            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            updateIntent.putExtra(CurrentTemperatureWidget.WIDGET_IDS_KEY, ids);
+            getApplicationContext().sendBroadcast(updateIntent);
+
+            componentName = new ComponentName(CurrentPressureWidget.PACKAGE_NAME, CurrentPressureWidget.CLASS_NAME);
+            ids = manager.getAppWidgetIds(componentName);
+            updateIntent = new Intent();
+            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            updateIntent.putExtra(CurrentPressureWidget.WIDGET_IDS_KEY, ids);
+            getApplicationContext().sendBroadcast(updateIntent);
+
+            componentName = new ComponentName(CurrentVisibilityWidget.PACKAGE_NAME, CurrentVisibilityWidget.CLASS_NAME);
+            ids = manager.getAppWidgetIds(componentName);
+            updateIntent = new Intent();
+            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            updateIntent.putExtra(CurrentVisibilityWidget.WIDGET_IDS_KEY, ids);
+            getApplicationContext().sendBroadcast(updateIntent);
+
+            componentName = new ComponentName(CurrentDewPointWidget.PACKAGE_NAME, CurrentDewPointWidget.CLASS_NAME);
+            ids = manager.getAppWidgetIds(componentName);
+            updateIntent = new Intent();
+            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            updateIntent.putExtra(CurrentDewPointWidget.WIDGET_IDS_KEY, ids);
+            getApplicationContext().sendBroadcast(updateIntent);
+
+            componentName = new ComponentName(CurrentHumidityWidget.PACKAGE_NAME, CurrentHumidityWidget.CLASS_NAME);
+            ids = manager.getAppWidgetIds(componentName);
+            updateIntent = new Intent();
+            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            updateIntent.putExtra(CurrentHumidityWidget.WIDGET_IDS_KEY, ids);
+            getApplicationContext().sendBroadcast(updateIntent);
+
+            componentName = new ComponentName(CurrentWindWidget.PACKAGE_NAME, CurrentWindWidget.CLASS_NAME);
+            ids = manager.getAppWidgetIds(componentName);
+            updateIntent = new Intent();
+            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+            updateIntent.putExtra(CurrentWindWidget.WIDGET_IDS_KEY, ids);
+            getApplicationContext().sendBroadcast(updateIntent);
+        } catch (Throwable t) {
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in refresh widgets.", t);
+            }
         }
     }
 
