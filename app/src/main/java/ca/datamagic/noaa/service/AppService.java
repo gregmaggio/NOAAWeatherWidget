@@ -23,6 +23,11 @@ public class AppService extends Service {
     private static final String NOTIF_CHANNEL_ID = "Channel_Id";
     private Timer _timer = null;
     private AppTimerTask _appTimerTask = null;
+    private static boolean _running = false;
+
+    public static boolean isRunning() {
+        return _running;
+    }
 
     @Nullable
     @Override
@@ -61,6 +66,13 @@ public class AppService extends Service {
         } catch (Throwable t) {
             _logger.warning("Bullshit: " + t.getMessage());
         }
+
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            mainActivity.serviceStartedStopped(true);
+        }
+
+        _running = true;
         return Service.START_NOT_STICKY;
     }
 
@@ -73,6 +85,13 @@ public class AppService extends Service {
         }
         _appTimerTask = null;
         _timer = null;
+
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            mainActivity.serviceStartedStopped(false);
+        }
+
+        _running = false;
         super.onDestroy();
     }
 

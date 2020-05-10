@@ -101,6 +101,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
+    private Boolean _startService = Boolean.TRUE;
     private DWMLTask _dwmlTask = null;
     private HazardsTask _hazardsTask = null;
     private HourlyForecastTask _hourlyForecastTask = null;
@@ -213,6 +214,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _discussion;
     }
 
+    public void serviceStartedStopped(boolean running) {
+        MenuItem actionStartStopService = null;
+        if (_mainMenu != null) {
+            for (int ii = 0; ii < _mainMenu.size(); ii++) {
+                MenuItem menuItem = _mainMenu.getItem(ii);
+                if (menuItem.getItemId() == R.id.action_start_stop_service) {
+                    actionStartStopService = menuItem;
+                    break;
+                }
+            }
+        }
+        if (actionStartStopService != null) {
+            actionStartStopService.setTitle((running ? R.string.action_stop_service : R.string.action_start_service));
+        }
+    }
+
     public void readPreferences() {
         PreferencesDAO dao = new PreferencesDAO(getBaseContext());
         PreferencesDTO dto = dao.read();
@@ -221,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _numDays = dto.getNumDays();
         _unit = dto.getUnit();
         _format = dto.getFormat();
+        _startService = dto.getStartService();
     }
 
     public void writePreferences() {
@@ -302,7 +320,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _spinner = (ProgressBar)findViewById(R.id.progressBar);
 
         readCurrentState();
-        startService(new Intent(this, AppService.class));
 
         ListView leftDrawer = (ListView)findViewById(R.id.left_drawer);
         leftDrawer.setAdapter(_stationsAdapter);
@@ -400,6 +417,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         readPreferences();
         myLocation();
         updateHeader();
+
+        if (_startService) {
+            startService(new Intent(this, AppService.class));
+        }
     }
 
     public boolean isFragmentActive(Fragment fragment) {
@@ -489,6 +510,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _search.setOnQueryTextListener(this);
         _search.setOnSuggestionListener(this);
         _search.setOnCloseListener(this);
+
+        if (_mainMenu != null) {
+            for (int ii = 0; ii < _mainMenu.size(); ii++) {
+                MenuItem menuItem = _mainMenu.getItem(ii);
+                if (menuItem.getItemId() == R.id.action_start_stop_service) {
+                    menuItem.setTitle((_startService ? R.string.action_stop_service : R.string.action_start_service));
+                    break;
+                }
+            }
+        }
+
         return true;
     }
 
@@ -514,6 +546,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 return true;
             case R.id.action_settings:
                 actionSettings();
+                return true;
+            case R.id.action_start_stop_service:
+                actionStartStopService();
                 return true;
             case R.id.action_senderror:
                 actionSendError();
@@ -750,6 +785,27 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             // TODO: Show Error
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in settings.", t);
+            }
+        }
+    }
+
+    private void actionStartStopService() {
+        try {
+            if (AppService.isRunning()) {
+                stopService(new Intent(this, AppService.class));
+                _startService = Boolean.FALSE;
+            } else {
+                startService(new Intent(this, AppService.class));
+                _startService = Boolean.TRUE;
+            }
+            PreferencesDAO dao = new PreferencesDAO(getApplicationContext());
+            PreferencesDTO dto = dao.read();
+            dto.setStartService(_startService);
+            dao.write(dto);
+        } catch (Throwable t) {
+            // TODO: Show Error
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in start/stop service.", t);
             }
         }
     }

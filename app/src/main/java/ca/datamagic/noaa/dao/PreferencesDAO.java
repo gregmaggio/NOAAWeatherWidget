@@ -35,6 +35,7 @@ public class PreferencesDAO {
         dto.setDateFormat(_preferences.getString("dateFormat", "yyyy-MM-dd"));
         dto.setTimeFormat(_preferences.getString("timeFormat", "HH:mm"));
         dto.setWidgetFontColor(_preferences.getInt("widgetFontColor", Color.WHITE));
+        dto.setStartService(_preferences.getBoolean("startService", Boolean.TRUE));
         return dto;
     }
 
@@ -53,6 +54,7 @@ public class PreferencesDAO {
         String dateFormat = (dto.getDateFormat() != null) ? dto.getDateFormat() : "yyyy-MM-dd";
         String timeFormat = (dto.getTimeFormat() != null) ? dto.getTimeFormat() : "HH:mm";
         Integer widgetFontColor = (dto.getWidgetFontColor() != null) ? dto.getWidgetFontColor() : Color.WHITE;
+        Boolean startService = (dto.getStartService() != null) ? dto.getStartService() : Boolean.TRUE;
         SharedPreferences.Editor editor = _preferences.edit();
         editor.putFloat("latitude", (float)latitude);
         editor.putFloat("longitude", (float)longitude);
@@ -68,6 +70,7 @@ public class PreferencesDAO {
         editor.putString("dateFormat", dateFormat);
         editor.putString("timeFormat", timeFormat);
         editor.putInt("widgetFontColor", widgetFontColor);
+        editor.putBoolean("startService", startService);
         editor.commit();
     }
 }

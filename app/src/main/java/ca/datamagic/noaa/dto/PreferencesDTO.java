@@ -17,6 +17,7 @@ public class PreferencesDTO {
     private String _dateFormat = "yyyy-MM-dd";
     private String _timeFormat = "HH:mm";
     private Integer _widgetFontColor = Color.WHITE;
+    private Boolean _startService = Boolean.TRUE;
 
     public Double getLatitude() {
         return _latitude;
@@ -72,6 +73,10 @@ public class PreferencesDTO {
         return _widgetFontColor;
     }
 
+    public Boolean getStartService() {
+        return _startService;
+    }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -124,5 +129,9 @@ public class PreferencesDTO {
 
     public void setWidgetFontColor(Integer newVal) {
         _widgetFontColor = newVal;
+    }
+
+    public void setStartService(Boolean newVal) {
+        _startService = newVal;
     }
 }
