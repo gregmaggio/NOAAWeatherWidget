@@ -1,0 +1,5 @@
+* Added widgets for most of the observation elements from the observation view
+* Added a background service to update the widgets about once an hour
+* If you do not wish to use the widgets, you can select Stop Service from the dot menu on the right
+* The background service will stop and will not start again
+* If you wish to try out the widgets at a later date, you can select Start Service from the dot menu on the right

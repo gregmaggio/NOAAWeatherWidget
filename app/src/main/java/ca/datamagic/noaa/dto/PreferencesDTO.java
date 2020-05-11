@@ -18,6 +18,7 @@ public class PreferencesDTO {
     private String _timeFormat = "HH:mm";
     private Integer _widgetFontColor = Color.WHITE;
     private Boolean _startService = Boolean.TRUE;
+    private Boolean _showNewFeatures = Boolean.TRUE;
 
     public Double getLatitude() {
         return _latitude;
@@ -77,6 +78,10 @@ public class PreferencesDTO {
         return _startService;
     }
 
+    public Boolean getShowNewFeatures() {
+        return _showNewFeatures;
+    }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -133,5 +138,9 @@ public class PreferencesDTO {
 
     public void setStartService(Boolean newVal) {
         _startService = newVal;
+    }
+
+    public void setShowNewFeatures(Boolean newVal) {
+        _showNewFeatures = newVal;
     }
 }

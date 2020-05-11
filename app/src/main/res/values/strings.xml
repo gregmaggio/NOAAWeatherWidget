@@ -88,4 +88,7 @@
     <string name="service_name">NOAA Weather Widget</string>
 	<string name="channel_name">NOAAWeatherChannel</string>
 	<string name="channel_description">NOAA Weather Channel</string>
+	<string name="showNextTime">Show this screen next time</string>
+	<string name="newFeatures">New Features</string>
+	<string name="ok">OK</string>
 </resources>

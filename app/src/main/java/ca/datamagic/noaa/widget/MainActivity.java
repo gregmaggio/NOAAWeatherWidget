@@ -81,6 +81,7 @@ import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.service.AppService;
+import ca.datamagic.noaa.util.IOUtils;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
@@ -102,6 +103,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private String _unit = "e";
     private String _format = "24 hourly";
     private Boolean _startService = Boolean.TRUE;
+    private Boolean _showNewFeatures = Boolean.TRUE;
     private DWMLTask _dwmlTask = null;
     private HazardsTask _hazardsTask = null;
     private HourlyForecastTask _hourlyForecastTask = null;
@@ -239,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _unit = dto.getUnit();
         _format = dto.getFormat();
         _startService = dto.getStartService();
+        _showNewFeatures = dto.getShowNewFeatures();
     }
 
     public void writePreferences() {
@@ -310,13 +313,24 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         initializeLogging();
 
+        String newFeatures = null;
+        InputStream inputStream = null;
         try {
-            InputStream inputStream = getResources().openRawResource(R.raw.stations);
+            inputStream = getResources().openRawResource(R.raw.stations);
             _stationDAO = new StationDAO(inputStream);
-            inputStream.close();
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
         }
+        IOUtils.closeQuietly(inputStream);
+
+        try {
+            inputStream = getResources().openRawResource(R.raw.newfeatures);
+            newFeatures = IOUtils.readEntireStream(inputStream);
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+        }
+        IOUtils.closeQuietly(inputStream);
+
         _spinner = (ProgressBar)findViewById(R.id.progressBar);
 
         readCurrentState();
@@ -420,6 +434,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         if (_startService) {
             startService(new Intent(this, AppService.class));
+        }
+
+        if (_showNewFeatures) {
+            NewFeaturesDialog newFeaturesDialog = new NewFeaturesDialog(this, newFeatures);
+            newFeaturesDialog.show();
         }
     }
 
