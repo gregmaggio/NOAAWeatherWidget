@@ -33,7 +33,6 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.RemoteViews;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -47,7 +46,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -79,6 +81,7 @@ import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
+import ca.datamagic.noaa.dto.WidgetInfoDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.service.AppService;
 import ca.datamagic.noaa.util.IOUtils;
@@ -86,6 +89,8 @@ import ca.datamagic.noaa.util.IOUtils;
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
+    private static Set<WidgetInfoDTO> _allWidgets = new HashSet<WidgetInfoDTO>();
+    private Set<String> _enabledWidgets = new HashSet<String>();
     private StationDAO _stationDAO = null;
     private String _filesPath = null;
     private Double _deviceLatitude = null;
@@ -102,7 +107,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
-    private Boolean _startService = Boolean.TRUE;
     private Boolean _showNewFeatures = Boolean.TRUE;
     private DWMLTask _dwmlTask = null;
     private HazardsTask _hazardsTask = null;
@@ -141,6 +145,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private boolean _processing = false;
     private ProgressBar _spinner = null;
     private int _currentPage = 0;
+
+    static {
+        _allWidgets.add(new WidgetInfoDTO(CurrentTemperatureWidget.WIDGET_IDS_KEY, CurrentTemperatureWidget.PACKAGE_NAME, CurrentTemperatureWidget.CLASS_NAME));
+        _allWidgets.add(new WidgetInfoDTO(CurrentVisibilityWidget.WIDGET_IDS_KEY, CurrentVisibilityWidget.PACKAGE_NAME, CurrentVisibilityWidget.CLASS_NAME));
+        _allWidgets.add(new WidgetInfoDTO(CurrentDewPointWidget.WIDGET_IDS_KEY, CurrentDewPointWidget.PACKAGE_NAME, CurrentDewPointWidget.CLASS_NAME));
+        _allWidgets.add(new WidgetInfoDTO(CurrentWindWidget.WIDGET_IDS_KEY, CurrentWindWidget.PACKAGE_NAME, CurrentWindWidget.CLASS_NAME));
+        _allWidgets.add(new WidgetInfoDTO(CurrentHumidityWidget.WIDGET_IDS_KEY, CurrentHumidityWidget.PACKAGE_NAME, CurrentHumidityWidget.CLASS_NAME));
+    }
 
     public MainActivity() {
         _thisInstance = this;
@@ -216,6 +228,34 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _discussion;
     }
 
+    public void enableWidget(String widgetKey, String packageName, String className) {
+        _logger.info("enableWidget");
+        WidgetInfoDTO widgetInfo = new WidgetInfoDTO(widgetKey, packageName, className);
+        _logger.info("widgetInfo: " + widgetInfo);
+        _enabledWidgets.add(widgetInfo.toString());
+        this.setEnabledWidgets(_enabledWidgets);
+    }
+
+    public void disableWidget(String widgetKey, String packageName, String className) {
+        _logger.info("disableWidget");
+        WidgetInfoDTO widgetInfo = new WidgetInfoDTO(widgetKey, packageName, className);
+        _logger.info("widgetInfo: " + widgetInfo);
+        _enabledWidgets.remove(widgetInfo.toString());
+        this.setEnabledWidgets(_enabledWidgets);
+    }
+
+    private void setEnabledWidgets(Set<String> enabledWidgets) {
+        if (enabledWidgets.size() > 0) {
+            if (!AppService.isRunning()) {
+                startService(new Intent(this, AppService.class));
+            }
+        } else {
+            if (AppService.isRunning()) {
+                stopService(new Intent(this, AppService.class));
+            }
+        }
+    }
+
     public void serviceStartedStopped(boolean running) {
         MenuItem actionStartStopService = null;
         if (_mainMenu != null) {
@@ -240,7 +280,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _numDays = dto.getNumDays();
         _unit = dto.getUnit();
         _format = dto.getFormat();
-        _startService = dto.getStartService();
         _showNewFeatures = dto.getShowNewFeatures();
     }
 
@@ -431,10 +470,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         readPreferences();
         myLocation();
         updateHeader();
-
-        if (_startService) {
-            startService(new Intent(this, AppService.class));
-        }
+        setEnabledWidgets(_enabledWidgets);
 
         if (_showNewFeatures) {
             NewFeaturesDialog newFeaturesDialog = new NewFeaturesDialog(this, newFeatures);
@@ -472,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.WARNING, _filesPath, true);
+            LogFactory.initialize(Level.ALL, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
@@ -529,17 +565,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _search.setOnQueryTextListener(this);
         _search.setOnSuggestionListener(this);
         _search.setOnCloseListener(this);
-
-        if (_mainMenu != null) {
-            for (int ii = 0; ii < _mainMenu.size(); ii++) {
-                MenuItem menuItem = _mainMenu.getItem(ii);
-                if (menuItem.getItemId() == R.id.action_start_stop_service) {
-                    menuItem.setTitle((_startService ? R.string.action_stop_service : R.string.action_start_service));
-                    break;
-                }
-            }
-        }
-
         return true;
     }
 
@@ -717,47 +742,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             _logger.info("refreshWidgets");
             AppWidgetManager manager = AppWidgetManager.getInstance(getApplicationContext());
-            ComponentName componentName = new ComponentName(CurrentTemperatureWidget.PACKAGE_NAME, CurrentTemperatureWidget.CLASS_NAME);
-            int[] ids = manager.getAppWidgetIds(componentName);
-            Intent updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(CurrentTemperatureWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
-
-            componentName = new ComponentName(CurrentPressureWidget.PACKAGE_NAME, CurrentPressureWidget.CLASS_NAME);
-            ids = manager.getAppWidgetIds(componentName);
-            updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(CurrentPressureWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
-
-            componentName = new ComponentName(CurrentVisibilityWidget.PACKAGE_NAME, CurrentVisibilityWidget.CLASS_NAME);
-            ids = manager.getAppWidgetIds(componentName);
-            updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(CurrentVisibilityWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
-
-            componentName = new ComponentName(CurrentDewPointWidget.PACKAGE_NAME, CurrentDewPointWidget.CLASS_NAME);
-            ids = manager.getAppWidgetIds(componentName);
-            updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(CurrentDewPointWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
-
-            componentName = new ComponentName(CurrentHumidityWidget.PACKAGE_NAME, CurrentHumidityWidget.CLASS_NAME);
-            ids = manager.getAppWidgetIds(componentName);
-            updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(CurrentHumidityWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
-
-            componentName = new ComponentName(CurrentWindWidget.PACKAGE_NAME, CurrentWindWidget.CLASS_NAME);
-            ids = manager.getAppWidgetIds(componentName);
-            updateIntent = new Intent();
-            updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-            updateIntent.putExtra(CurrentWindWidget.WIDGET_IDS_KEY, ids);
-            getApplicationContext().sendBroadcast(updateIntent);
+            for (WidgetInfoDTO widgetInfo : _allWidgets) {
+                _logger.info("widgetInfo: " + widgetInfo);
+                ComponentName componentName = new ComponentName(widgetInfo.getPackageName(), widgetInfo.getClassName());
+                int[] ids = manager.getAppWidgetIds(componentName);
+                Intent updateIntent = new Intent();
+                updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                updateIntent.putExtra(widgetInfo.getWidgetKey(), ids);
+                getApplicationContext().sendBroadcast(updateIntent);
+            }
         } catch (Throwable t) {
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in refresh widgets.", t);
@@ -812,15 +805,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             if (AppService.isRunning()) {
                 stopService(new Intent(this, AppService.class));
-                _startService = Boolean.FALSE;
             } else {
                 startService(new Intent(this, AppService.class));
-                _startService = Boolean.TRUE;
             }
-            PreferencesDAO dao = new PreferencesDAO(getApplicationContext());
-            PreferencesDTO dto = dao.read();
-            dto.setStartService(_startService);
-            dao.write(dto);
         } catch (Throwable t) {
             // TODO: Show Error
             if (_logger != null) {

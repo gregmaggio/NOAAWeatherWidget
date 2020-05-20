@@ -99,6 +99,13 @@ public class CurrentVisibilityWidget extends AppWidgetProvider {
             _logger.info("appWidgetId: " + appWidgetId);
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
+        if (appWidgetIds.length > 0) {
+            // Let the main activity know this widget is active
+            MainActivity mainActivity = MainActivity.getThisInstance();
+            if (mainActivity != null) {
+                mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+            }
+        }
     }
 
     @Override
@@ -113,11 +120,19 @@ public class CurrentVisibilityWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        }
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
+        MainActivity mainActivity = MainActivity.getThisInstance();
+        if (mainActivity != null) {
+            mainActivity.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        }
     }
 
     @Override
