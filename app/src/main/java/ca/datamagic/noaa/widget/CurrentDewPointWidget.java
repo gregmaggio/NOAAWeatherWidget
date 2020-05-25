@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -68,21 +69,20 @@ public class CurrentDewPointWidget extends AppWidgetProvider {
             _logger.info("updateAppWidget: " + appWidgetId);
             String formattedDewPoint = "";
             int color = Color.WHITE;
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                ObservationDTO observation = mainActivity.getObervation();
-                if (observation != null) {
-                    Double dewPoint = observation.getDewPoint();
-                    String dewPointUnits = observation.getDewPointUnits();
-                    PreferencesDAO preferencesDAO = new PreferencesDAO(context);
-                    PreferencesDTO preferences = preferencesDAO.read();
-                    color = preferences.getWidgetFontColor();
-                    formattedDewPoint = getFormattedTemperature(context, dewPoint, dewPointUnits, preferences);
-                }
+            ObservationDTO observation = CurrentObservation.getObervation();
+            if (observation != null) {
+                Double dewPoint = observation.getDewPoint();
+                String dewPointUnits = observation.getDewPointUnits();
+                PreferencesDAO preferencesDAO = new PreferencesDAO(context);
+                PreferencesDTO preferences = preferencesDAO.read();
+                color = preferences.getWidgetFontColor();
+                formattedDewPoint = getFormattedTemperature(context, dewPoint, dewPointUnits, preferences);
             }
             if ((formattedDewPoint == null) || (formattedDewPoint.length() < 1)) {
                 formattedDewPoint = "N/A";
             }
+            _logger.info("formattedDewPoint: " + formattedDewPoint);
+
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.current_dewpoint_widget);
             views.setTextViewText(R.id.appwidget_text, formattedDewPoint);
@@ -116,11 +116,9 @@ public class CurrentDewPointWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
         if (appWidgetIds.length > 0) {
-            // Let the main activity know this widget is active
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-            }
+            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        } else {
+            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
         }
     }
 
@@ -136,19 +134,13 @@ public class CurrentDewPointWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override

@@ -25,9 +25,11 @@ import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarBitmapsTask;
 import ca.datamagic.noaa.async.RenderTask;
+import ca.datamagic.noaa.current.CurrentRadar;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.BitmapsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
+import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StringListDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.NumberUtils;
@@ -41,12 +43,8 @@ public class RadarFragment extends Fragment implements Renderer {
     private RadarTimerTask _radarTimerTask = null;
     private SimpleDateFormat _dateFormat = null;
 
-    public static RadarFragment newInstance(StringListDTO backgroundImages, StringListDTO radarImages) {
+    public static RadarFragment newInstance() {
         RadarFragment fragment = new RadarFragment();
-        Bundle bundle = new Bundle();
-        bundle.putParcelable("backgroundImages", backgroundImages);
-        bundle.putParcelable("radarImages", radarImages);
-        fragment.setArguments(bundle);
         return fragment;
     }
 
@@ -55,65 +53,19 @@ public class RadarFragment extends Fragment implements Renderer {
     }
 
     public StringListDTO getBackgroundImages() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("backgroundImages");
+        RadarDTO radar = CurrentRadar.getRadar();
+        if (radar != null) {
+            return radar.getBackgroundImages();
         }
         return null;
-    }
-
-    public void setBackgroundImages(StringListDTO newVal) {
-        boolean backgroundImagesSet = false;
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            StringListDTO curVal = arguments.getParcelable("backgroundImages");
-            if ((curVal != null) && (newVal != null)) {
-                if (curVal != newVal) {
-                    arguments.putParcelable("backgroundImages", newVal);
-                    backgroundImagesSet = true;
-                }
-            } else if ((curVal == null) && (newVal != null)) {
-                arguments.putParcelable("backgroundImages", newVal);
-                backgroundImagesSet = true;
-            } else if ((curVal != null) && (newVal == null)) {
-                arguments.putParcelable("backgroundImages", newVal);
-                backgroundImagesSet = true;
-            }
-        }
-        if (backgroundImagesSet) {
-            setBackgroundBitmaps(null);
-        }
     }
 
     public StringListDTO getRadarImages() {
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            return arguments.getParcelable("radarImages");
+        RadarDTO radar = CurrentRadar.getRadar();
+        if (radar != null) {
+            return radar.getRadarImages();
         }
         return null;
-    }
-
-    public void setRadarImages(StringListDTO newVal) {
-        boolean radarImagesSet = false;
-        Bundle arguments = getArguments();
-        if (arguments != null) {
-            StringListDTO curVal = arguments.getParcelable("radarImages");
-            if ((curVal != null) && (newVal != null)) {
-                if (curVal != newVal) {
-                    arguments.putParcelable("radarImages", newVal);
-                    radarImagesSet = true;
-                }
-            } else if ((curVal == null) && (newVal != null)) {
-                arguments.putParcelable("radarImages", newVal);
-                radarImagesSet = true;
-            } else if ((curVal != null) && (newVal == null)) {
-                arguments.putParcelable("radarImages", newVal);
-                radarImagesSet = true;
-            }
-        }
-        if (radarImagesSet) {
-            setRadarBitmaps(null);
-        }
     }
 
     public BitmapsDTO getBackgroundBitmaps() {
@@ -313,17 +265,21 @@ public class RadarFragment extends Fragment implements Renderer {
             _radarTimerTask = null;
         }
         if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-            _radarTimer = new Timer();
-            _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, getRadarBitmaps(), radarBitmaps.size() - 1);
-            _radarTimer.scheduleAtFixedRate(_radarTimerTask, 1000, 1000);
+            initializeRadarTimer(radarTime, playPauseButton, radarView, getRadarBitmaps(), radarBitmaps.size() - 1);
         }
     }
 
     private void initializeRadarTimer(TextView radarTime, ImageButton playPauseButton, RadarView radarView, BitmapsDTO radarBitmaps, int index) {
         if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-            _radarTimer = new Timer();
-            _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, getRadarBitmaps(), index);
-            _radarTimer.scheduleAtFixedRate(_radarTimerTask, 1000, 1000);
+            String tag = (String) playPauseButton.getTag();
+            _logger.info("tag: " + tag);
+            if (tag != null) {
+                if (tag.compareToIgnoreCase("pause") == 0) {
+                    _radarTimer = new Timer();
+                    _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, getRadarBitmaps(), index);
+                    _radarTimer.scheduleAtFixedRate(_radarTimerTask, 1000, 1000);
+                }
+            }
         }
     }
 

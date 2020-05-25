@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.RenderTask;
+import ca.datamagic.noaa.current.CurrentDiscussion;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -38,11 +39,7 @@ public class DiscussionFragment extends Fragment implements Renderer {
             }
             View view = getView();
             if (view != null) {
-                String discussion = null;
-                MainActivity mainActivity = MainActivity.getThisInstance();
-                if (mainActivity != null) {
-                    discussion = mainActivity.getDiscussion();
-                }
+                String discussion = CurrentDiscussion.getDiscussion();
                 TextView discussionView = (TextView) view.findViewById(R.id.discussionView);
                 if ((discussion != null) && (discussion.length() > 0)) {
                     discussionView.setText(discussion);

@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -51,23 +52,22 @@ public class CurrentPressureWidget extends AppWidgetProvider {
             _logger.info("updateAppWidget:" + appWidgetId);
             String formattedPressure = "";
             int color = Color.WHITE;
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                ObservationDTO observation = mainActivity.getObervation();
-                if (observation != null) {
-                    Double pressure = observation.getPressure();
-                    String pressureUnits = observation.getPressureUnits();
-                    Double elevation = observation.getElevation();
-                    String elevationUnits = observation.getElevationUnits();
-                    PreferencesDAO preferencesDAO = new PreferencesDAO(context);
-                    PreferencesDTO preferences = preferencesDAO.read();
-                    color = preferences.getWidgetFontColor();
-                    formattedPressure = getFormattedPressure(context, pressure, pressureUnits, elevation, elevationUnits, preferences);
-                }
+            ObservationDTO observation = CurrentObservation.getObervation();
+            if (observation != null) {
+                Double pressure = observation.getPressure();
+                String pressureUnits = observation.getPressureUnits();
+                Double elevation = observation.getElevation();
+                String elevationUnits = observation.getElevationUnits();
+                PreferencesDAO preferencesDAO = new PreferencesDAO(context);
+                PreferencesDTO preferences = preferencesDAO.read();
+                color = preferences.getWidgetFontColor();
+                formattedPressure = getFormattedPressure(context, pressure, pressureUnits, elevation, elevationUnits, preferences);
             }
             if ((formattedPressure == null) || (formattedPressure.length() < 1)) {
                 formattedPressure = "N/A";
             }
+            _logger.info("formattedPressure: " + formattedPressure);
+
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.current_pressure_widget);
             views.setTextViewText(R.id.appwidget_text, formattedPressure);
@@ -101,11 +101,9 @@ public class CurrentPressureWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
         if (appWidgetIds.length > 0) {
-            // Let the main activity know this widget is active
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-            }
+            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        } else {
+            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
         }
     }
 
@@ -121,19 +119,13 @@ public class CurrentPressureWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override

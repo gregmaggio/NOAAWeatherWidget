@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -52,21 +53,20 @@ public class CurrentVisibilityWidget extends AppWidgetProvider {
             _logger.info("updateAppWidget: " + appWidgetId);
             String formattedVisibility = "";
             int color = Color.WHITE;
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                ObservationDTO observation = mainActivity.getObervation();
-                if (observation != null) {
-                    Double visibility = observation.getVisibility();
-                    String visibilityUnits = observation.getVisibilityUnits();
-                    PreferencesDAO preferencesDAO = new PreferencesDAO(context);
-                    PreferencesDTO preferences = preferencesDAO.read();
-                    color = preferences.getWidgetFontColor();
-                    formattedVisibility = getFormattedVisibility(context, visibility, visibilityUnits, preferences);
-                }
+            ObservationDTO observation = CurrentObservation.getObervation();
+            if (observation != null) {
+                Double visibility = observation.getVisibility();
+                String visibilityUnits = observation.getVisibilityUnits();
+                PreferencesDAO preferencesDAO = new PreferencesDAO(context);
+                PreferencesDTO preferences = preferencesDAO.read();
+                color = preferences.getWidgetFontColor();
+                formattedVisibility = getFormattedVisibility(context, visibility, visibilityUnits, preferences);
             }
             if ((formattedVisibility == null) || (formattedVisibility.length() < 1)) {
                 formattedVisibility = "N/A";
             }
+            _logger.info("formattedVisibility: " + formattedVisibility);
+
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.current_visibility_widget);
             views.setTextViewText(R.id.appwidget_text, formattedVisibility);
@@ -100,11 +100,9 @@ public class CurrentVisibilityWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
         if (appWidgetIds.length > 0) {
-            // Let the main activity know this widget is active
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-            }
+            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        } else {
+            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
         }
     }
 
@@ -120,19 +118,14 @@ public class CurrentVisibilityWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
         MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override

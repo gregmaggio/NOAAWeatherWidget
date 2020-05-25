@@ -2,10 +2,10 @@ package ca.datamagic.noaa.async;
 
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentStations;
 import ca.datamagic.noaa.dao.StationDAO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
-import ca.datamagic.noaa.widget.MainActivity;
 
 public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
     private static final Logger _logger = LogFactory.getLogger(StationTask.class);
@@ -24,7 +24,7 @@ public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
         try {
             _logger.info("Loading Station...");
             StationDTO station = null;
-            StationDAO dao = MainActivity.getThisInstance().getStationDAO();
+            StationDAO dao = CurrentStations.getStationDAO();
             if (dao != null) {
                 station = dao.readNearest(_latitude, _longitude, distance, units);
             }

@@ -11,6 +11,7 @@ import java.text.DecimalFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -28,22 +29,21 @@ public class CurrentHumidityWidget extends AppWidgetProvider {
             _logger.info("updateAppWidget: " + appWidgetId);
             String formattedHumidity = "";
             int color = Color.WHITE;
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                ObservationDTO observation = mainActivity.getObervation();
-                if (observation != null) {
-                    Double humidity = observation.getRelativeHumidity();
-                    PreferencesDAO preferencesDAO = new PreferencesDAO(context);
-                    PreferencesDTO preferences = preferencesDAO.read();
-                    color = preferences.getWidgetFontColor();
-                    if (humidity != null) {
-                        formattedHumidity = _humidityFormat.format(humidity.doubleValue() / 100.0);
-                    }
+            ObservationDTO observation = CurrentObservation.getObervation();
+            if (observation != null) {
+                Double humidity = observation.getRelativeHumidity();
+                PreferencesDAO preferencesDAO = new PreferencesDAO(context);
+                PreferencesDTO preferences = preferencesDAO.read();
+                color = preferences.getWidgetFontColor();
+                if (humidity != null) {
+                    formattedHumidity = _humidityFormat.format(humidity.doubleValue() / 100.0);
                 }
             }
             if ((formattedHumidity == null) || (formattedHumidity.length() < 1)) {
                 formattedHumidity = "N/A";
             }
+            _logger.info("formattedHumidity: " + formattedHumidity);
+
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.current_humidity_widget);
             views.setTextViewText(R.id.appwidget_text, formattedHumidity);
@@ -77,11 +77,9 @@ public class CurrentHumidityWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
         if (appWidgetIds.length > 0) {
-            // Let the main activity know this widget is active
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-            }
+            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        } else {
+            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
         }
     }
 
@@ -97,19 +95,13 @@ public class CurrentHumidityWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override

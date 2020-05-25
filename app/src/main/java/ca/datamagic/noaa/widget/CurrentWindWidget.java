@@ -13,6 +13,7 @@ import java.text.MessageFormat;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -79,25 +80,25 @@ public class CurrentWindWidget extends AppWidgetProvider {
             String formattedWind = "";
             String formattedWindGusts = "";
             int color = Color.WHITE;
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                ObservationDTO observation = mainActivity.getObervation();
-                if (observation != null) {
-                    Double windDirection = observation.getWindDirection();
-                    Double windSpeed = observation.getWindSpeed();
-                    String windSpeedUnits = observation.getWindSpeedUnits();
-                    Double windGust = observation.getWindGust();
-                    String windGustUnits = observation.getWindGustUnits();
-                    PreferencesDAO preferencesDAO = new PreferencesDAO(context);
-                    PreferencesDTO preferences = preferencesDAO.read();
-                    color = preferences.getWidgetFontColor();
-                    formattedWind = getFormattedWind(context, windSpeed, windSpeedUnits, windDirection, preferences);
-                    formattedWindGusts = getFormattedWindGusts(context, windGust, windGustUnits, preferences);
-                }
+            ObservationDTO observation = CurrentObservation.getObervation();
+            if (observation != null) {
+                Double windDirection = observation.getWindDirection();
+                Double windSpeed = observation.getWindSpeed();
+                String windSpeedUnits = observation.getWindSpeedUnits();
+                Double windGust = observation.getWindGust();
+                String windGustUnits = observation.getWindGustUnits();
+                PreferencesDAO preferencesDAO = new PreferencesDAO(context);
+                PreferencesDTO preferences = preferencesDAO.read();
+                color = preferences.getWidgetFontColor();
+                formattedWind = getFormattedWind(context, windSpeed, windSpeedUnits, windDirection, preferences);
+                formattedWindGusts = getFormattedWindGusts(context, windGust, windGustUnits, preferences);
             }
             if ((formattedWind == null) || (formattedWind.length() < 1)) {
                 formattedWind = "N/A";
             }
+            _logger.info("formattedWind: " + formattedWind);
+            _logger.info("formattedWindGusts: " + formattedWindGusts);
+
             // Construct the RemoteViews object
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.current_wind_widget);
             views.setTextViewText(R.id.appwidget_text, formattedWind);
@@ -137,11 +138,9 @@ public class CurrentWindWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
         if (appWidgetIds.length > 0) {
-            // Let the main activity know this widget is active
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-            }
+            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        } else {
+            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
         }
     }
 
@@ -157,19 +156,14 @@ public class CurrentWindWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
         MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            mainActivity.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
-        }
+        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
     }
 
     @Override

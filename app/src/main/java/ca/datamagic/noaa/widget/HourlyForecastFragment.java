@@ -24,12 +24,15 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.async.RenderTask;
+import ca.datamagic.noaa.current.CurrentHourlyForecast;
+import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.GeometryDTO;
 import ca.datamagic.noaa.dto.PeriodDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.TimeStampDTO;
@@ -46,26 +49,21 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
     }
 
     public FeatureDTO getHourlyForecastFeature() {
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            return mainActivity.getHourlyForecastFeature();
-        }
-        return null;
+        return CurrentHourlyForecast.getHourlyForecastFeature();
     }
 
     public String getTimeZoneId() {
         String timeZoneId = null;
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            if (mainActivity.getStation() != null) {
-                timeZoneId = mainActivity.getStation().getTimeZoneId();
-            }
-            if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
-                if (mainActivity.getHourlyForecastFeature() != null) {
-                    FeaturePropertiesDTO featureProperties = mainActivity.getHourlyForecastFeature().getProperties();
-                    if (featureProperties != null) {
-                        timeZoneId = featureProperties.getTimeZone();
-                    }
+        StationDTO station = CurrentStation.getStation();
+        if (station != null) {
+            timeZoneId = station.getTimeZoneId();
+        }
+        if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
+            FeatureDTO hourlyForecastFeature = CurrentHourlyForecast.getHourlyForecastFeature();
+            if (hourlyForecastFeature != null) {
+                FeaturePropertiesDTO featureProperties = hourlyForecastFeature.getProperties();
+                if (featureProperties != null) {
+                    timeZoneId = featureProperties.getTimeZone();
                 }
             }
         }

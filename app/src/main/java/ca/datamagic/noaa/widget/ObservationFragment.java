@@ -31,7 +31,13 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.async.RenderTask;
+import ca.datamagic.noaa.current.CurrentForecasts;
+import ca.datamagic.noaa.current.CurrentHazards;
+import ca.datamagic.noaa.current.CurrentHourlyForecast;
+import ca.datamagic.noaa.current.CurrentObservation;
+import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
+import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
 import ca.datamagic.noaa.dto.ForecastsDTO;
 import ca.datamagic.noaa.dto.HeightCalculatorDTO;
@@ -40,6 +46,7 @@ import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.PressureCalculatorDTO;
 import ca.datamagic.noaa.dto.PressureUnitsDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.VisibilityCalculatorDTO;
@@ -65,34 +72,25 @@ public class ObservationFragment extends Fragment implements Renderer {
     private static DecimalFormat _visibilityFormat = new DecimalFormat("0.00");
 
     public ForecastsDTO getForecasts() {
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            return mainActivity.getForecasts();
-        }
-        return null;
+        return CurrentForecasts.getForecasts();
     }
 
     public ObservationDTO getObservation() {
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            return mainActivity.getObervation();
-        }
-        return null;
+        return CurrentObservation.getObervation();
     }
 
     public String getTimeZoneId() {
         String timeZoneId = null;
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            if (mainActivity.getStation() != null) {
-                timeZoneId = mainActivity.getStation().getTimeZoneId();
-            }
-            if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
-                if (mainActivity.getHourlyForecastFeature() != null) {
-                    FeaturePropertiesDTO featureProperties = mainActivity.getHourlyForecastFeature().getProperties();
-                    if (featureProperties != null) {
-                        timeZoneId = featureProperties.getTimeZone();
-                    }
+        StationDTO station = CurrentStation.getStation();
+        if (station != null) {
+            timeZoneId = station.getTimeZoneId();
+        }
+        if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
+            FeatureDTO hourlyForecastFeature = CurrentHourlyForecast.getHourlyForecastFeature();
+            if (hourlyForecastFeature != null) {
+                FeaturePropertiesDTO featureProperties = hourlyForecastFeature.getProperties();
+                if (featureProperties != null) {
+                    timeZoneId = featureProperties.getTimeZone();
                 }
             }
         }
@@ -100,11 +98,7 @@ public class ObservationFragment extends Fragment implements Renderer {
     }
 
     public List<String> getHazards() {
-        MainActivity mainActivity = MainActivity.getThisInstance();
-        if (mainActivity != null) {
-            return mainActivity.getHazards();
-        }
-        return null;
+        return CurrentHazards.getHazards();
     }
 
     public static ObservationFragment newInstance() {

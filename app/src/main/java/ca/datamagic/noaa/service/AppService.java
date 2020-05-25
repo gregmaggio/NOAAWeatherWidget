@@ -46,9 +46,9 @@ public class AppService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId){
         _logger.info("onStartCommand");
 
-        _appTimerTask = new AppTimerTask();
+        _appTimerTask = new AppTimerTask(getApplicationContext());
         _timer = new Timer();
-        _timer.scheduleAtFixedRate(_appTimerTask, AppTimerTask.ONE_HOUR_MILLIS, AppTimerTask.ONE_HOUR_MILLIS);
+        _timer.scheduleAtFixedRate(_appTimerTask, AppTimerTask.HALF_HOUR_MILLIS, AppTimerTask.HALF_HOUR_MILLIS);
 
         try {
             if (createNotificationChannel()) {

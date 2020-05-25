@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 
 import java.util.logging.Logger;
 
-import ca.datamagic.noaa.dto.StringListDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
@@ -22,8 +21,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
     public static final int ForecastIndex = 2;
     public static final int DiscussionIndex = 3;
     public static final int RadarIndex = 4;
-    private StringListDTO _backgroundImages = null;
-    private StringListDTO _radarImages = null;
     private String[] _pageTitles = new String[5];
     private Fragment[] _fragments = new Fragment[5];
 
@@ -34,22 +31,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
         _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
-    }
-
-    public StringListDTO getBackgroundImages() {
-        return _backgroundImages;
-    }
-
-    public void setBackgroundImages(StringListDTO newVal) {
-        _backgroundImages = newVal;
-    }
-
-    public StringListDTO getRadarImages() {
-        return _radarImages;
-    }
-
-    public void setRadarImages(StringListDTO newVal) {
-        _radarImages = newVal;
     }
 
     public void performCleanup(int position) {
@@ -101,7 +82,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                     _fragments[position] = DiscussionFragment.newInstance();
                     break;
                 case RadarIndex:
-                    _fragments[position] = RadarFragment.newInstance(getBackgroundImages(), getRadarImages());
+                    _fragments[position] = RadarFragment.newInstance();
                     break;
             }
         } else {
@@ -115,8 +96,6 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                 case DiscussionIndex:
                     break;
                 case RadarIndex:
-                    ((RadarFragment)_fragments[position]).setBackgroundImages(getBackgroundImages());
-                    ((RadarFragment)_fragments[position]).setRadarImages(getRadarImages());
                     break;
             }
         }

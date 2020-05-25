@@ -2,12 +2,10 @@ package ca.datamagic.noaa.widget;
 
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
-import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
@@ -16,6 +14,7 @@ import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.SendErrorTask;
+import ca.datamagic.noaa.current.CurrentLocation;
 
 public class SendErrorDialog extends Dialog implements View.OnClickListener {
     private EditText _mailFrom = null;
@@ -98,9 +97,9 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
             StringBuffer mailBody = new StringBuffer();
             mailBody.append(errorInformation);
             mailBody.append("\n");
-            mailBody.append("Last Requested Latitude: " + Double.toString(MainActivity.getThisInstance().getLastRequestedLatitude()));
+            mailBody.append("Last Requested Latitude: " + Double.toString(CurrentLocation.getLatitude()));
             mailBody.append("\n");
-            mailBody.append("Last Requested Longitude: " + Double.toString(MainActivity.getThisInstance().getLastRequestedLongitude()));
+            mailBody.append("Last Requested Longitude: " + Double.toString(CurrentLocation.getLongitude()));
             mailBody.append("\n");
             SendErrorTask task = new SendErrorTask(logPath, mailFrom, mailSubject, mailBody.toString());
             task.addListener(new AsyncTaskListener<Void>() {

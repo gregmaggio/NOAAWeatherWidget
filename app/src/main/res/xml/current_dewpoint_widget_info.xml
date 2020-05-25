@@ -2,8 +2,8 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:initialKeyguardLayout="@layout/current_dewpoint_widget"
     android:initialLayout="@layout/current_dewpoint_widget"
-    android:minWidth="40dp"
-    android:minHeight="40dp"
+    android:minWidth="100dp"
+    android:minHeight="100dp"
     android:previewImage="@drawable/dewpoint_appwidget_preview"
-    android:updatePeriodMillis="3600000"
+    android:updatePeriodMillis="1800000"
     android:widgetCategory="home_screen"></appwidget-provider>

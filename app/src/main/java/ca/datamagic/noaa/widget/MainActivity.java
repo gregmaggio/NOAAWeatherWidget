@@ -3,8 +3,6 @@ package ca.datamagic.noaa.widget;
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.SearchManager;
-import android.appwidget.AppWidgetManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -43,13 +41,8 @@ import java.io.File;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Hashtable;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -66,22 +59,28 @@ import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
+import ca.datamagic.noaa.current.CurrentContext;
+import ca.datamagic.noaa.current.CurrentDWML;
+import ca.datamagic.noaa.current.CurrentDiscussion;
+import ca.datamagic.noaa.current.CurrentForecasts;
+import ca.datamagic.noaa.current.CurrentHazards;
+import ca.datamagic.noaa.current.CurrentHourlyForecast;
+import ca.datamagic.noaa.current.CurrentLocation;
+import ca.datamagic.noaa.current.CurrentObservation;
+import ca.datamagic.noaa.current.CurrentRadar;
+import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.ForecastsDAO;
 import ca.datamagic.noaa.dao.GooglePlacesDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
-import ca.datamagic.noaa.dao.StationDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.FeatureDTO;
-import ca.datamagic.noaa.dto.ForecastsDTO;
-import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
-import ca.datamagic.noaa.dto.WidgetInfoDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.service.AppService;
 import ca.datamagic.noaa.util.IOUtils;
@@ -89,21 +88,9 @@ import ca.datamagic.noaa.util.IOUtils;
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
     private static  MainActivity _thisInstance;
-    private static Set<WidgetInfoDTO> _allWidgets = new HashSet<WidgetInfoDTO>();
-    private Set<String> _enabledWidgets = new HashSet<String>();
-    private StationDAO _stationDAO = null;
     private String _filesPath = null;
     private Double _deviceLatitude = null;
     private Double _deviceLongitude = null;
-    private double _latitude = 38.9967;
-    private double _longitude = -76.9275;
-    private double _savedlatitude = _latitude;
-    private double _savedLongitude = _longitude;
-    private double _lastRequestedLatitude = 38.9967;
-    private double _lastRequestedLongitude = -76.9275;
-    private int _year = Calendar.getInstance().get(Calendar.YEAR);
-    private int _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
-    private int _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
     private int _numDays = 7;
     private String _unit = "e";
     private String _format = "24 hourly";
@@ -120,14 +107,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private StationListener _stationListener = new StationListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
-    private DWMLDTO _dwml = null;
-    private List<String> _hazards = null;
-    private FeatureDTO _hourlyForecastFeature = null;
-    private ObservationDTO _obervation = null;
-    private ForecastsDTO _forecasts = null;
-    private StationDTO _station = null;
-    private RadarDTO _radar = null;
-    private String _discussion = null;
     private StationsHelper _stationsHelper = null;
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
@@ -146,24 +125,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private ProgressBar _spinner = null;
     private int _currentPage = 0;
 
-    static {
-        _allWidgets.add(new WidgetInfoDTO(CurrentTemperatureWidget.WIDGET_IDS_KEY, CurrentTemperatureWidget.PACKAGE_NAME, CurrentTemperatureWidget.CLASS_NAME));
-        _allWidgets.add(new WidgetInfoDTO(CurrentVisibilityWidget.WIDGET_IDS_KEY, CurrentVisibilityWidget.PACKAGE_NAME, CurrentVisibilityWidget.CLASS_NAME));
-        _allWidgets.add(new WidgetInfoDTO(CurrentDewPointWidget.WIDGET_IDS_KEY, CurrentDewPointWidget.PACKAGE_NAME, CurrentDewPointWidget.CLASS_NAME));
-        _allWidgets.add(new WidgetInfoDTO(CurrentWindWidget.WIDGET_IDS_KEY, CurrentWindWidget.PACKAGE_NAME, CurrentWindWidget.CLASS_NAME));
-        _allWidgets.add(new WidgetInfoDTO(CurrentHumidityWidget.WIDGET_IDS_KEY, CurrentHumidityWidget.PACKAGE_NAME, CurrentHumidityWidget.CLASS_NAME));
-    }
-
     public MainActivity() {
         _thisInstance = this;
     }
 
     public static MainActivity getThisInstance() {
         return _thisInstance;
-    }
-
-    public StationDAO getStationDAO() {
-        return _stationDAO;
     }
 
     public String getFilesPath() {
@@ -186,76 +153,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         return _viewPager;
     }
 
-    public double getLastRequestedLatitude() {
-        return _lastRequestedLatitude;
-    }
-
-    public double getLastRequestedLongitude() {
-        return _lastRequestedLongitude;
-    }
-
-    public DWMLDTO getDWML() {
-        return _dwml;
-    }
-
-    public List<String> getHazards() { return _hazards; }
-
-    public FeatureDTO getHourlyForecastFeature() {
-        return _hourlyForecastFeature;
-    }
-
-    public ObservationDTO getObervation() {
-        return _obervation;
-    }
-
-    public void setObervation(ObservationDTO newVal) {
-        _obervation = newVal;
-    }
-
-    public ForecastsDTO getForecasts() {
-        return _forecasts;
-    }
-
-    public StationDTO getStation() {
-        return _station;
-    }
-
-    public RadarDTO getRadar() {
-        return _radar;
-    }
-
-    public String getDiscussion() {
-        return _discussion;
-    }
-
-    public void enableWidget(String widgetKey, String packageName, String className) {
-        _logger.info("enableWidget");
-        WidgetInfoDTO widgetInfo = new WidgetInfoDTO(widgetKey, packageName, className);
-        _logger.info("widgetInfo: " + widgetInfo);
-        _enabledWidgets.add(widgetInfo.toString());
-        this.setEnabledWidgets(_enabledWidgets);
-    }
-
-    public void disableWidget(String widgetKey, String packageName, String className) {
-        _logger.info("disableWidget");
-        WidgetInfoDTO widgetInfo = new WidgetInfoDTO(widgetKey, packageName, className);
-        _logger.info("widgetInfo: " + widgetInfo);
-        _enabledWidgets.remove(widgetInfo.toString());
-        this.setEnabledWidgets(_enabledWidgets);
-    }
-
-    private void setEnabledWidgets(Set<String> enabledWidgets) {
-        if (enabledWidgets.size() > 0) {
-            if (!AppService.isRunning()) {
-                startService(new Intent(this, AppService.class));
-            }
-        } else {
-            if (AppService.isRunning()) {
-                stopService(new Intent(this, AppService.class));
-            }
-        }
-    }
-
     public void serviceStartedStopped(boolean running) {
         MenuItem actionStartStopService = null;
         if (_mainMenu != null) {
@@ -275,8 +172,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void readPreferences() {
         PreferencesDAO dao = new PreferencesDAO(getBaseContext());
         PreferencesDTO dto = dao.read();
-        _latitude = dto.getLatitude();
-        _longitude = dto.getLongitude();
+        CurrentLocation.setLatitude(dto.getLatitude());
+        CurrentLocation.setLongitude(dto.getLongitude());
         _numDays = dto.getNumDays();
         _unit = dto.getUnit();
         _format = dto.getFormat();
@@ -286,8 +183,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     public void writePreferences() {
         PreferencesDAO dao = new PreferencesDAO(getBaseContext());
         PreferencesDTO dto = dao.read();
-        dto.setLatitude(_latitude);
-        dto.setLongitude(_longitude);
+        dto.setLatitude(CurrentLocation.getLatitude());
+        dto.setLongitude(CurrentLocation.getLongitude());
         dto.setNumDays(_numDays);
         dto.setUnit(_unit);
         dto.setFormat(_format);
@@ -348,20 +245,14 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        CurrentContext.setContext(getApplicationContext());
+
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
         initializeLogging();
 
         String newFeatures = null;
         InputStream inputStream = null;
-        try {
-            inputStream = getResources().openRawResource(R.raw.stations);
-            _stationDAO = new StationDAO(inputStream);
-        } catch (Throwable t) {
-            _logger.warning("Exception: " + t.getMessage());
-        }
-        IOUtils.closeQuietly(inputStream);
-
         try {
             inputStream = getResources().openRawResource(R.raw.newfeatures);
             newFeatures = IOUtils.readEntireStream(inputStream);
@@ -470,7 +361,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         readPreferences();
         myLocation();
         updateHeader();
-        setEnabledWidgets(_enabledWidgets);
 
         if (_showNewFeatures) {
             NewFeaturesDialog newFeaturesDialog = new NewFeaturesDialog(this, newFeatures);
@@ -565,6 +455,21 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _search.setOnQueryTextListener(this);
         _search.setOnSuggestionListener(this);
         _search.setOnCloseListener(this);
+
+        MenuItem actionStartStopService = null;
+        if (_mainMenu != null) {
+            for (int ii = 0; ii < _mainMenu.size(); ii++) {
+                MenuItem menuItem = _mainMenu.getItem(ii);
+                if (menuItem.getItemId() == R.id.action_start_stop_service) {
+                    actionStartStopService = menuItem;
+                    break;
+                }
+            }
+        }
+        if (actionStartStopService != null) {
+            actionStartStopService.setTitle((AppService.isRunning() ? R.string.action_stop_service : R.string.action_start_service));
+        }
+
         return true;
     }
 
@@ -610,10 +515,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             if (_googleApiClient != null) {
                 Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(_googleApiClient);
                 if (lastLocation != null) {
-                    _savedlatitude = _latitude;
-                    _savedLongitude = _longitude;
-                    _latitude = lastLocation.getLatitude();
-                    _longitude = lastLocation.getLongitude();
+                    CurrentLocation.setLatitude(lastLocation.getLatitude());
+                    CurrentLocation.setLongitude(lastLocation.getLongitude());
                 } else {
                     // TODO
                 }
@@ -644,20 +547,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             PreferencesDTO preferencesDTO = preferencesDAO.read();
 
             _processing = true;
-            _lastRequestedLatitude = _latitude;
-            _lastRequestedLongitude = _longitude;
             _spinner.setVisibility(View.VISIBLE);
-            _year = Calendar.getInstance().get(Calendar.YEAR);
-            _month = Calendar.getInstance().get(Calendar.MONTH) + 1;
-            _day = Calendar.getInstance().get(Calendar.DAY_OF_MONTH);
-            _dwmlTask = new DWMLTask(_latitude, _longitude);
+            _dwmlTask = new DWMLTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             _hazardsTask = new HazardsTask();
-            _hourlyForecastTask = new HourlyForecastTask(_latitude, _longitude);
-            _stationTask = new StationTask(_latitude, _longitude);
+            _hourlyForecastTask = new HourlyForecastTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            _stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
-            _mainPageAdapter.setBackgroundImages(null);
-            _mainPageAdapter.setRadarImages(null);
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
@@ -674,8 +570,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     writeCurrentState();
                     _processing = false;
                     _spinner.setVisibility(View.GONE);
-                    refreshWidgets();
                     refreshView();
+                    CurrentWidgets.refreshWidgets(getApplicationContext());
                 }
             });
             refreshWorkflow.start();
@@ -735,26 +631,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             }
             showError("Some Android weirdness occurred when rendering the widget. Wait a second and try refresh or my location from the menu.");
-        }
-    }
-
-    public void refreshWidgets() {
-        try {
-            _logger.info("refreshWidgets");
-            AppWidgetManager manager = AppWidgetManager.getInstance(getApplicationContext());
-            for (WidgetInfoDTO widgetInfo : _allWidgets) {
-                _logger.info("widgetInfo: " + widgetInfo);
-                ComponentName componentName = new ComponentName(widgetInfo.getPackageName(), widgetInfo.getClassName());
-                int[] ids = manager.getAppWidgetIds(componentName);
-                Intent updateIntent = new Intent();
-                updateIntent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                updateIntent.putExtra(widgetInfo.getWidgetKey(), ids);
-                getApplicationContext().sendBroadcast(updateIntent);
-            }
-        } catch (Throwable t) {
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in refresh widgets.", t);
-            }
         }
     }
 
@@ -934,10 +810,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         _logger.log(Level.WARNING, "Error retrieving place for suggestion.", result.getThrowable());
                     }
                 } else {
-                    _savedlatitude = _latitude;
-                    _savedLongitude = _longitude;
-                    _latitude = result.getResult().getLatitude();
-                    _longitude = result.getResult().getLongitude();
+                    CurrentLocation.setLatitude(result.getResult().getLatitude());
+                    CurrentLocation.setLongitude(result.getResult().getLongitude());
                     _mainMenu.findItem(R.id.search).collapseActionView();
                     _mainMenu.close();
                     _search.setIconified(true);
@@ -955,7 +829,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     }
 
     @Override
-    public void onStationAdded(StationDTO stationn) {
+    public void onStationAdded(StationDTO station) {
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _stationsAdapter.notifyDataSetChanged();
         (new AccountingTask("Station", "Added")).execute((Void[])null);
@@ -964,10 +838,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onStationSelect(StationDTO station) {
         _drawerLayout.closeDrawer(Gravity.LEFT);
-        _savedlatitude = _latitude;
-        _savedLongitude = _longitude;
-        _latitude = station.getLatitude();
-        _longitude = station.getLongitude();
+        CurrentLocation.setLatitude(station.getLatitude());
+        CurrentLocation.setLongitude(station.getLongitude());
         actionRefresh();
         (new AccountingTask("Station", "Select")).execute((Void[])null);
     }
@@ -984,20 +856,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private class DWMLListener implements AsyncTaskListener<DWMLDTO> {
         @Override
         public void completed(AsyncTaskResult<DWMLDTO> result) {
-            _dwml = null;
-            _obervation = null;
-            _forecasts = null;
             if (result.getThrowable() != null) {
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
                 }
-                // TODO: Reset to last good state
+                CurrentDWML.setDWML(null);
             } else {
-                _dwml = result.getResult();
-                _hazardsTask.setDWML(_dwml);
-                if (_dwml != null) {
-                    _obervation = ObservationDAO.getObservation(_dwml);
-                    _forecasts = ForecastsDAO.getForecasts(_dwml);
+                CurrentDWML.setDWML(result.getResult());
+                if (result.getResult() != null) {
+                    CurrentObservation.setObervation(ObservationDAO.getObservation(result.getResult()));
+                    CurrentForecasts.setForecasts(ForecastsDAO.getForecasts(result.getResult()));
                 }
             }
         }
@@ -1010,9 +878,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving hazards.", result.getThrowable());
                 }
-                _hazards = null;
+                CurrentHazards.setHazards(null);
             } else {
-                _hazards = result.getResult();
+                CurrentHazards.setHazards(result.getResult());
             }
         }
     }
@@ -1020,13 +888,13 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private class HourlyForecastListener implements AsyncTaskListener<FeatureDTO> {
         @Override
         public void completed(AsyncTaskResult<FeatureDTO> result) {
-            _hourlyForecastFeature = null;
             if (result.getThrowable() != null) {
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving hourly forecast.", result.getThrowable());
                 }
+                CurrentHourlyForecast.setHourlyForecastFeature(null);
             } else {
-                _hourlyForecastFeature = result.getResult();
+                CurrentHourlyForecast.setHourlyForecastFeature(result.getResult());
             }
         }
     }
@@ -1038,17 +906,11 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
                 }
-                _discussionTask.setWFO(null);
-                _radarTask.setRadar(null);
+                CurrentStation.setStation(null);
             } else {
-                _station = result.getResult();
-                if (_station != null) {
-                    _stationsAdapter.add(_station);
-                    _discussionTask.setWFO(_station.getWFO());
-                    _radarTask.setRadar(_station.getRadar());
-                } else {
-                    _discussionTask.setWFO(null);
-                    _radarTask.setRadar(null);
+                CurrentStation.setStation(result.getResult());
+                if (result.getResult() != null) {
+                    _stationsAdapter.add(result.getResult());
                 }
             }
         }
@@ -1058,21 +920,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         @Override
         public void completed(AsyncTaskResult<RadarDTO> result) {
             if (result.getThrowable() != null) {
-                _mainPageAdapter.setBackgroundImages(null);
-                _mainPageAdapter.setRadarImages(null);
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving radar images.", result.getThrowable());
                 }
-                _radar = null;
+                CurrentRadar.setRadar(null);
             } else {
-                _radar = result.getResult();
-                if (_radar != null) {
-                    _mainPageAdapter.setBackgroundImages(_radar.getBackgroundImages());
-                    _mainPageAdapter.setRadarImages(_radar.getRadarImages());
-                } else {
-                    _mainPageAdapter.setBackgroundImages(null);
-                    _mainPageAdapter.setRadarImages(null);
-                }
+                CurrentRadar.setRadar(result.getResult());
             }
         }
     }
@@ -1081,12 +934,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         @Override
         public void completed(AsyncTaskResult<String> result) {
             if (result.getThrowable() != null) {
-                _discussion = null;
                 if (_logger != null) {
                     _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
                 }
+                CurrentDiscussion.setDiscussion(null);
             } else {
-                _discussion = result.getResult();
+                CurrentDiscussion.setDiscussion(result.getResult());
             }
         }
     }

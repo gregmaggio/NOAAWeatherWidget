@@ -23,7 +23,7 @@ public class AccountingTask extends AsyncTaskBase<Void, Void, Void> {
             _logger.info("Posting accounting...");
             MainActivity mainActivity = MainActivity.getThisInstance();
             if (mainActivity != null) {
-                _dao.post(mainActivity.getDeviceLatitude(), mainActivity.getDeviceLatitude(), _eventName, _eventMessage);
+                _dao.post(mainActivity.getDeviceLatitude(), mainActivity.getDeviceLongitude(), _eventName, _eventMessage);
             }
             return new AsyncTaskResult<Void>();
         } catch (Throwable t) {

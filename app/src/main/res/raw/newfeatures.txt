@@ -1,5 +1,7 @@
-* Added some logic so the background service only starts if there is an active widget
+* Made the widgets a little bigger
+* Use the default font size for the widgets
+* Some refactoring to move the current weather stats out of the main application activity to be shared acrossed any widget
+* When using the widgets, a service will run in the background. This service will get new observation stats every thirty minutes to update the widgets
 * Start/Stop Service still exists in the dot menu on the right
 * You can stop the service at anytime if you don't want it running. Just the widgets won't update automatically.
-* Service is only used to update the widgets in the background when the app is not running
 

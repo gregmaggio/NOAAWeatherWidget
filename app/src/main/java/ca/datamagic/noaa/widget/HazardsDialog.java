@@ -13,6 +13,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import ca.datamagic.noaa.async.AccountingTask;
+import ca.datamagic.noaa.current.CurrentHazards;
 
 public class HazardsDialog extends Dialog {
     public HazardsDialog(@NonNull Context context) {
@@ -47,7 +48,7 @@ public class HazardsDialog extends Dialog {
         TextView hazardsView = (TextView)findViewById(R.id.hazardsView);
         StringBuilder builder = new StringBuilder();
         builder.append(getContext().getResources().getString(R.string.hazardsInstructions));
-        List<String> hazards = MainActivity.getThisInstance().getHazards();
+        List<String> hazards = CurrentHazards.getHazards();
         if (hazards != null) {
             for (int ii = 0; ii < hazards.size(); ii++) {
                 String hazard = hazards.get(ii);
