@@ -36,11 +36,13 @@ import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.dto.TemperatureCalculatorDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.TimeStampDTO;
+import ca.datamagic.noaa.dto.WindSpeedCalculatorDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class HourlyForecastFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(HourlyForecastFragment.class);
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
+    private static DecimalFormat _windFormat = new DecimalFormat("0");
     private static char _degrees = (char)0x00B0;
 
     private int convertDipToPixels(float dips) {
@@ -222,11 +224,15 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         TextView weatherSummaryView = (TextView) item.findViewById(R.id.weatherSummary);
                         int weatherSummaryViewPaddingLeft = weatherSummaryView.getPaddingLeft();
                         int weatherSummaryViewPaddingRight = weatherSummaryView.getPaddingRight();
+                        LinearLayout temperatureWindLayout = item.findViewById(R.id.temperatureWindLayout);
                         TextView temperatureView = (TextView) item.findViewById(R.id.temperature);
-                        int temperatureViewWidth = convertDipToPixels(40);
+                        TextView windTextView = item.findViewById(R.id.wind);
+                        int temperatureViewWidth = convertDipToPixels(45);
                         if ((preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.FC) == 0) || (preferencesDTO.getTemperatureUnits().compareToIgnoreCase(TemperatureUnitsDTO.CF) == 0)) {
-                            temperatureViewWidth = convertDipToPixels(47);
+                            temperatureViewWidth = convertDipToPixels(52);
+                            temperatureWindLayout.setLayoutParams(new LinearLayout.LayoutParams(temperatureViewWidth, LinearLayout.LayoutParams.WRAP_CONTENT));
                             temperatureView.setLayoutParams(new LinearLayout.LayoutParams(temperatureViewWidth, LinearLayout.LayoutParams.WRAP_CONTENT));
+                            windTextView.setLayoutParams(new LinearLayout.LayoutParams(temperatureViewWidth, LinearLayout.LayoutParams.WRAP_CONTENT));
                         }
                         int temperatureViewPaddingLeft = temperatureView.getPaddingLeft();
                         int temperatureViewPaddingRight = temperatureView.getPaddingRight();
@@ -258,6 +264,24 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                                 }
                             }
                         }
+                        String formattedWind = "";
+                        String windSpeed = periods[ii].getWindSpeed();
+                        String windDirection = periods[ii].getWindDirection();
+                        if ((windSpeed != null) && (windSpeed.length() > 0)) {
+                            int spaceIndex = windSpeed.indexOf(' ');
+                            if (spaceIndex > -1) {
+                                Double speed = Double.parseDouble(windSpeed.substring(0, spaceIndex));
+                                String units = windSpeed.substring(spaceIndex + 1);
+                                Double finalSpeed = WindSpeedCalculatorDTO.compute(speed, units, preferencesDTO.getWindSpeedUnits());
+                                if (finalSpeed != null) {
+                                    formattedWind = _windFormat.format(finalSpeed);
+                                    if ((windDirection != null) && (windDirection.length() > 0)) {
+                                        formattedWind += " " + windDirection;
+                                    }
+                                }
+                            }
+                        }
+                        windTextView.setText(formattedWind);
 
                         row.addView(item);
                         forecastTable.addView(row);

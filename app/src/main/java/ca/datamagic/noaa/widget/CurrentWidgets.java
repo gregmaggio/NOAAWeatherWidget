@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -38,43 +39,54 @@ public class CurrentWidgets {
         }
     }
 
-    public static synchronized void enableWidget(String widgetKey, String packageName, String className) {
+    public static synchronized void enableWidget(String widgetKey, String packageName, String className, Context context) {
         try {
             _logger.info("enableWidget");
             WidgetInfoDTO widgetInfo = new WidgetInfoDTO(widgetKey, packageName, className);
             _logger.info("widgetInfo: " + widgetInfo);
             _enabledWidgets.add(widgetInfo.toString());
-            setEnabledWidgets(_enabledWidgets);
+            setEnabledWidgets(_enabledWidgets, context);
         } catch (Throwable t) {
             _logger.warning("Exception enabling widget: " + widgetKey + ", Error: " + t.getMessage());
         }
     }
 
-    public static synchronized void disableWidget(String widgetKey, String packageName, String className) {
+    public static synchronized void disableWidget(String widgetKey, String packageName, String className, Context context) {
         try {
             _logger.info("disableWidget");
             WidgetInfoDTO widgetInfo = new WidgetInfoDTO(widgetKey, packageName, className);
             _logger.info("widgetInfo: " + widgetInfo);
             _enabledWidgets.remove(widgetInfo.toString());
-            setEnabledWidgets(_enabledWidgets);
+            setEnabledWidgets(_enabledWidgets, context);
         } catch (Throwable t) {
             _logger.warning("Exception disabling widget: " + widgetKey + ", Error: " + t.getMessage());
         }
     }
 
-    private static void setEnabledWidgets(Set<String> enabledWidgets) {
-        if (enabledWidgets.size() > 0) {
-            if (!AppService.isRunning()) {
-                Context context = CurrentContext.getContext();
-                if (context != null) {
-                    context.startService(new Intent(context, AppService.class));
+    private static synchronized void setEnabledWidgets(Set<String> enabledWidgets, Context context) {
+        _logger.info("setEnabledWidgets");
+        if (enabledWidgets != null) {
+            _logger.info("enabledWidgets: " + enabledWidgets.size());
+            _logger.info("AppService.isRunning: " + AppService.isRunning());
+            if (enabledWidgets.size() > 0) {
+                if (!AppService.isRunning()) {
+                    _logger.info("context: " + context);
+                    if (context != null) {
+                        _logger.info("Starting Service.");
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            context.startForegroundService(new Intent(context, AppService.class));
+                        } else {
+                            context.startService(new Intent(context, AppService.class));
+                        }
+                    }
                 }
-            }
-        } else {
-            if (AppService.isRunning()) {
-                Context context = CurrentContext.getContext();
-                if (context != null) {
-                    context.stopService(new Intent(context, AppService.class));
+            } else {
+                if (AppService.isRunning()) {
+                    _logger.info("context: " + context);
+                    if (context != null) {
+                        _logger.info("Stopping Service.");
+                        context.stopService(new Intent(context, AppService.class));
+                    }
                 }
             }
         }
@@ -84,6 +96,8 @@ public class CurrentWidgets {
         try {
             _logger.info("refreshWidgets");
             if (context != null) {
+                // Set the current context
+                CurrentContext.setContext(context);
                 AppWidgetManager manager = AppWidgetManager.getInstance(context);
                 for (WidgetInfoDTO widgetInfo : _allWidgets) {
                     _logger.info("widgetInfo: " + widgetInfo);

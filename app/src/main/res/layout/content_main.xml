@@ -14,12 +14,12 @@
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="ca.datamagic.noaa.widget.MainActivity"
     tools:showIn="@layout/activity_main">
-    <LinearLayout
-        android:id="@+id/header"
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-    </LinearLayout>
+	<org.apmem.tools.layouts.FlowLayout
+		xmlns:android="http://schemas.android.com/apk/res/android"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:id="@+id/header">
+	</org.apmem.tools.layouts.FlowLayout>
     <ca.datamagic.noaa.widget.NonSwipeableViewPager
         android:id="@+id/viewpager"
         android:background="?attr/colorPrimary"

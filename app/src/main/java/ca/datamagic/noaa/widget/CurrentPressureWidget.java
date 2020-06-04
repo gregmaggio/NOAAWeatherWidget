@@ -101,9 +101,9 @@ public class CurrentPressureWidget extends AppWidgetProvider {
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
         if (appWidgetIds.length > 0) {
-            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+            CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME, context);
         } else {
-            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+            CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME, context);
         }
     }
 
@@ -119,13 +119,13 @@ public class CurrentPressureWidget extends AppWidgetProvider {
     @Override
     public void onEnabled(Context context) {
         _logger.info("onEnabled");
-        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        CurrentWidgets.enableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME, context);
     }
 
     @Override
     public void onDisabled(Context context) {
         _logger.info("onDisabled");
-        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME);
+        CurrentWidgets.disableWidget(WIDGET_IDS_KEY, PACKAGE_NAME, CLASS_NAME, context);
     }
 
     @Override

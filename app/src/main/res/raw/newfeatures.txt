@@ -1,7 +1,6 @@
-* Made the widgets a little bigger
-* Use the default font size for the widgets
-* Some refactoring to move the current weather stats out of the main application activity to be shared acrossed any widget
-* When using the widgets, a service will run in the background. This service will get new observation stats every thirty minutes to update the widgets
-* Start/Stop Service still exists in the dot menu on the right
-* You can stop the service at anytime if you don't want it running. Just the widgets won't update automatically.
-
+* Added wind speed and direction to hourly forecast
+* Added a call to get the current observation for the background widget update service if application has not yet been open
+* Added scrolling to the new features dialog to handle larger font sizes on smaller screens
+* Added scrolling to the settings dialog to handle larger font sizes on smaller screens
+* Added a boot listener so that the service will start on reboot if widgets are present
+* The widgets may not auto update on reboot on older Android OS

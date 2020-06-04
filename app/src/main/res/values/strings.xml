@@ -32,6 +32,7 @@
     <string name="send_error_ok">Send</string>
     <string name="send_error_cancel">Cancel</string>
     <string name="settings_title">Settings</string>
+	<string name="settings_title_scroll_message">Scroll down to see more settings and for the Save and Cancel button</string>	
     <string name="temperatureUnits">Temperature Units</string>
     <string name="fahrenheit">Fahrenheit</string>
     <string name="celsius">Celsius</string>
@@ -78,7 +79,7 @@
     <string name="sunrise">Sunrise</string>
     <string name="sunset">Sunset</string>
     <string name="back">Back</string>
-    <string name="textOnly">Text Only</string>
+    <string name="textOnly">Text Only (no icons)</string>
     <string name="close">Close</string>
     <string name="hazardsInstructions">USE THE BACK BUTTON DISMISS</string>
     <string name="dateFormat">Date Format</string>
@@ -90,5 +91,6 @@
 	<string name="channel_description">NOAA Weather Channel</string>
 	<string name="showNextTime">Show this screen next time</string>
 	<string name="newFeatures">New Features</string>
+	<string name="newFeaturesScrollMessage">Scroll down if you do not see OK button</string>
 	<string name="ok">OK</string>
 </resources>

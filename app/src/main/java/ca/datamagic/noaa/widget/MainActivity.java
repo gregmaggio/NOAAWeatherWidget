@@ -37,6 +37,8 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
+import org.apmem.tools.layouts.FlowLayout;
+
 import java.io.File;
 import java.io.InputStream;
 import java.text.MessageFormat;
@@ -111,7 +113,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
-    private LinearLayout _header = null;
+    private FlowLayout _header = null;
     private MainPageAdapter _mainPageAdapter = null;
     private NonSwipeableViewPager _viewPager = null;
     private GoogleApiClient _googleApiClient = null;
@@ -245,11 +247,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        CurrentContext.setContext(getApplicationContext());
-
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
         initializeLogging();
+
+        Context applicationContext = getApplicationContext();
+        if (_logger != null) {
+            _logger.info("applicationContext: " + applicationContext);
+        }
+        if (applicationContext != null) {
+            CurrentContext.setContext(applicationContext);
+        }
 
         String newFeatures = null;
         InputStream inputStream = null;
@@ -304,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
 
         _preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
-        _header = (LinearLayout)findViewById(R.id.header);
+        _header = findViewById(R.id.header);
         _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager(), getBaseContext());
 
         for (int ii = 0; ii < _mainPageAdapter.getCount(); ii++) {
@@ -398,7 +406,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.ALL, _filesPath, true);
+            LogFactory.initialize(Level.WARNING, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {

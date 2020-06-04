@@ -1,24 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content">
-    <TextView
-        android:padding="2dip"
-        android:layout_width="60dip"
-        android:layout_height="wrap_content"
-        android:text="Hour"
-        android:id="@+id/hourOfDay" />
-    <TextView
-        android:padding="2dip"
-        android:layout_width="245dp"
-        android:layout_height="wrap_content"
-        android:text="description"
-        android:id="@+id/weatherSummary" />
-    <TextView
-        android:padding="2dip"
-        android:layout_width="40dip"
-        android:layout_height="wrap_content"
-        android:text=""
-        android:id="@+id/temperature" />
+	android:orientation="horizontal"
+	android:layout_width="match_parent"
+	android:layout_height="wrap_content">
+	<TextView
+		android:padding="2dip"
+		android:layout_width="60dip"
+		android:layout_height="wrap_content"
+		android:text="Hour"
+		android:id="@+id/hourOfDay" />
+	<TextView
+		android:padding="2dip"
+		android:layout_width="245dip"
+		android:layout_height="wrap_content"
+		android:text="description"
+		android:id="@+id/weatherSummary" />
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical"
+		android:layout_width="45dip"
+		android:layout_height="wrap_content"
+		android:id="@+id/temperatureWindLayout">
+		<TextView
+			android:padding="2dip"
+			android:layout_width="45dip"
+			android:layout_height="wrap_content"
+			android:text=""
+			android:id="@+id/temperature" />
+		<TextView
+			android:padding="2dip"
+			android:layout_width="45dip"
+			android:layout_height="wrap_content"
+			android:text=""
+			android:id="@+id/wind" />
+	</LinearLayout>
 </LinearLayout>

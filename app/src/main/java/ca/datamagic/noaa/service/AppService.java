@@ -13,6 +13,9 @@ import android.support.v4.app.NotificationCompat;
 import java.util.Timer;
 import java.util.logging.Logger;
 
+import ca.datamagic.noaa.current.CurrentLocation;
+import ca.datamagic.noaa.current.CurrentObservation;
+import ca.datamagic.noaa.dto.ObservationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.widget.MainActivity;
 import ca.datamagic.noaa.widget.R;
@@ -70,6 +73,18 @@ public class AppService extends Service {
         MainActivity mainActivity = MainActivity.getThisInstance();
         if (mainActivity != null) {
             mainActivity.serviceStartedStopped(true);
+        }
+
+        // Check if we have a current observation
+        ObservationDTO observation = CurrentObservation.getObervation();
+        if (observation == null) {
+            // Make sure we have a location
+            Double latitude = CurrentLocation.getLatitude();
+            Double longitude = CurrentLocation.getLongitude();
+            if ((latitude != null) && (longitude != null)) {
+                // Run the timer task to get the current observation
+                _appTimerTask.run();
+            }
         }
 
         _running = true;
