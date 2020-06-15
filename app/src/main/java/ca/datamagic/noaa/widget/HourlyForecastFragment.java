@@ -24,6 +24,7 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.async.RenderTask;
+import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.current.CurrentHourlyForecast;
 import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
@@ -48,10 +49,6 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
     private int convertDipToPixels(float dips) {
         float density = getContext().getResources().getDisplayMetrics().density;
         return (int) (dips * density + 0.5f);
-    }
-
-    public FeatureDTO getHourlyForecastFeature() {
-        return CurrentHourlyForecast.getHourlyForecastFeature();
     }
 
     public String getTimeZoneId() {
@@ -123,7 +120,29 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         forecastTable.removeAllViews();
         int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
-            FeatureDTO hourlyForecastFeature = getHourlyForecastFeature();
+            FeatureDTO feature = CurrentFeature.getFeature();
+            String city = null;
+            String state = null;
+            FeaturePropertiesDTO featureProperties = null;
+            if (feature != null) {
+                featureProperties = feature.getProperties();
+            }
+            if (featureProperties != null) {
+                city = featureProperties.getCity();
+                state = featureProperties.getState();
+            }
+            if ((city != null) && (state != null)) {
+                TableRow descriptionRow = new TableRow(getContext());
+                descriptionRow.setVisibility(View.VISIBLE);
+                descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                LinearLayout description = (LinearLayout) inflater.inflate(R.layout.forecast_description, null);
+                TextView descriptionText = description.findViewById(R.id.description);
+                descriptionText.setText(city + ", " + state);
+                description.setVisibility(View.VISIBLE);
+                descriptionRow.addView(description);
+                forecastTable.addView(descriptionRow);
+            }
+            FeatureDTO hourlyForecastFeature = CurrentHourlyForecast.getHourlyForecastFeature();
             GeometryDTO geometry = null;
             FeaturePropertiesDTO properties = null;
             if (hourlyForecastFeature != null) {
@@ -268,6 +287,8 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         String windSpeed = periods[ii].getWindSpeed();
                         String windDirection = periods[ii].getWindDirection();
                         if ((windSpeed != null) && (windSpeed.length() > 0)) {
+                            //6 mph
+                            //2 to 6 mph
                             int spaceIndex = windSpeed.indexOf(' ');
                             if (spaceIndex > -1) {
                                 Double speed = Double.parseDouble(windSpeed.substring(0, spaceIndex));

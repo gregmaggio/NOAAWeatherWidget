@@ -11,14 +11,28 @@
         android:id="@+id/dayOfWeek" />
     <TextView
         android:padding="2dip"
-        android:layout_width="175dip"
-        android:layout_height="wrap_content"
-        android:text="description"
-        android:id="@+id/weatherSummary" />
-    <TextView
-        android:padding="2dip"
-        android:layout_width="40dip"
+        android:layout_width="151dip"
         android:layout_height="wrap_content"
         android:text=""
-        android:id="@+id/temperature" />
+		android:scrollHorizontally="false"
+		android:maxLines="4"
+        android:id="@+id/weatherSummary" />
+	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+		android:orientation="vertical"
+		android:layout_width="64dip"
+		android:layout_height="wrap_content"
+		android:id="@+id/temperatureWindLayout">
+		<TextView
+			android:padding="2dip"
+			android:layout_width="62dip"
+			android:layout_height="wrap_content"
+			android:text=""
+			android:id="@+id/temperature" />
+		<TextView
+			android:padding="2dip"
+			android:layout_width="62dip"
+			android:layout_height="wrap_content"
+			android:text=""
+			android:id="@+id/wind" />
+	</LinearLayout>
 </LinearLayout>

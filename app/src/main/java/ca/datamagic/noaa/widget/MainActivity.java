@@ -52,7 +52,9 @@ import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.DWMLTask;
+import ca.datamagic.noaa.async.DailyForecastTask;
 import ca.datamagic.noaa.async.DiscussionTask;
+import ca.datamagic.noaa.async.FeatureTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.HazardsTask;
@@ -63,7 +65,9 @@ import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.current.CurrentContext;
 import ca.datamagic.noaa.current.CurrentDWML;
+import ca.datamagic.noaa.current.CurrentDailyForecast;
 import ca.datamagic.noaa.current.CurrentDiscussion;
+import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.current.CurrentForecasts;
 import ca.datamagic.noaa.current.CurrentHazards;
 import ca.datamagic.noaa.current.CurrentHourlyForecast;
@@ -99,13 +103,17 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Boolean _showNewFeatures = Boolean.TRUE;
     private DWMLTask _dwmlTask = null;
     private HazardsTask _hazardsTask = null;
+    private FeatureTask _featureTask = null;
     private HourlyForecastTask _hourlyForecastTask = null;
+    private DailyForecastTask _dailyForecastTask = null;
     private StationTask _stationTask = null;
     private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
     private HazardsListener _hazardsListener = new HazardsListener();
+    private FeatureListener _featureListener = new FeatureListener();
     private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
+    private DailyForecastListener _dailyForecastListener = new DailyForecastListener();
     private StationListener _stationListener = new StationListener();
     private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
@@ -557,16 +565,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _processing = true;
             _spinner.setVisibility(View.VISIBLE);
             _dwmlTask = new DWMLTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            _featureTask = new FeatureTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             _hazardsTask = new HazardsTask();
-            _hourlyForecastTask = new HourlyForecastTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            _hourlyForecastTask = new HourlyForecastTask();
+            _dailyForecastTask = new DailyForecastTask();
             _stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
+            refreshWorkflow.addStep(new WorkflowStep(_featureTask, _featureListener));
             refreshWorkflow.addStep(new WorkflowStep(_hazardsTask, _hazardsListener));
             refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
+            refreshWorkflow.addStep(new WorkflowStep(_dailyForecastTask, _dailyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
             if ((preferencesDTO.isTextOnly() == null) || !preferencesDTO.isTextOnly().booleanValue()) {
                 refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
@@ -893,6 +905,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
+    private class FeatureListener implements AsyncTaskListener<FeatureDTO> {
+        @Override
+        public void completed(AsyncTaskResult<FeatureDTO> result) {
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error feature.", result.getThrowable());
+                }
+                CurrentFeature.setFeature(null);
+            } else {
+                CurrentFeature.setFeature(result.getResult());
+            }
+        }
+    }
+
     private class HourlyForecastListener implements AsyncTaskListener<FeatureDTO> {
         @Override
         public void completed(AsyncTaskResult<FeatureDTO> result) {
@@ -903,6 +929,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 CurrentHourlyForecast.setHourlyForecastFeature(null);
             } else {
                 CurrentHourlyForecast.setHourlyForecastFeature(result.getResult());
+            }
+        }
+    }
+
+    private class DailyForecastListener implements AsyncTaskListener<FeatureDTO> {
+        @Override
+        public void completed(AsyncTaskResult<FeatureDTO> result) {
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving daily forecast.", result.getThrowable());
+                }
+                CurrentDailyForecast.setDailyForecastFeature(null);
+            } else {
+                CurrentDailyForecast.setDailyForecastFeature(result.getResult());
             }
         }
     }

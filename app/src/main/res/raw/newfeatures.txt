@@ -1,6 +1,3 @@
-* Added wind speed and direction to hourly forecast
-* Added a call to get the current observation for the background widget update service if application has not yet been open
-* Added scrolling to the new features dialog to handle larger font sizes on smaller screens
-* Added scrolling to the settings dialog to handle larger font sizes on smaller screens
-* Added a boot listener so that the service will start on reboot if widgets are present
-* The widgets may not auto update on reboot on older Android OS
+* Added wind speed and direction to forecast tab
+* If forecast not available from the NOAA API, falls back to the DWML stream that does not have wind
+* Added location to the hourly forecast as given to me by the NOAA API

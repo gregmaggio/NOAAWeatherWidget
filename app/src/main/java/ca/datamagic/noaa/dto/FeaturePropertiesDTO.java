@@ -9,6 +9,8 @@ public class FeaturePropertiesDTO {
     private String _forecastHourly = null;
     private String _timeZone = null;
     private String _radarStation = null;
+    private String _city = null;
+    private String _state = null;
     private PeriodDTO[] _periods = null;
 
     public FeaturePropertiesDTO() {
@@ -25,6 +27,14 @@ public class FeaturePropertiesDTO {
             _periods = new PeriodDTO[periodsArray.length()];
             for (int ii = 0; ii < periodsArray.length(); ii++) {
                 _periods[ii] = new PeriodDTO(periodsArray.getJSONObject(ii));
+            }
+        }
+        JSONObject relativeLocationObj = obj.optJSONObject("relativeLocation");
+        if (relativeLocationObj != null) {
+            JSONObject propertiesObj = relativeLocationObj.optJSONObject("properties");
+            if (propertiesObj != null) {
+                _city = propertiesObj.optString("city", "");
+                _state = propertiesObj.optString("state", "");
             }
         }
     }
@@ -45,6 +55,14 @@ public class FeaturePropertiesDTO {
         return _radarStation;
     }
 
+    public String getCity() {
+        return _city;
+    }
+
+    public String getState() {
+        return _state;
+    }
+
     public void setForecast(String newVal) {
         _forecast = newVal;
     }
@@ -59,6 +77,14 @@ public class FeaturePropertiesDTO {
 
     public void setRadarStation(String newVal) {
         _radarStation = newVal;
+    }
+
+    public void setCity(String newVal) {
+        _city = newVal;
+    }
+
+    public void setState(String newVal) {
+        _state = newVal;
     }
 
     public PeriodDTO[] getPeriods() {
