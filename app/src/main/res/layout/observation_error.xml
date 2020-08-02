@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+	android:scrollHorizontally="false">
+	<TextView
+		android:id="@+id/observation_error_label"
+		android:layout_width="fill_parent"
+		android:layout_height="wrap_content"
+		android:textStyle="bold"
+		android:paddingLeft="8px"
+		android:paddingRight="8px"
+		android:inputType="textMultiLine"
+		android:scrollHorizontally="false"
+		android:minLines="2"
+		android:text="@string/observation_error"/>
+</LinearLayout>

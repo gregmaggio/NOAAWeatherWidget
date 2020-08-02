@@ -13,11 +13,24 @@ import ca.datamagic.noaa.logging.LogFactory;
 
 public class RadarBitmapsTask extends AsyncTaskBase<Void, Void, BitmapsDTO> {
     private static Logger _logger = LogFactory.getLogger(RadarBitmapsTask.class);
-    private static ImageDAO _dao = new ImageDAO(true);
+    private ImageDAO _dao = null;
     private StringListDTO _radarImages = null;
 
-    public RadarBitmapsTask(StringListDTO radarImages) {
+    public RadarBitmapsTask() {
+        _dao = new ImageDAO();
+    }
+
+    public RadarBitmapsTask(boolean enableFileCache) {
+        _dao = new ImageDAO(enableFileCache);
+    }
+
+    public RadarBitmapsTask(StringListDTO radarImages, boolean enableFileCache) {
+        _dao = new ImageDAO(enableFileCache);
         _radarImages = radarImages;
+    }
+
+    public void setRadarImages(StringListDTO newVal) {
+        _radarImages = newVal;
     }
 
     @Override

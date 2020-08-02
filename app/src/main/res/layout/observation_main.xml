@@ -8,14 +8,24 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical">
+		<TextView
+			android:id="@+id/observation_error_label"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textStyle="bold"
+			android:inputType="textMultiLine"
+			android:scrollHorizontally="false"
+			android:minLines="2"
+			android:visibility="gone"
+			android:text="@string/observation_error"/>
         <ScrollView
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"
-            android:id="@+id/forecastScroller">
+            android:layout_height="wrap_content"
+            android:id="@+id/observationScroller">
             <TableLayout
                 android:id="@+id/observationTable"
                 android:layout_width="fill_parent"
-                android:layout_height="fill_parent"
+                android:layout_height="wrap_content"
                 android:scrollbars="vertical"
                 android:scrollbarStyle="insideOverlay">
             </TableLayout>

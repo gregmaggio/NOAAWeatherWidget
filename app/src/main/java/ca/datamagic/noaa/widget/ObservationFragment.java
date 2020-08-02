@@ -154,10 +154,16 @@ public class ObservationFragment extends Fragment implements Renderer {
     }
 
     private void render(View view, LayoutInflater inflater) {
+        TextView observationErrorLabel = view.findViewById(R.id.observation_error_label);
         TableLayout observationTable = (TableLayout)view.findViewById(R.id.observationTable);
         observationTable.removeAllViews();
         ForecastsDTO forecasts = getForecasts();
         ObservationDTO observation = getObservation();
+
+        TableRow row = new TableRow(getContext());
+        row.setVisibility(View.VISIBLE);
+        row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+
         if (observation != null) {
             PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
             PreferencesDTO preferencesDTO = preferencesDAO.read();
@@ -169,12 +175,16 @@ public class ObservationFragment extends Fragment implements Renderer {
             Double elevation = observation.getElevation();
             String elevationUnits = observation.getElevationUnits();
             if ((latitude == null) || (longitude == null)) {
-                latitude = forecasts.getLatitude();
-                longitude = forecasts.getLongitude();
+                if (forecasts != null) {
+                    latitude = forecasts.getLatitude();
+                    longitude = forecasts.getLongitude();
+                }
             }
             if ((elevation == null) || (elevationUnits == null) || (elevationUnits.length() < 1)) {
-                elevation = forecasts.getElevation();
-                elevationUnits = forecasts.getElevationUnits();
+                if (forecasts != null) {
+                    elevation = forecasts.getElevation();
+                    elevationUnits = forecasts.getElevationUnits();
+                }
             }
 
             Double temperature = observation.getTemperature();
@@ -192,10 +202,6 @@ public class ObservationFragment extends Fragment implements Renderer {
             String conditionsIcon = observation.getIconUrl();
             Double visibility = observation.getVisibility();
             String visibilityUnits = observation.getVisibilityUnits();
-
-            TableRow row = new TableRow(getContext());
-            row.setVisibility(View.VISIBLE);
-            row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
             LinearLayout item = null;
             if (preferencesDTO.isTextOnly()) {
@@ -359,8 +365,12 @@ public class ObservationFragment extends Fragment implements Renderer {
                 hazardsLayout.setVisibility(View.GONE);
             }
             row.addView(item);
-            observationTable.addView(row);
+        } else {
+            // Display a meaningful error message
+            observationErrorLabel.setVisibility(View.VISIBLE);
         }
+        observationTable.addView(row);
+
         (new AccountingTask("Observation", "Render")).execute((Void[])null);
     }
 

@@ -14,7 +14,6 @@ import android.widget.TextView;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -24,8 +23,10 @@ import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarBitmapsTask;
+import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.RenderTask;
-import ca.datamagic.noaa.current.CurrentRadar;
+import ca.datamagic.noaa.async.Workflow;
+import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.BitmapsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -36,12 +37,17 @@ import ca.datamagic.noaa.util.NumberUtils;
 
 public class RadarFragment extends Fragment implements Renderer {
     private static Logger _logger = LogFactory.getLogger(RadarFragment.class);
-    private boolean _downloading = false;
+    private RadarBitmapsTask _backgroundBitmapsTask = null;
+    private RadarBitmapsTask _radarBitmapsTask = null;
     private BitmapsDTO _backgroundBitmaps = null;
+    private StringListDTO _radarImages = null;
     private BitmapsDTO _radarBitmaps = null;
     private Timer _radarTimer = null;
     private RadarTimerTask _radarTimerTask = null;
     private SimpleDateFormat _dateFormat = null;
+    private TextView _radarTime = null;
+    private ImageButton _playPauseButton = null;
+    private RadarView _radarView = null;
 
     public static RadarFragment newInstance() {
         RadarFragment fragment = new RadarFragment();
@@ -50,38 +56,6 @@ public class RadarFragment extends Fragment implements Renderer {
 
     public static int getLayoutId() {
         return R.layout.radar_main;
-    }
-
-    public StringListDTO getBackgroundImages() {
-        RadarDTO radar = CurrentRadar.getRadar();
-        if (radar != null) {
-            return radar.getBackgroundImages();
-        }
-        return null;
-    }
-
-    public StringListDTO getRadarImages() {
-        RadarDTO radar = CurrentRadar.getRadar();
-        if (radar != null) {
-            return radar.getRadarImages();
-        }
-        return null;
-    }
-
-    public BitmapsDTO getBackgroundBitmaps() {
-        return _backgroundBitmaps;
-    }
-
-    public void setBackgroundBitmaps(BitmapsDTO newVal) {
-        _backgroundBitmaps = newVal;
-    }
-
-    public BitmapsDTO getRadarBitmaps() {
-        return _radarBitmaps;
-    }
-
-    public void setRadarBitmaps(BitmapsDTO newVal) {
-        _radarBitmaps = newVal;
     }
 
     @Override
@@ -112,9 +86,12 @@ public class RadarFragment extends Fragment implements Renderer {
             View view = getView();
             if (view != null) {
                 LinearLayout radarLayout = (LinearLayout) view.findViewById(R.id.radarLayout);
-                TextView radarTime = (TextView) view.findViewById(R.id.radarTime);
-                ImageButton playPauseButton = (ImageButton) getView().findViewById(R.id.playPauseButton);
-                RadarView radarView = (RadarView) view.findViewById(R.id.radarView);
+                _radarTime = (TextView) view.findViewById(R.id.radarTime);
+                _playPauseButton = (ImageButton) getView().findViewById(R.id.playPauseButton);
+                _radarView = (RadarView) view.findViewById(R.id.radarView);
+                _playPauseButton.setVisibility(View.INVISIBLE);
+                _radarTime.setText(null);
+
                 TextView radarViewNotAvailable = (TextView) view.findViewById(R.id.radarViewNotAvailable);
                 PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                 PreferencesDTO preferencesDTO = preferencesDAO.read();
@@ -132,23 +109,34 @@ public class RadarFragment extends Fragment implements Renderer {
                     radarLayout.setVisibility(View.VISIBLE);
                 }
 
-                StringListDTO backgroundImages = getBackgroundImages();
-                BitmapsDTO backgroundBitmaps = getBackgroundBitmaps();
-                if ((backgroundImages != null) && (backgroundBitmaps == null)) {
-                    initializeBackgroundBitmaps(backgroundImages);
+                if ((_backgroundBitmaps == null) || (_radarBitmaps == null)) {
+                    RadarTask radarTask = new RadarTask();
+                    RadarListener radarListener = new RadarListener();
+                    _backgroundBitmapsTask = new RadarBitmapsTask(true);
+                    _radarBitmapsTask = new RadarBitmapsTask(false);
+                    BackgroundBitmapsListener backgroundBitmapsListener = new BackgroundBitmapsListener();
+                    RadarBitmapsListener radarBitmapsListener = new RadarBitmapsListener();
+                    Workflow radarWorkflow = new Workflow();
+                    radarWorkflow.addStep(new WorkflowStep(radarTask, radarListener));
+                    radarWorkflow.addStep(new WorkflowStep(_backgroundBitmapsTask, backgroundBitmapsListener));
+                    radarWorkflow.addStep(new WorkflowStep(_radarBitmapsTask, radarBitmapsListener));
+                    radarWorkflow.addListener(new Workflow.WorkflowListener() {
+                        @Override
+                        public void completed(boolean success) {
+                            MainActivity.getThisInstance().stopBusy();
+                            _radarView.setBackgroundBitmaps(_backgroundBitmaps);
+                            _radarView.invalidate();
+                            initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps);
+                        }
+                    });
+                    MainActivity.getThisInstance().startBusy();
+                    radarWorkflow.start();
                     return;
-                } else {
-                    radarView.setBackgroundBitmaps(backgroundBitmaps);
-                    radarView.invalidate();
                 }
 
-                StringListDTO radarImages = getRadarImages();
-                BitmapsDTO radarBitmaps = getRadarBitmaps();
-                if ((radarImages != null) && (radarBitmaps == null)) {
-                    initializeRadarBitmaps(radarImages);
-                } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-                    initializeRadarTimer(radarTime, playPauseButton, radarView, radarBitmaps);
-                }
+                _radarView.setBackgroundBitmaps(_backgroundBitmaps);
+                _radarView.invalidate();
+                initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps);
             }
             (new AccountingTask("Radar", "Render")).execute((Void[]) null);
         } catch (IllegalStateException ex) {
@@ -185,74 +173,34 @@ public class RadarFragment extends Fragment implements Renderer {
         } catch (Throwable t) {
             _logger.warning("Radar view reset scale error: " + t.getMessage());
         }
-    }
 
-    private void initializeBackgroundBitmaps(StringListDTO backgroundImages) {
-        if (_downloading) {
-            return;
-        }
-        _downloading = true;
-        MainActivity.getThisInstance().startBusy();
-        RadarBitmapsTask task = new RadarBitmapsTask(backgroundImages);
-        task.addListener(new AsyncTaskListener<BitmapsDTO>() {
-            @Override
-            public void completed(AsyncTaskResult<BitmapsDTO> result) {
-                _downloading = false;
-                MainActivity.getThisInstance().stopBusy();
-                if (result.getThrowable() != null) {
-                    _logger.warning("Exception: " + result.getThrowable().getMessage());
-                } else {
-                    setBackgroundBitmaps(result.getResult());
-                    try {
-                        RadarView radarView = getView().findViewById(R.id.radarView);
-                        radarView.setBackgroundBitmaps(getBackgroundBitmaps());
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + result.getThrowable().getMessage());
-                    }
-                    StringListDTO radarImages = getRadarImages();
-                    BitmapsDTO radarBitmaps = getRadarBitmaps();
-                    if ((radarImages != null) && (radarBitmaps == null)) {
-                        initializeRadarBitmaps(radarImages);
-                    } else if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-                        TextView radarTime = getView().findViewById(R.id.radarTime);
-                        ImageButton playPauseButton = getView().findViewById(R.id.playPauseButton);
-                        RadarView radarView = getView().findViewById(R.id.radarView);
-                        initializeRadarTimer(radarTime, playPauseButton, radarView, radarBitmaps);
-                    }
-                }
+        try {
+            if (_playPauseButton != null) {
+                _playPauseButton.setVisibility(View.INVISIBLE);
             }
-        });
-        task.execute((Void)null);
-    }
+        } catch (Throwable t) {
+            _logger.warning("play pause button set visiblity: " + t.getMessage());
+        }
 
-    private void initializeRadarBitmaps(StringListDTO radarImages) {
-        if (_downloading) {
-            return;
-        }
-        _downloading = true;
-        MainActivity.getThisInstance().startBusy();
-        RadarBitmapsTask task = new RadarBitmapsTask(radarImages);
-        task.addListener(new AsyncTaskListener<BitmapsDTO>() {
-            @Override
-            public void completed(AsyncTaskResult<BitmapsDTO> result) {
-                _downloading = false;
-                MainActivity.getThisInstance().stopBusy();
-                if (result.getThrowable() != null) {
-                    _logger.warning("Exception: " + result.getThrowable().getMessage());
-                } else {
-                    setRadarBitmaps(result.getResult());
-                    try {
-                        TextView radarTime = getView().findViewById(R.id.radarTime);
-                        ImageButton playPauseButton = getView().findViewById(R.id.playPauseButton);
-                        RadarView radarView = getView().findViewById(R.id.radarView);
-                        initializeRadarTimer(radarTime, playPauseButton, radarView, result.getResult());
-                    } catch (Throwable t) {
-                        _logger.warning("Exception: " + result.getThrowable().getMessage());
-                    }
-                }
+        try {
+            if (_radarTime != null) {
+                _radarTime.setText("");
             }
-        });
-        task.execute((Void)null);
+        } catch (Throwable t) {
+            _logger.warning("radar time set text: " + t.getMessage());
+        }
+
+        _backgroundBitmapsTask = null;
+        _radarBitmapsTask = null;
+        _backgroundBitmaps = null;
+        _radarImages = null;
+        _radarBitmaps = null;
+        _radarTimer = null;
+        _radarTimerTask = null;
+        _dateFormat = null;
+        _radarTime = null;
+        _playPauseButton = null;
+        _radarView = null;
     }
 
     private void initializeRadarTimer(TextView radarTime, ImageButton playPauseButton, RadarView radarView, BitmapsDTO radarBitmaps) {
@@ -265,7 +213,11 @@ public class RadarFragment extends Fragment implements Renderer {
             _radarTimerTask = null;
         }
         if ((radarBitmaps != null) && (radarBitmaps.size() > 0)) {
-            initializeRadarTimer(radarTime, playPauseButton, radarView, getRadarBitmaps(), radarBitmaps.size() - 1);
+            playPauseButton.setVisibility(View.INVISIBLE);
+            initializeRadarTimer(radarTime, playPauseButton, radarView, _radarBitmaps, radarBitmaps.size() - 1);
+        } else {
+            playPauseButton.setVisibility(View.GONE);
+            radarTime.setText("No radar images found for this location!");
         }
     }
 
@@ -276,9 +228,38 @@ public class RadarFragment extends Fragment implements Renderer {
             if (tag != null) {
                 if (tag.compareToIgnoreCase("pause") == 0) {
                     _radarTimer = new Timer();
-                    _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, getRadarBitmaps(), index);
+                    _radarTimerTask = new RadarTimerTask(radarTime, playPauseButton, radarView, radarBitmaps, index);
                     _radarTimer.scheduleAtFixedRate(_radarTimerTask, 1000, 1000);
                 }
+            }
+        }
+    }
+
+    private class RadarListener implements AsyncTaskListener<RadarDTO> {
+        @Override
+        public void completed(AsyncTaskResult<RadarDTO> result) {
+            if (result.getResult() != null) {
+                _backgroundBitmapsTask.setRadarImages(result.getResult().getBackgroundImages());
+                _radarImages = result.getResult().getRadarImages();
+                _radarBitmapsTask.setRadarImages(result.getResult().getRadarImages());
+            }
+        }
+    }
+
+    private class BackgroundBitmapsListener implements AsyncTaskListener<BitmapsDTO> {
+        @Override
+        public void completed(AsyncTaskResult<BitmapsDTO> result) {
+            if (result.getResult() != null) {
+                _backgroundBitmaps = result.getResult();
+            }
+        }
+    }
+
+    private class RadarBitmapsListener implements AsyncTaskListener<BitmapsDTO> {
+        @Override
+        public void completed(AsyncTaskResult<BitmapsDTO> result) {
+            if (result.getResult() != null) {
+                _radarBitmaps = result.getResult();
             }
         }
     }
@@ -301,13 +282,15 @@ public class RadarFragment extends Fragment implements Renderer {
 
         @Override
         public void run() {
+            if (_radarBitmaps == null) {
+                return;
+            }
             if (_index < 0) {
                 _index = _radarBitmaps.size() - 1;
             }
             Bitmap radarBitmap = _radarBitmaps.get(_index);
-            StringListDTO radarImages = getRadarImages();
-            if ((_dateFormat != null) && (radarImages != null) && (_index < radarImages.size()) && (_radarTime != null)) {
-                String radarImage = getRadarImages().get(_index);
+            if ((_dateFormat != null) && (_radarImages != null) && (_index < _radarImages.size()) && (_radarTime != null)) {
+                String radarImage = _radarImages.get(_index);
                 _logger.info("radarImage: " + radarImage);
                 int lastSlash = radarImage.lastIndexOf('/');
                 if (lastSlash > -1) {
@@ -351,13 +334,17 @@ public class RadarFragment extends Fragment implements Renderer {
                     }
                 }
             }
-            if (_playPauseButton.getVisibility() == View.INVISIBLE) {
-                MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        _playPauseButton.setVisibility(View.VISIBLE);
-                    }
-                });
+            if (_playPauseButton != null) {
+                if (_playPauseButton.getVisibility() == View.INVISIBLE) {
+                    MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (_playPauseButton != null) {
+                                _playPauseButton.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    });
+                }
             }
             try {
                 _radarView.setRadarBitmap(radarBitmap);

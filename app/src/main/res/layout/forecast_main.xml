@@ -1,17 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:background="#FFFFFF"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/forecastScroller">
-        <TableLayout
-            android:id="@+id/forecastTable"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:scrollbars="none"
-            android:padding="5dip"/>
-    </ScrollView>
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+	<LinearLayout
+        android:id="@+id/forecast"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:orientation="vertical">
+		<TextView
+			android:id="@+id/forecast_error_label"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:textStyle="bold"
+			android:inputType="textMultiLine"
+			android:scrollHorizontally="false"
+			android:minLines="2"
+			android:visibility="gone"
+			android:text="@string/forecast_error"/>
+		<ScrollView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/forecastScroller">
+			<TableLayout
+				android:id="@+id/forecastTable"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:scrollbars="none"
+				android:padding="5dip"/>
+		</ScrollView>
+	</LinearLayout>
 </RelativeLayout>

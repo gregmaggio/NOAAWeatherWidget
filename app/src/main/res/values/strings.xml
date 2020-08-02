@@ -93,4 +93,6 @@
 	<string name="newFeatures">New Features</string>
 	<string name="newFeaturesScrollMessage">Scroll down if you do not see OK button</string>
 	<string name="ok">OK</string>
+	<string name="observation_error">An error occurred retrieving the observation reading from the NOAA API. This problem usually resolves in a few hours. In the meantime, you can use the search to try some nearby locations.</string>
+	<string name="forecast_error">An error occurred retrieving the forecast from the NOAA API. This problem usually resolves in a few hours. In the meantime, you can use the search to try some nearby locations.</string>
 </resources>

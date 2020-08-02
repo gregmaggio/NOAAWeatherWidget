@@ -120,28 +120,6 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
         forecastTable.removeAllViews();
         int totalWidth = forecastTable.getWidth();
         if (forecastTable != null) {
-            FeatureDTO feature = CurrentFeature.getFeature();
-            String city = null;
-            String state = null;
-            FeaturePropertiesDTO featureProperties = null;
-            if (feature != null) {
-                featureProperties = feature.getProperties();
-            }
-            if (featureProperties != null) {
-                city = featureProperties.getCity();
-                state = featureProperties.getState();
-            }
-            if ((city != null) && (state != null)) {
-                TableRow descriptionRow = new TableRow(getContext());
-                descriptionRow.setVisibility(View.VISIBLE);
-                descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-                LinearLayout description = (LinearLayout) inflater.inflate(R.layout.forecast_description, null);
-                TextView descriptionText = description.findViewById(R.id.description);
-                descriptionText.setText(city + ", " + state);
-                description.setVisibility(View.VISIBLE);
-                descriptionRow.addView(description);
-                forecastTable.addView(descriptionRow);
-            }
             FeatureDTO hourlyForecastFeature = CurrentHourlyForecast.getHourlyForecastFeature();
             GeometryDTO geometry = null;
             FeaturePropertiesDTO properties = null;
@@ -158,6 +136,28 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
             String timeZoneId = getTimeZoneId();
             SunriseSunsetCalculator calculator = null;
             if ((properties != null) && (timeZoneId != null)) {
+                FeatureDTO feature = CurrentFeature.getFeature();
+                String city = null;
+                String state = null;
+                FeaturePropertiesDTO featureProperties = null;
+                if (feature != null) {
+                    featureProperties = feature.getProperties();
+                }
+                if (featureProperties != null) {
+                    city = featureProperties.getCity();
+                    state = featureProperties.getState();
+                }
+                if ((city != null) && (state != null)) {
+                    TableRow descriptionRow = new TableRow(getContext());
+                    descriptionRow.setVisibility(View.VISIBLE);
+                    descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                    LinearLayout description = (LinearLayout) inflater.inflate(R.layout.forecast_description, null);
+                    TextView descriptionText = description.findViewById(R.id.description);
+                    descriptionText.setText(city + ", " + state);
+                    description.setVisibility(View.VISIBLE);
+                    descriptionRow.addView(description);
+                    forecastTable.addView(descriptionRow);
+                }
                 TimeStampDTO timeStampDTO = new TimeStampDTO(timeZoneId);
                 TimeZone tz = TimeZone.getTimeZone(timeZoneId);
                 if ((latitude != null) && (longitude != null)) {
@@ -330,6 +330,10 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
                         currentDayOfWeek = dayOfWeek;
                     }
                 }
+            } else {
+                // Render something here
+                TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+                forecastErrorLabel.setVisibility(View.VISIBLE);
             }
             (new AccountingTask("Hourly", "Render")).execute((Void[])null);
         }

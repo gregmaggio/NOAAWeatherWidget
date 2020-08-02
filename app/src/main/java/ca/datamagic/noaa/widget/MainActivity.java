@@ -59,7 +59,6 @@ import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
 import ca.datamagic.noaa.async.HazardsTask;
 import ca.datamagic.noaa.async.HourlyForecastTask;
-import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.StationTask;
 import ca.datamagic.noaa.async.Workflow;
 import ca.datamagic.noaa.async.WorkflowStep;
@@ -73,7 +72,6 @@ import ca.datamagic.noaa.current.CurrentHazards;
 import ca.datamagic.noaa.current.CurrentHourlyForecast;
 import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.current.CurrentObservation;
-import ca.datamagic.noaa.current.CurrentRadar;
 import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.ForecastsDAO;
 import ca.datamagic.noaa.dao.GooglePlacesDAO;
@@ -85,7 +83,6 @@ import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
-import ca.datamagic.noaa.dto.RadarDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.service.AppService;
@@ -107,7 +104,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private HourlyForecastTask _hourlyForecastTask = null;
     private DailyForecastTask _dailyForecastTask = null;
     private StationTask _stationTask = null;
-    private RadarTask _radarTask = null;
     private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
     private HazardsListener _hazardsListener = new HazardsListener();
@@ -115,7 +111,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
     private DailyForecastListener _dailyForecastListener = new DailyForecastListener();
     private StationListener _stationListener = new StationListener();
-    private RadarListener _radarListener = new RadarListener();
     private DiscussionListener _discussionListener = new DiscussionListener();
     private StationsHelper _stationsHelper = null;
     private SharedPreferences _preferences = null;
@@ -353,6 +348,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.info("currentPage: " + _currentPage);
                 refreshView();
                 updateHeader();
+                if (_currentPage > -1) {
+                    _mainPageAdapter.performCleanup(_currentPage);
+                }
                 _currentPage = position;
             }
 
@@ -570,7 +568,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _hourlyForecastTask = new HourlyForecastTask();
             _dailyForecastTask = new DailyForecastTask();
             _stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-            _radarTask = new RadarTask();
             _discussionTask = new DiscussionTask();
 
             Workflow refreshWorkflow = new Workflow();
@@ -580,9 +577,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_dailyForecastTask, _dailyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
-            if ((preferencesDTO.isTextOnly() == null) || !preferencesDTO.isTextOnly().booleanValue()) {
-                refreshWorkflow.addStep(new WorkflowStep(_radarTask, _radarListener));
-            }
             refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
@@ -881,11 +875,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
                 }
                 CurrentDWML.setDWML(null);
+                CurrentObservation.setObervation(null);
+                CurrentForecasts.setForecasts(null);
             } else {
                 CurrentDWML.setDWML(result.getResult());
                 if (result.getResult() != null) {
                     CurrentObservation.setObervation(ObservationDAO.getObservation(result.getResult()));
                     CurrentForecasts.setForecasts(ForecastsDAO.getForecasts(result.getResult()));
+                } else {
+                    CurrentObservation.setObervation(null);
+                    CurrentForecasts.setForecasts(null);
                 }
             }
         }
@@ -960,20 +959,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (result.getResult() != null) {
                     _stationsAdapter.add(result.getResult());
                 }
-            }
-        }
-    }
-
-    private class RadarListener implements AsyncTaskListener<RadarDTO> {
-        @Override
-        public void completed(AsyncTaskResult<RadarDTO> result) {
-            if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving radar images.", result.getThrowable());
-                }
-                CurrentRadar.setRadar(null);
-            } else {
-                CurrentRadar.setRadar(result.getResult());
             }
         }
     }

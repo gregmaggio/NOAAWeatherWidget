@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -150,6 +151,8 @@ public class ForecastFragment extends Fragment implements Renderer {
             render(view, inflater, forecasts);
         } else {
             // Render something here
+            TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+            forecastErrorLabel.setVisibility(View.VISIBLE);
         }
         (new AccountingTask("Daily", "Render")).execute((Void[])null);
     }
