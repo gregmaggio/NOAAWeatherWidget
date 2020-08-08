@@ -53,7 +53,6 @@ import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.DWMLTask;
 import ca.datamagic.noaa.async.DailyForecastTask;
-import ca.datamagic.noaa.async.DiscussionTask;
 import ca.datamagic.noaa.async.FeatureTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
@@ -65,7 +64,6 @@ import ca.datamagic.noaa.async.WorkflowStep;
 import ca.datamagic.noaa.current.CurrentContext;
 import ca.datamagic.noaa.current.CurrentDWML;
 import ca.datamagic.noaa.current.CurrentDailyForecast;
-import ca.datamagic.noaa.current.CurrentDiscussion;
 import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.current.CurrentForecasts;
 import ca.datamagic.noaa.current.CurrentHazards;
@@ -104,14 +102,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private HourlyForecastTask _hourlyForecastTask = null;
     private DailyForecastTask _dailyForecastTask = null;
     private StationTask _stationTask = null;
-    private DiscussionTask _discussionTask = null;
     private DWMLListener _dwmlListener = new DWMLListener();
     private HazardsListener _hazardsListener = new HazardsListener();
     private FeatureListener _featureListener = new FeatureListener();
     private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
     private DailyForecastListener _dailyForecastListener = new DailyForecastListener();
     private StationListener _stationListener = new StationListener();
-    private DiscussionListener _discussionListener = new DiscussionListener();
     private StationsHelper _stationsHelper = null;
     private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
@@ -568,7 +564,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _hourlyForecastTask = new HourlyForecastTask();
             _dailyForecastTask = new DailyForecastTask();
             _stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-            _discussionTask = new DiscussionTask();
 
             Workflow refreshWorkflow = new Workflow();
             refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
@@ -577,7 +572,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_dailyForecastTask, _dailyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
-            refreshWorkflow.addStep(new WorkflowStep(_discussionTask, _discussionListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -959,20 +953,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (result.getResult() != null) {
                     _stationsAdapter.add(result.getResult());
                 }
-            }
-        }
-    }
-
-    private class DiscussionListener implements AsyncTaskListener<String> {
-        @Override
-        public void completed(AsyncTaskResult<String> result) {
-            if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving discussion.", result.getThrowable());
-                }
-                CurrentDiscussion.setDiscussion(null);
-            } else {
-                CurrentDiscussion.setDiscussion(result.getResult());
             }
         }
     }

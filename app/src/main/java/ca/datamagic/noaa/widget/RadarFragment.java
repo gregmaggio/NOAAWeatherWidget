@@ -282,77 +282,77 @@ public class RadarFragment extends Fragment implements Renderer {
 
         @Override
         public void run() {
-            if (_radarBitmaps == null) {
-                return;
-            }
-            if (_index < 0) {
-                _index = _radarBitmaps.size() - 1;
-            }
-            Bitmap radarBitmap = _radarBitmaps.get(_index);
-            if ((_dateFormat != null) && (_radarImages != null) && (_index < _radarImages.size()) && (_radarTime != null)) {
-                String radarImage = _radarImages.get(_index);
-                _logger.info("radarImage: " + radarImage);
-                int lastSlash = radarImage.lastIndexOf('/');
-                if (lastSlash > -1) {
-                    String radarFile = radarImage.substring(lastSlash + 1);
-                    _logger.info("radarFile: " + radarFile);
-                    String[] radarFileParts = radarFile.split("_");
-                    if (radarFileParts.length > 2) {
-                        String date = radarFileParts[1];
-                        _logger.info("date: " + date);
-                        Integer year = null;
-                        Integer month = null;
-                        Integer day = null;
-                        if (date.length() > 7) {
-                            year = NumberUtils.toInteger(date.substring(0, 4));
-                            month = NumberUtils.toInteger(date.substring(4, 6));
-                            day = NumberUtils.toInteger(date.substring(6));
-                        }
-                        String time = radarFileParts[2];
-                        _logger.info("time: " + time);
-                        Integer hour = null;
-                        Integer minute = null;
-                        if (time.length() > 3) {
-                            hour = NumberUtils.toInteger(time.substring(0, 2));
-                            minute = NumberUtils.toInteger(time.substring(2));
-                        }
-                        if ((year != null) && (month != null) && (day != null) && (hour != null) && (minute != null)) {
-                            final Calendar calendar = Calendar.getInstance();
-                            calendar.set(Calendar.YEAR, year);
-                            calendar.set(Calendar.MONTH, month.intValue() - 1);
-                            calendar.set(Calendar.DAY_OF_MONTH, day);
-                            calendar.set(Calendar.HOUR_OF_DAY, hour);
-                            calendar.set(Calendar.MINUTE, minute);
-                            calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
-                            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    _radarTime.setText(_dateFormat.format(calendar.getTime()));
-                                }
-                            });
+            try {
+                if (_radarBitmaps == null) {
+                    return;
+                }
+                if (_index < 0) {
+                    _index = _radarBitmaps.size() - 1;
+                }
+                Bitmap radarBitmap = _radarBitmaps.get(_index);
+                if ((_dateFormat != null) && (_radarImages != null) && (_index < _radarImages.size()) && (_radarTime != null)) {
+                    String radarImage = _radarImages.get(_index);
+                    _logger.info("radarImage: " + radarImage);
+                    int lastSlash = radarImage.lastIndexOf('/');
+                    if (lastSlash > -1) {
+                        String radarFile = radarImage.substring(lastSlash + 1);
+                        _logger.info("radarFile: " + radarFile);
+                        String[] radarFileParts = radarFile.split("_");
+                        if (radarFileParts.length > 2) {
+                            String date = radarFileParts[1];
+                            _logger.info("date: " + date);
+                            Integer year = null;
+                            Integer month = null;
+                            Integer day = null;
+                            if (date.length() > 7) {
+                                year = NumberUtils.toInteger(date.substring(0, 4));
+                                month = NumberUtils.toInteger(date.substring(4, 6));
+                                day = NumberUtils.toInteger(date.substring(6));
+                            }
+                            String time = radarFileParts[2];
+                            _logger.info("time: " + time);
+                            Integer hour = null;
+                            Integer minute = null;
+                            if (time.length() > 3) {
+                                hour = NumberUtils.toInteger(time.substring(0, 2));
+                                minute = NumberUtils.toInteger(time.substring(2));
+                            }
+                            if ((year != null) && (month != null) && (day != null) && (hour != null) && (minute != null)) {
+                                final Calendar calendar = Calendar.getInstance();
+                                calendar.set(Calendar.YEAR, year);
+                                calendar.set(Calendar.MONTH, month.intValue() - 1);
+                                calendar.set(Calendar.DAY_OF_MONTH, day);
+                                calendar.set(Calendar.HOUR_OF_DAY, hour);
+                                calendar.set(Calendar.MINUTE, minute);
+                                calendar.setTimeZone(TimeZone.getTimeZone("GMT"));
+                                MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        _radarTime.setText(_dateFormat.format(calendar.getTime()));
+                                    }
+                                });
+                            }
                         }
                     }
                 }
-            }
-            if (_playPauseButton != null) {
-                if (_playPauseButton.getVisibility() == View.INVISIBLE) {
-                    MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (_playPauseButton != null) {
-                                _playPauseButton.setVisibility(View.VISIBLE);
+                if (_playPauseButton != null) {
+                    if (_playPauseButton.getVisibility() == View.INVISIBLE) {
+                        MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if (_playPauseButton != null) {
+                                    _playPauseButton.setVisibility(View.VISIBLE);
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
-            }
-            try {
                 _radarView.setRadarBitmap(radarBitmap);
                 _radarView.invalidate();
+                --_index;
             } catch (Throwable t) {
-                // TODO
+                _logger.warning("Unexpected Exception in RadarTimerTask.run: " + t.getMessage());
             }
-            --_index;
         }
 
         @Override
