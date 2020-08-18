@@ -1,4 +1,2 @@
-* Removed loading of discussion on refresh or load
-* Added loading screen to discussion tab (normally it is so quick you won't see it)
-* Added some additional exception handling to radar loop. Someone out there was getting exceptions.
-* Updated the API version as per Google's requirements
+* Added a couple of additional exception handlers and null check in the radar timer
+* I was still seeing some crashes in there as per the Google play console

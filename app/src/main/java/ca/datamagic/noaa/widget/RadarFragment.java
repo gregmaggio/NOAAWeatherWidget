@@ -351,30 +351,40 @@ public class RadarFragment extends Fragment implements Renderer {
                 _radarView.invalidate();
                 --_index;
             } catch (Throwable t) {
-                _logger.warning("Unexpected Exception in RadarTimerTask.run: " + t.getMessage());
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in RadarTimerTask.run.");
             }
         }
 
         @Override
         public void onClick(View v) {
-            if (_playPauseButton != null) {
-                String tag = (String) _playPauseButton.getTag();
-                _logger.info("tag: " + tag);
-                if (tag != null) {
-                    if (tag.compareToIgnoreCase("pause") == 0) {
-                        _playPauseButton.setImageResource(R.drawable.play);
-                        _playPauseButton.setTag("play");
-                        if (_radarTimer != null) {
-                            _radarTimer.cancel();
+            try {
+                if (_playPauseButton != null) {
+                    String tag = (String) _playPauseButton.getTag();
+                    _logger.info("tag: " + tag);
+                    if (tag != null) {
+                        if (tag.compareToIgnoreCase("pause") == 0) {
+                            _playPauseButton.setImageResource(R.drawable.play);
+                            _playPauseButton.setTag("play");
+                            if (_radarTimer != null) {
+                                _radarTimer.cancel();
+                            }
+                            _radarTimer = null;
+                            _radarTimerTask = null;
+                        } else if (tag.compareToIgnoreCase("play") == 0) {
+                            _playPauseButton.setImageResource(R.drawable.pause);
+                            _playPauseButton.setTag("pause");
+                            initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps, _index);
                         }
-                        _radarTimer = null;
-                        _radarTimerTask = null;
-                    } else if (tag.compareToIgnoreCase("play") == 0) {
-                        _playPauseButton.setImageResource(R.drawable.pause);
-                        _playPauseButton.setTag("pause");
-                        initializeRadarTimer(_radarTime, _playPauseButton, _radarView, _radarBitmaps, _index);
                     }
                 }
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in RadarTimerTask.onClick.");
             }
         }
     }
