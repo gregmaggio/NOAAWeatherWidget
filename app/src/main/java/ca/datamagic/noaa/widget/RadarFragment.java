@@ -328,7 +328,20 @@ public class RadarFragment extends Fragment implements Renderer {
                                 MainActivity.getThisInstance().runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        _radarTime.setText(_dateFormat.format(calendar.getTime()));
+                                        try {
+                                            _radarTime.setText(_dateFormat.format(calendar.getTime()));
+                                        } catch (Throwable t) {
+                                            _logger.warning(t.getMessage());
+                                            if (_radarTime == null) {
+                                                _logger.warning("_radarTime is null");
+                                            }
+                                            if (_dateFormat == null) {
+                                                _logger.warning("_dateFormat is null");
+                                            }
+                                            if (calendar == null) {
+                                                _logger.warning("calendar is null");
+                                            }
+                                        }
                                     }
                                 });
                             }
