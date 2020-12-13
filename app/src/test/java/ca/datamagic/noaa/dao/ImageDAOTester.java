@@ -4,7 +4,7 @@ import android.graphics.Bitmap;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricTestRunner;
+import org.junit.runners.JUnit4;
 
 import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
 import ca.datamagic.noaa.util.URLConnectionReader;
@@ -12,7 +12,7 @@ import ca.datamagic.noaa.util.URLConnectionReader;
 /**
  * Created by Greg on 1/1/2016.
  */
-@RunWith(RobolectricTestRunner.class)
+@RunWith(JUnit4.class)
 public class ImageDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {

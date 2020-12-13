@@ -1,7 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +9,7 @@ import android.widget.TextView;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import androidx.fragment.app.Fragment;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;

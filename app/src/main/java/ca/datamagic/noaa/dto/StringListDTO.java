@@ -2,10 +2,11 @@ package ca.datamagic.noaa.dto;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import androidx.annotation.NonNull;
 
 public class StringListDTO implements Parcelable, Comparable<StringListDTO> {
     private List<String> _items = new ArrayList<String>();

@@ -7,12 +7,12 @@ import android.app.Service;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
-import android.support.v4.app.NotificationCompat;
 
 import java.util.Timer;
 import java.util.logging.Logger;
 
+import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
 import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.dto.ObservationDTO;

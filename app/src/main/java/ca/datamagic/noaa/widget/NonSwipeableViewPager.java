@@ -2,14 +2,14 @@ package ca.datamagic.noaa.widget;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import java.util.logging.Logger;
 
+import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class NonSwipeableViewPager extends ViewPager {

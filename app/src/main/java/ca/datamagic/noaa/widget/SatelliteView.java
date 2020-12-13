@@ -13,15 +13,13 @@ import android.view.View;
 import java.util.logging.Logger;
 
 import androidx.annotation.Nullable;
-import ca.datamagic.noaa.dto.BitmapsDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class RadarView extends View {
+public class SatelliteView extends View {
     private static final int INVALID_POINTER_ID = -1;
-    private static Logger _logger = LogFactory.getLogger(RadarView.class);
-    private static double _aspectRatio = 1.089514066496164;
-    private BitmapsDTO _backgroundBitmaps = null;
-    private Bitmap _radarBitmap = null;
+    private static Logger _logger = LogFactory.getLogger(SatelliteView.class);
+    private double _aspectRatio = 1.0;
+    private Bitmap _satelliteBitmap = null;
     private ScaleGestureDetector _scaleDetector = null;
     private float _scaleFactor = 1.f;
     private float _lastTouchX = 0f;
@@ -30,24 +28,32 @@ public class RadarView extends View {
     private float _posX = 0f;
     private float _posY = 0f;
 
-    public RadarView(Context context) {
+    public SatelliteView(Context context) {
         super(context);
-        _scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        _scaleDetector = new ScaleGestureDetector(context, new SatelliteView.ScaleListener());
     }
 
-    public RadarView(Context context, @Nullable AttributeSet attrs) {
+    public SatelliteView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-        _scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        _scaleDetector = new ScaleGestureDetector(context, new SatelliteView.ScaleListener());
     }
 
-    public RadarView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
+    public SatelliteView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        _scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        _scaleDetector = new ScaleGestureDetector(context, new SatelliteView.ScaleListener());
     }
 
-    public RadarView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
+    public SatelliteView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
-        _scaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        _scaleDetector = new ScaleGestureDetector(context, new SatelliteView.ScaleListener());
+    }
+
+    public double getAspectRatio() {
+        return _aspectRatio;
+    }
+
+    public void setAspectRatio(double newVal) {
+        _aspectRatio = newVal;
     }
 
     public void resetScale() {
@@ -141,25 +147,17 @@ public class RadarView extends View {
                 }
             }
         } catch (Throwable t) {
-            _logger.warning("Exception caught in RadarView.onTouchEvent. Exception: " + t.getMessage());
+            _logger.warning("Exception caught in SatelliteView.onTouchEvent. Exception: " + t.getMessage());
         }
         return true;
     }
 
-    public BitmapsDTO getBackgroundBitmaps() {
-        return _backgroundBitmaps;
+    public Bitmap getSatelliteBitmap() {
+        return _satelliteBitmap;
     }
 
-    public void setBackgroundBitmaps(BitmapsDTO newVal) {
-        _backgroundBitmaps = newVal;
-    }
-
-    public Bitmap getRadarBitmap() {
-        return _radarBitmap;
-    }
-
-    public void setRadarBitmap(Bitmap newVal) {
-        _radarBitmap = newVal;
+    public void setSatelliteBitmap(Bitmap newVal) {
+        _satelliteBitmap = newVal;
     }
 
     private void drawBitmap(Bitmap bitmap, Canvas canvas) {
@@ -181,13 +179,8 @@ public class RadarView extends View {
         _logger.info("width: " + Integer.toString(canvas.getWidth()));
         _logger.info("height: " + Integer.toString(canvas.getHeight()));
         canvas.drawColor(Color.WHITE);
-        if (_backgroundBitmaps != null) {
-            for (int ii = 0; ii < _backgroundBitmaps.size(); ii++) {
-                drawBitmap(_backgroundBitmaps.get(ii), canvas);
-            }
-        }
-        if (_radarBitmap != null) {
-            drawBitmap(_radarBitmap, canvas);
+        if (_satelliteBitmap != null) {
+            drawBitmap(_satelliteBitmap, canvas);
         }
     }
 

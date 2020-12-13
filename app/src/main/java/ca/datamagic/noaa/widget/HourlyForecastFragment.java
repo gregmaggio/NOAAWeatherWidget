@@ -1,9 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,6 +18,9 @@ import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.logging.Logger;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.async.RenderTask;

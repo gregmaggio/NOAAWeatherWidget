@@ -1,6 +1,6 @@
 package ca.datamagic.noaa.dto;
 
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public class WidgetInfoDTO {
     private String _widgetKey = null;

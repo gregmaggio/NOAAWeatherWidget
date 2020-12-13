@@ -2,27 +2,28 @@ package ca.datamagic.noaa.widget;
 
 import android.content.Context;
 import android.os.Parcelable;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.view.ViewGroup;
 
 import java.util.logging.Logger;
 
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentStatePagerAdapter;
 import ca.datamagic.noaa.logging.LogFactory;
 
 /**
  * Created by Greg on 1/10/2016.
  */
-public class MainPageAdapter extends FragmentPagerAdapter {
+public class MainPageAdapter extends FragmentStatePagerAdapter {
     private static Logger _logger = LogFactory.getLogger(MainPageAdapter.class);
     public static final int ObservationIndex = 0;
     public static final int HourlyForecastIndex = 1;
     public static final int ForecastIndex = 2;
     public static final int DiscussionIndex = 3;
     public static final int RadarIndex = 4;
-    private String[] _pageTitles = new String[5];
-    private Fragment[] _fragments = new Fragment[5];
+    public static final int SatelliteIndex = 5;
+    private String[] _pageTitles = new String[6];
+    private Fragment[] _fragments = new Fragment[6];
 
     public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
@@ -31,6 +32,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
         _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
+        _pageTitles[SatelliteIndex] = context.getResources().getString(R.string.satellite_page_title);
     }
 
     public void performCleanup(int position) {
@@ -61,6 +63,7 @@ public class MainPageAdapter extends FragmentPagerAdapter {
             case ForecastIndex: return R.layout.forecast_main;
             case DiscussionIndex: return R.layout.discussion_main;
             case RadarIndex: return R.layout.radar_main;
+            case SatelliteIndex: return R.layout.satellite_main;
         }
         return -1;
     }
@@ -84,6 +87,9 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                 case RadarIndex:
                     _fragments[position] = RadarFragment.newInstance();
                     break;
+                case SatelliteIndex:
+                    _fragments[position] = SatelliteFragment.newInstance();
+                    break;
             }
         } else {
             switch (position) {
@@ -96,6 +102,8 @@ public class MainPageAdapter extends FragmentPagerAdapter {
                 case DiscussionIndex:
                     break;
                 case RadarIndex:
+                    break;
+                case SatelliteIndex:
                     break;
             }
         }

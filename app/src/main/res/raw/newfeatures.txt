@@ -1,2 +1,6 @@
-* Added a couple of additional exception handlers and null check in the radar timer
-* I was still seeing some crashes in there as per the Google play console
+* Security changes to the NOAA servers broke API calls
+* Fingers crossed that things are all fixed now
+* Use the send error and leave your email and I will get back to you
+* Added a satellite tab to display the latest satellite image
+* Added a tweak to the user-agent header to include my contact info
+* Deploying using Android App Bundle. Let's see if this helps.

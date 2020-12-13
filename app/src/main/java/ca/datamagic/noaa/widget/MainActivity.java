@@ -1,7 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -14,15 +13,6 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.view.ViewPager;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.SearchView;
-import android.support.v7.widget.Toolbar;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
@@ -48,6 +38,16 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
+import androidx.viewpager.widget.ViewPager;
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
@@ -268,19 +268,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
         IOUtils.closeQuietly(inputStream);
 
-        _spinner = (ProgressBar)findViewById(R.id.progressBar);
+        _spinner = findViewById(R.id.progressBar);
 
         readCurrentState();
 
-        ListView leftDrawer = (ListView)findViewById(R.id.left_drawer);
+        ListView leftDrawer = findViewById(R.id.left_drawer);
         leftDrawer.setAdapter(_stationsAdapter);
 
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setHomeButtonEnabled(true);
 
-        _drawerLayout = (DrawerLayout)findViewById(R.id.drawer_layout);
+        _drawerLayout = findViewById(R.id.drawer_layout);
         _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout,
                 R.string.drawer_open, R.string.drawer_close) {
 
@@ -331,7 +331,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             _header.addView(textView);
         }
 
-        _viewPager = (NonSwipeableViewPager) findViewById(R.id.viewpager);
+        _viewPager = findViewById(R.id.viewpager);
         _viewPager.setAdapter(_mainPageAdapter);
         _viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override

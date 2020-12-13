@@ -3,8 +3,8 @@ package ca.datamagic.noaa.dao;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.preference.PreferenceManager;
 
+import androidx.preference.PreferenceManager;
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.PressureUnitsDTO;
