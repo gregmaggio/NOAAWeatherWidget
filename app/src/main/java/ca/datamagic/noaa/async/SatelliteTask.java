@@ -14,7 +14,7 @@ public class SatelliteTask extends AsyncTaskBase<Void, Void, Bitmap> {
     private String _state = null;
 
     public SatelliteTask(String state) {
-        _dao = new ImageDAO();
+        _dao = new ImageDAO(false);
         _state = state;
     }
 
