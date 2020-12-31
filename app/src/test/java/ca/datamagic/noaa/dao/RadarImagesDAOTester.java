@@ -10,7 +10,7 @@ public class RadarImagesDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
         RadarImagesDAO dao = new RadarImagesDAO();
-        List<String> radarImages = dao.loadRadarImages("LWX");
+        List<String> radarImages = dao.loadRadarImages("KLWX");
         System.out.println(radarImages);
     }
 }
