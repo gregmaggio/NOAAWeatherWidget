@@ -20,9 +20,10 @@ public class MainPageAdapter extends FragmentStatePagerAdapter {
     public static final int HourlyForecastIndex = 1;
     public static final int ForecastIndex = 2;
     public static final int DiscussionIndex = 3;
-    public static final int SatelliteIndex = 4;
-    private String[] _pageTitles = new String[5];
-    private Fragment[] _fragments = new Fragment[5];
+    public static final int RadarIndex = 4;
+    public static final int SatelliteIndex = 5;
+    private String[] _pageTitles = new String[6];
+    private Fragment[] _fragments = new Fragment[6];
 
     public MainPageAdapter(FragmentManager manager, Context context) {
         super(manager);
@@ -30,6 +31,7 @@ public class MainPageAdapter extends FragmentStatePagerAdapter {
         _pageTitles[HourlyForecastIndex] = context.getResources().getString(R.string.hourlyforecast_page_title);
         _pageTitles[ForecastIndex] = context.getResources().getString(R.string.forecast_page_title);
         _pageTitles[DiscussionIndex] = context.getResources().getString(R.string.discussion_page_title);
+        _pageTitles[RadarIndex] = context.getResources().getString(R.string.radar_page_title);
         _pageTitles[SatelliteIndex] = context.getResources().getString(R.string.satellite_page_title);
     }
 
@@ -60,6 +62,7 @@ public class MainPageAdapter extends FragmentStatePagerAdapter {
             case HourlyForecastIndex: return R.layout.forecast_main;
             case ForecastIndex: return R.layout.forecast_main;
             case DiscussionIndex: return R.layout.discussion_main;
+            case RadarIndex: return R.layout.radar_main;
             case SatelliteIndex: return R.layout.satellite_main;
         }
         return -1;
@@ -81,6 +84,9 @@ public class MainPageAdapter extends FragmentStatePagerAdapter {
                 case DiscussionIndex:
                     _fragments[position] = DiscussionFragment.newInstance();
                     break;
+                case RadarIndex:
+                    _fragments[position] = RadarFragment.newInstance();
+                    break;
                 case SatelliteIndex:
                     _fragments[position] = SatelliteFragment.newInstance();
                     break;
@@ -94,6 +100,8 @@ public class MainPageAdapter extends FragmentStatePagerAdapter {
                 case ForecastIndex:
                     break;
                 case DiscussionIndex:
+                    break;
+                case RadarIndex:
                     break;
                 case SatelliteIndex:
                     break;

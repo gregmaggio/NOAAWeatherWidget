@@ -85,6 +85,8 @@
     <string name="hazardsInstructions">USE THE BACK BUTTON DISMISS</string>
     <string name="dateFormat">Date Format</string>
     <string name="timeFormat">Time Format</string>
+	<string name="timeFormat24Hour">24 Hour</string>
+	<string name="timeFormat12Hour">12 Hour</string>
     <string name="add_widget">Add widget</string>
 	<string name="widgetFontColor">Widget Font Color</string>
     <string name="service_name">NOAA Weather Widget</string>

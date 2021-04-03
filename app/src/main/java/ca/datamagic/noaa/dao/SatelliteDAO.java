@@ -66,7 +66,7 @@ public class SatelliteDAO {
             connection.setRequestProperty("Sec-Fetch-User", "?1");
             connection.setRequestProperty("Sec-Fetch-Dest", "document");
             connection.connect();
-            String responseText = IOUtils.readEntireStream(connection.getInputStream());
+            String responseText = IOUtils.readEntireString(connection.getInputStream());
 
             List<String> images = new ArrayList<String>();
             Document doc = Jsoup.parse(responseText);

@@ -48,7 +48,7 @@ public class GooglePlacesDAO {
             connection.setConnectTimeout(2000);
             connection.connect();
             inputStream = connection.getInputStream();
-            String responseText = IOUtils.readEntireStream(inputStream);
+            String responseText = IOUtils.readEntireString(inputStream);
             _logger.info("responseText: " + responseText);
             JSONObject responseObj = new JSONObject(responseText);
             JSONArray predictions = (JSONArray)responseObj.get("predictions");
@@ -92,7 +92,7 @@ public class GooglePlacesDAO {
             connection.setConnectTimeout(5000);
             connection.connect();
             inputStream = connection.getInputStream();
-            String responseText = IOUtils.readEntireStream(inputStream);
+            String responseText = IOUtils.readEntireString(inputStream);
             _logger.info("responseText: " + responseText);
             JSONObject responseObj = new JSONObject(responseText);
             return new PlaceDTO(responseObj.getJSONObject("result"));

@@ -35,6 +35,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
     private RadioGroup _heightUnits = null;
     private CheckBox _textOnly = null;
     private RadioGroup _dateFormats = null;
+    private RadioGroup _timeFormats = null;
     private RadioGroup _widgetFontColor = null;
     private Button _saveSettingsButton = null;
     private Button _cancelSettingsButton = null;
@@ -76,6 +77,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         _heightUnits = (RadioGroup)findViewById(R.id.heightUnits);
         _textOnly = (CheckBox)findViewById(R.id.textOnly);
         _dateFormats = (RadioGroup)findViewById(R.id.dateFormats);
+        _timeFormats = (RadioGroup)findViewById(R.id.timeFormats);
         _widgetFontColor = (RadioGroup)findViewById(R.id.widgetFontColor);
         _saveSettingsButton = (Button)findViewById(R.id.saveSettings);
         _cancelSettingsButton = (Button)findViewById(R.id.cancelSettings);
@@ -148,6 +150,13 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
                 _dateFormats.check(R.id.dateFormatsDDMMYYYYSlashes);
             } else if (dto.getDateFormat().compareToIgnoreCase("dd-MM-yyyy") == 0) {
                 _dateFormats.check(R.id.dateFormatsDDMMYYYYDashes);
+            }
+        }
+        if (dto.getTimeFormat() != null) {
+            if (dto.getTimeFormat().compareToIgnoreCase("HH:mm") == 0) {
+                _timeFormats.check(R.id.timeFormats24Hour);
+            } else  if (dto.getTimeFormat().compareToIgnoreCase("h:mm a") == 0) {
+                _timeFormats.check(R.id.timeFormats12Hour);
             }
         }
         if (dto.getWidgetFontColor() != null) {
@@ -265,7 +274,10 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
             }
             RadioButton selectedDateFormat = (RadioButton)findViewById(_dateFormats.getCheckedRadioButtonId());
             dto.setDateFormat(selectedDateFormat.getText().toString());
-
+            switch (_timeFormats.getCheckedRadioButtonId()) {
+                case R.id.timeFormats24Hour: dto.setTimeFormat("HH:mm"); break;
+                case R.id.timeFormats12Hour: dto.setTimeFormat("h:mm a"); break;
+            }
             switch (_widgetFontColor.getCheckedRadioButtonId()) {
                 case R.id.widgetFontColorBlack:
                     dto.setWidgetFontColor(Color.BLACK);

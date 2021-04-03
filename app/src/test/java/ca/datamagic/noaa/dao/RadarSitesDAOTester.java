@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
-import ca.datamagic.noaa.dto.RadarSiteDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class RadarSitesDAOTester extends BaseTester {

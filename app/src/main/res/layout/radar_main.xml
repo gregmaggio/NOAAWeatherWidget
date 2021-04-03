@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="#FFFFFF"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:fillViewport="true">
+	
+	<LinearLayout
+		android:orientation="vertical"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:id="@+id/radarLayout">
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+			<ImageButton
+				android:id="@+id/playPauseButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@null"
+				android:tag="pause"
+				android:src="@drawable/pause"
+				android:visibility="gone" />		
+			<TextView
+				android:padding="5dip"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:text=""
+				android:id="@+id/radarTime" />
+		</LinearLayout>
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:gravity="center"
+			android:visibility="gone"
+			android:id="@+id/moveTileLayout">
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="38dp"
+				android:layout_height="wrap_content"
+				android:id="@+id/leftLayout">
+				<ImageButton
+					android:id="@+id/leftButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null"
+					android:tag="left"
+					android:src="@drawable/left" />
+				<TextView
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:text="West"
+					android:gravity="center"
+					android:id="@+id/leftText"/>
+			</LinearLayout>
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="38dp"
+				android:layout_height="wrap_content"
+				android:id="@+id/upLayout">
+				<ImageButton
+					android:id="@+id/upButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null"
+					android:tag="up"
+					android:src="@drawable/up" />
+				<TextView
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:text="North"
+					android:gravity="center"
+					android:id="@+id/upText"/>
+			</LinearLayout>
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="38dp"
+				android:layout_height="wrap_content"
+				android:id="@+id/downLayout">
+				<ImageButton
+					android:id="@+id/downButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null"
+					android:tag="down"
+					android:src="@drawable/down" />
+				<TextView
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:text="South"
+					android:gravity="center"
+					android:id="@+id/downText"/>
+			</LinearLayout>
+			<LinearLayout
+				android:orientation="vertical"
+				android:layout_width="38dp"
+				android:layout_height="wrap_content"
+				android:id="@+id/rightLayout">
+				<ImageButton
+					android:id="@+id/rightButton"
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:background="@null"
+					android:tag="right"
+					android:src="@drawable/right" />
+				<TextView
+					android:layout_width="fill_parent"
+					android:layout_height="wrap_content"
+					android:text="East"
+					android:gravity="center"
+					android:id="@+id/rightText"/>
+			</LinearLayout>
+		</LinearLayout>
+		<ca.datamagic.noaa.widget.RadarView
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:id="@+id/radarView" />		
+	</LinearLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Radar not available in text mode"
+        android:visibility="gone"
+        android:id="@+id/radarViewNotAvailable"/>
+	<TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Radar not available for this location"
+        android:visibility="gone"
+        android:id="@+id/radarViewNotAvailableForThisLocation"/>
+</RelativeLayout>

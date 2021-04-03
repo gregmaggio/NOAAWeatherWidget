@@ -262,7 +262,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         InputStream inputStream = null;
         try {
             inputStream = getResources().openRawResource(R.raw.newfeatures);
-            newFeatures = IOUtils.readEntireStream(inputStream);
+            newFeatures = IOUtils.readEntireString(inputStream);
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
         }
@@ -408,7 +408,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.WARNING, _filesPath, true);
+            LogFactory.initialize(Level.ALL, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {

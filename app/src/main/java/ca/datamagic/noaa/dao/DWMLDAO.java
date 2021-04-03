@@ -48,7 +48,7 @@ public class DWMLDAO {
             connection.setRequestProperty("Sec-Fetch-User", "?1");
             connection.setRequestProperty("Sec-Fetch-Dest", "document");
             connection.connect();
-            String responseText = IOUtils.readEntireStream(connection.getInputStream());
+            String responseText = IOUtils.readEntireString(connection.getInputStream());
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
             DWMLHandler handler = new DWMLHandler();

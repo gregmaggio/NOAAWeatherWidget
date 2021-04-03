@@ -11,8 +11,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.logging.LogFactory;
@@ -23,7 +21,6 @@ import ca.datamagic.noaa.util.IOUtils;
  */
 public class ImageDAO {
     private static Logger _logger = LogFactory.getLogger(ImageDAO.class);
-    private static int _bufferSize = 1024;
     private static String _filesPath = null;
     private boolean _enableFileCache = true;
 
@@ -82,18 +79,7 @@ public class ImageDAO {
             connection.setRequestProperty("Sec-Fetch-Dest", "document");
             connection.connect();
             inputStream = connection.getInputStream();
-            List<Byte> bytesArray = new ArrayList<Byte>();
-            byte[] buffer = new byte[_bufferSize];
-            int bytesRead = 0;
-            while ((bytesRead = inputStream.read(buffer, 0, buffer.length)) > 0) {
-                for (int jj = 0; jj < bytesRead; jj++) {
-                    bytesArray.add(new Byte(buffer[jj]));
-                }
-            }
-            imageBytes = new byte[bytesArray.size()];
-            for (int jj = 0; jj < bytesArray.size(); jj++) {
-                imageBytes[jj] = bytesArray.get(jj).byteValue();
-            }
+            imageBytes = IOUtils.readEntireByteArray(inputStream);
             if (_enableFileCache) {
                 write(file.getName(), imageBytes);
             }
@@ -105,20 +91,8 @@ public class ImageDAO {
                 return null;
             }
         } finally {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(connection);
         }
         return null;
     }
