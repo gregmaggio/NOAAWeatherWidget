@@ -30,7 +30,7 @@ public class NonSwipeableViewPager extends ViewPager {
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent ev) {
+    public boolean onTouchEvent(MotionEvent event) {
         try {
             if (!_enabled) {
                 // If we are disabled, but the touch event is outside the current fragment view, then re-enable the pager
@@ -38,9 +38,9 @@ public class NonSwipeableViewPager extends ViewPager {
                 if (mainActivity != null) {
                     MainPageAdapter mainPageAdapter = mainActivity.getMainPageAdapter();
                     if (mainPageAdapter != null) {
-                        Fragment currentFragment = mainPageAdapter.getItem(getCurrentItem());
+                        NonSwipeableFragment currentFragment = (NonSwipeableFragment)mainPageAdapter.getItem(getCurrentItem());
                         if (currentFragment != null) {
-                            if (!inViewInBounds(currentFragment.getView(), (int) ev.getX(), (int) ev.getY())) {
+                            if (currentFragment.canSwipe(event.getX(), event.getY())) {
                                 _enabled = true;
                             }
                         }
@@ -48,7 +48,7 @@ public class NonSwipeableViewPager extends ViewPager {
                 }
             }
             if (_enabled) {
-                return super.onTouchEvent(ev);
+                return super.onTouchEvent(event);
             }
         } catch (Throwable t) {
             _logger.warning("Exception caught in NonSwipeableViewPager.onTouchEvent. Exception: " + t.getMessage());

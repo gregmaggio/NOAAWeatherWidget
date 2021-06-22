@@ -40,7 +40,7 @@ import ca.datamagic.noaa.dto.TimeStampDTO;
 import ca.datamagic.noaa.dto.WindSpeedCalculatorDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class HourlyForecastFragment extends Fragment implements Renderer {
+public class HourlyForecastFragment extends Fragment implements Renderer, NonSwipeableFragment {
     private static Logger _logger = LogFactory.getLogger(HourlyForecastFragment.class);
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
     private static DecimalFormat _windFormat = new DecimalFormat("0");
@@ -115,6 +115,11 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
 
     }
 
+    @Override
+    public boolean canSwipe(float x, float y) {
+        return true;
+    }
+
     private void render(View view, LayoutInflater inflater) {
         TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         forecastTable.removeAllViews();
@@ -136,6 +141,9 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
             String timeZoneId = getTimeZoneId();
             SunriseSunsetCalculator calculator = null;
             if ((properties != null) && (timeZoneId != null)) {
+                TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+                forecastErrorLabel.setVisibility(View.GONE);
+
                 FeatureDTO feature = CurrentFeature.getFeature();
                 String city = null;
                 String state = null;
@@ -333,6 +341,11 @@ public class HourlyForecastFragment extends Fragment implements Renderer {
             } else {
                 // Render something here
                 TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+                if ((hourlyForecastFeature != null) && (hourlyForecastFeature.getDetail() != null) && (hourlyForecastFeature.getDetail().length() > 0)) {
+                    forecastErrorLabel.setText(hourlyForecastFeature.getDetail());
+                } else {
+                    forecastErrorLabel.setText(R.string.forecast_error);
+                }
                 forecastErrorLabel.setVisibility(View.VISIBLE);
             }
             (new AccountingTask("Hourly", "Render")).execute((Void[])null);

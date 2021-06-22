@@ -9,6 +9,34 @@
 		android:layout_width="fill_parent"
 		android:layout_height="fill_parent"
 		android:id="@+id/satelliteLayout">
+		
+		<LinearLayout
+			android:orientation="horizontal"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content">
+			<ImageButton
+				android:id="@+id/zoomInButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@null"
+				android:tag="Zoom In"
+				android:src="@drawable/zoom_in" />
+			<ImageButton
+				android:id="@+id/zoomOutButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@null"
+				android:tag="Zoom Out"
+				android:src="@drawable/zoom_out" />
+			<ImageButton
+				android:id="@+id/resetZoomButton"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:background="@null"
+				android:tag="Reset Zoom"
+				android:src="@drawable/reset_zoom" />			
+		</LinearLayout>
+		
 		<ca.datamagic.noaa.widget.SatelliteView
 			android:layout_width="fill_parent"
 			android:layout_height="fill_parent"

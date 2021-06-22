@@ -12,7 +12,6 @@ import android.database.MatrixCursor;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.Html;
 import android.view.Gravity;
 import android.view.Menu;
@@ -23,9 +22,10 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.apmem.tools.layouts.FlowLayout;
 
@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -86,9 +87,10 @@ import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.service.AppService;
 import ca.datamagic.noaa.util.IOUtils;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
+public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
     private Logger _logger = null;
-    private static  MainActivity _thisInstance;
+    private static MainActivity _thisInstance;
+    private HashMap<String, Integer> _permissions = new HashMap<>();
     private String _filesPath = null;
     private Double _deviceLatitude = null;
     private Double _deviceLongitude = null;
@@ -96,28 +98,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private String _unit = "e";
     private String _format = "24 hourly";
     private Boolean _showNewFeatures = Boolean.TRUE;
-    private DWMLTask _dwmlTask = null;
-    private HazardsTask _hazardsTask = null;
-    private FeatureTask _featureTask = null;
-    private HourlyForecastTask _hourlyForecastTask = null;
-    private DailyForecastTask _dailyForecastTask = null;
-    private StationTask _stationTask = null;
-    private DWMLListener _dwmlListener = new DWMLListener();
-    private HazardsListener _hazardsListener = new HazardsListener();
-    private FeatureListener _featureListener = new FeatureListener();
-    private HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
-    private DailyForecastListener _dailyForecastListener = new DailyForecastListener();
-    private StationListener _stationListener = new StationListener();
+    private final DWMLListener _dwmlListener = new DWMLListener();
+    private final HazardsListener _hazardsListener = new HazardsListener();
+    private final FeatureListener _featureListener = new FeatureListener();
+    private final HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
+    private final DailyForecastListener _dailyForecastListener = new DailyForecastListener();
+    private final StationListener _stationListener = new StationListener();
     private StationsHelper _stationsHelper = null;
-    private SharedPreferences _preferences = null;
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
     private FlowLayout _header = null;
     private MainPageAdapter _mainPageAdapter = null;
     private NonSwipeableViewPager _viewPager = null;
-    private GoogleApiClient _googleApiClient = null;
     private StationsAdapter _stationsAdapter = null;
-    private SearchManager _manager = null;
     private SearchView _search = null;
     private GooglePredictionsTask _googlePredictionsTask = null;
     private GooglePlaceTask _googlePlaceTask = null;
@@ -198,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         LocationsHelper locationsHelper = new LocationsHelper(getBaseContext());
         OldStationsHelper oldStationsHelper = new OldStationsHelper(getBaseContext());
 
-        HashMap<String, StationDTO> stations = new HashMap<String, StationDTO>();
+        HashMap<String, StationDTO> stations = new HashMap<>();
         List<StationDTO> stations1 = _stationsHelper.readStations();
         List<StationDTO> stations2 = locationsHelper.readStations();
         List<StationDTO> stations3 = oldStationsHelper.readStations();
@@ -229,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 }
             }
         }
-        List<StationDTO> stationsList = new ArrayList<StationDTO>(stations.values());
+        List<StationDTO> stationsList = new ArrayList<>(stations.values());
         _stationsAdapter = new StationsAdapter(this, stationsList);
         _stationsAdapter.addListener(this);
     }
@@ -248,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
+        initializePermissions();
         initializeLogging();
 
         Context applicationContext = getApplicationContext();
@@ -300,17 +294,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         _drawerToggle.setDrawerIndicatorEnabled(true);
         _drawerLayout.addDrawerListener(_drawerToggle);
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_COARSE_LOCATION}, PackageManager.PERMISSION_GRANTED);
-        } else {
-            initializeGoogleApiClient();
-        }
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_SETTINGS) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_SETTINGS}, PackageManager.PERMISSION_GRANTED);
-        }
-
-        _preferences = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         _header = findViewById(R.id.header);
         _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager(), getBaseContext());
 
@@ -325,7 +308,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             textView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    _viewPager.setCurrentItem((int)view.getTag());
+                    _viewPager.setCurrentItem((int) view.getTag());
                 }
             });
             _header.addView(textView);
@@ -369,7 +352,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
             }
         });
         readPreferences();
-        myLocation();
         updateHeader();
 
         if (_showNewFeatures) {
@@ -378,11 +360,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         }
     }
 
+    public boolean isPermissionGranted(String permission) {
+        if (_permissions.containsKey(permission)) {
+            if (_permissions.get(permission) == PackageManager.PERMISSION_GRANTED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public boolean isFragmentActive(Fragment fragment) {
         if ((_viewPager != null) && (_mainPageAdapter != null)) {
             int currentIndex = _viewPager.getCurrentItem();
             if ((currentIndex > -1) && (currentIndex < _mainPageAdapter.getCount())) {
-                return (_mainPageAdapter.getItem(currentIndex) == fragment) ? true : false;
+                return _mainPageAdapter.getItem(currentIndex) == fragment;
             }
         }
         return false;
@@ -391,24 +382,50 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private void updateHeader() {
         for (int ii = 0; ii < _mainPageAdapter.getCount(); ii++) {
             int color = (_viewPager.getCurrentItem() == ii) ? Color.YELLOW : Color.WHITE;
-            ((TextView)_header.getChildAt(ii)).setTextColor(color);
+            ((TextView) _header.getChildAt(ii)).setTextColor(color);
         }
     }
 
-    private void initializeGoogleApiClient() {
-        _googleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this)
-                .addOnConnectionFailedListener(this)
-                .addApi(LocationServices.API)
-                .build();
-        _googleApiClient.connect();
+    private void initializePermissions() {
+        String[] requiredPermissions = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            requiredPermissions = new String[]
+                    {
+                            Manifest.permission.WRITE_SETTINGS,
+                            Manifest.permission.INTERNET,
+                            Manifest.permission.ACCESS_NETWORK_STATE,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.FOREGROUND_SERVICE,
+                            Manifest.permission.RECEIVE_BOOT_COMPLETED
+                    };
+        } else {
+            requiredPermissions = new String[]
+                    {
+                            Manifest.permission.WRITE_SETTINGS,
+                            Manifest.permission.INTERNET,
+                            Manifest.permission.ACCESS_NETWORK_STATE,
+                            Manifest.permission.ACCESS_COARSE_LOCATION,
+                            Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.RECEIVE_BOOT_COMPLETED
+                    };
+        }
+        List<String> neededPermissions = new ArrayList<>();
+        for (String requiredPermission : requiredPermissions) {
+            if (ContextCompat.checkSelfPermission(this, requiredPermission) != PackageManager.PERMISSION_GRANTED) {
+                neededPermissions.add(requiredPermission);
+            }
+        }
+        String[] array = new String[neededPermissions.size()];
+        neededPermissions.toArray(array);
+        ActivityCompat.requestPermissions(this, array, PackageManager.PERMISSION_GRANTED);
     }
 
     private void initializeLogging() {
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.ALL, _filesPath, true);
+            LogFactory.initialize(Level.WARNING, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
@@ -419,11 +436,12 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         for (int ii = 0; ii < permissions.length; ii++) {
-            if (permissions[ii].compareToIgnoreCase(Manifest.permission.ACCESS_COARSE_LOCATION) == 0) {
-                initializeGoogleApiClient();
-            } else if (permissions[ii].compareToIgnoreCase(Manifest.permission.WRITE_SETTINGS) == 0) {
-
-            }
+            _permissions.put(permissions[ii], grantResults[ii]);
+        }
+        if (this.isPermissionGranted(Manifest.permission.ACCESS_FINE_LOCATION) || this.isPermissionGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+            myLocation();
+        } else {
+            actionRefresh();
         }
     }
 
@@ -434,11 +452,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     protected void onStop() {
-        if (_googleApiClient != null) {
-            if (_googleApiClient.isConnected()) {
-                _googleApiClient.disconnect();
-            }
-        }
         writeCurrentState();
         super.onStop();
     }
@@ -456,9 +469,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         _mainMenu = menu;
-        _manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        SearchManager manager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         _search = (SearchView) menu.findItem(R.id.search).getActionView();
-        _search.setSearchableInfo(_manager.getSearchableInfo(getComponentName()));
+        _search.setSearchableInfo(manager.getSearchableInfo(getComponentName()));
         _search.setIconified(true);
         _search.setIconifiedByDefault(true);
         _search.setFocusable(false);
@@ -513,7 +526,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 actionSendError();
                 return true;
             case R.id.action_exit:
-                (new AccountingTask("Application", "Exit")).execute((Void[])null);
+                (new AccountingTask("Application", "Exit")).execute((Void[]) null);
                 finish();
                 return true;
         }
@@ -522,27 +535,40 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     private void myLocation() {
         try {
-            if (_googleApiClient != null) {
-                Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(_googleApiClient);
-                if (lastLocation != null) {
-                    CurrentLocation.setLatitude(lastLocation.getLatitude());
-                    CurrentLocation.setLongitude(lastLocation.getLongitude());
-                } else {
-                    // TODO
+            FusedLocationProviderClient locationClient = LocationServices.getFusedLocationProviderClient(this);
+            if (locationClient != null) {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    showError("You need to give the app permissions to use location.");
+                    return;
                 }
-            }
-        } catch (SecurityException ex) {
-            // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Security Exception in myLocation.", ex);
+                locationClient.getLastLocation()
+                        .addOnSuccessListener(new OnSuccessListener<Location>() {
+                            @Override
+                            public void onSuccess(Location location) {
+                                // GPS location can be null if GPS is switched off
+                                if (location != null) {
+                                    CurrentLocation.setLatitude(location.getLatitude());
+                                    CurrentLocation.setLongitude(location.getLongitude());
+                                    actionRefresh();
+                                } else {
+                                    showError("Location was null. Is GPS switched off?");
+                                }
+                            }
+                        })
+                        .addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                showError("Error trying to get last GPS location.");
+                            }
+                        });
             }
         } catch (Throwable t) {
-            // TODO: Show Error
+            showError("Unknown Exception getting location.");
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in myLocation.", t);
             }
         }
-        actionRefresh();
+
         (new AccountingTask("MyLocation", "Select")).execute((Void[])null);
     }
 
@@ -553,25 +579,22 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         try {
             resetView();
 
-            PreferencesDAO preferencesDAO = new PreferencesDAO(getBaseContext());
-            PreferencesDTO preferencesDTO = preferencesDAO.read();
-
             _processing = true;
             _spinner.setVisibility(View.VISIBLE);
-            _dwmlTask = new DWMLTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-            _featureTask = new FeatureTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-            _hazardsTask = new HazardsTask();
-            _hourlyForecastTask = new HourlyForecastTask();
-            _dailyForecastTask = new DailyForecastTask();
-            _stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            DWMLTask dwmlTask = new DWMLTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            FeatureTask featureTask = new FeatureTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            HazardsTask hazardsTask = new HazardsTask();
+            HourlyForecastTask hourlyForecastTask = new HourlyForecastTask();
+            DailyForecastTask dailyForecastTask = new DailyForecastTask();
+            StationTask stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
 
             Workflow refreshWorkflow = new Workflow();
-            refreshWorkflow.addStep(new WorkflowStep(_dwmlTask, _dwmlListener));
-            refreshWorkflow.addStep(new WorkflowStep(_featureTask, _featureListener));
-            refreshWorkflow.addStep(new WorkflowStep(_hazardsTask, _hazardsListener));
-            refreshWorkflow.addStep(new WorkflowStep(_hourlyForecastTask, _hourlyForecastListener));
-            refreshWorkflow.addStep(new WorkflowStep(_dailyForecastTask, _dailyForecastListener));
-            refreshWorkflow.addStep(new WorkflowStep(_stationTask, _stationListener));
+            refreshWorkflow.addStep(new WorkflowStep(dwmlTask, _dwmlListener));
+            refreshWorkflow.addStep(new WorkflowStep(featureTask, _featureListener));
+            refreshWorkflow.addStep(new WorkflowStep(hazardsTask, _hazardsListener));
+            refreshWorkflow.addStep(new WorkflowStep(hourlyForecastTask, _hourlyForecastListener));
+            refreshWorkflow.addStep(new WorkflowStep(dailyForecastTask, _dailyForecastListener));
+            refreshWorkflow.addStep(new WorkflowStep(stationTask, _stationListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -710,37 +733,6 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             }
         }
-    }
-
-    @Override
-    public void onConnected(Bundle bundle) {
-        try {
-            if (_googleApiClient != null) {
-                Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(_googleApiClient);
-                if (lastLocation != null) {
-                    _deviceLatitude = lastLocation.getLatitude();
-                    _deviceLongitude = lastLocation.getLongitude();
-                }
-            }
-        } catch (SecurityException ex) {
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Security Exception in onConnected.", ex);
-            }
-        } catch (Throwable t) {
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in onConnected.", t);
-            }
-        }
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-
-    }
-
-    @Override
-    public void onConnectionFailed(ConnectionResult connectionResult) {
-
     }
 
     @Override

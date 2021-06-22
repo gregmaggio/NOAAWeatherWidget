@@ -20,7 +20,7 @@ public class APIDAO {
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
         try {
-            connection = (HttpsURLConnection)url.openConnection();
+            connection = (HttpsURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
             connection.setRequestMethod("GET");
@@ -36,14 +36,15 @@ public class APIDAO {
             connection.setRequestProperty("Sec-Fetch-User", "?1");
             connection.setRequestProperty("Sec-Fetch-Dest", "document");
             connection.connect();
-            String responseText = IOUtils.readEntireString(connection.getInputStream());
+            String responseText = null;
+            if (connection.getResponseCode() == 404) {
+                responseText = IOUtils.readEntireString(connection.getErrorStream());
+            } else {
+                responseText = IOUtils.readEntireString(connection.getInputStream());
+            }
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
             JSONObject obj = new JSONObject(responseText);
-            int status = obj.optInt("status", 0);
-            if (status == 404) {
-                return null;
-            }
             return new FeatureDTO(obj);
         } catch (Throwable t) {
             String message = t.getMessage();

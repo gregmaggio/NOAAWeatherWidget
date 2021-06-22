@@ -1,10 +1,12 @@
 package ca.datamagic.noaa.widget;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -25,8 +27,11 @@ import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class SatelliteFragment extends Fragment implements Renderer {
+public class SatelliteFragment extends Fragment implements Renderer, NonSwipeableFragment {
     private static Logger _logger = LogFactory.getLogger(SatelliteFragment.class);
+    private ImageButton _zoomInButton = null;
+    private ImageButton _zoomOutButton = null;
+    private ImageButton _resetZoomButton = null;
     private SatelliteView _satelliteView = null;
 
     public static SatelliteFragment newInstance() {
@@ -65,6 +70,12 @@ public class SatelliteFragment extends Fragment implements Renderer {
             }
             View view = getView();
             if (view != null) {
+                _zoomInButton = view.findViewById(R.id.zoomInButton);
+                _zoomInButton.setOnClickListener(new SatelliteFragment.ZoomInButtonListener());
+                _zoomOutButton = view.findViewById(R.id.zoomOutButton);
+                _zoomOutButton.setOnClickListener(new SatelliteFragment.ZoomOutButtonListener());
+                _resetZoomButton = view.findViewById(R.id.resetZoomButton);
+                _resetZoomButton.setOnClickListener(new SatelliteFragment.ResetZoomButtonListener());
                 _satelliteView = view.findViewById(R.id.satelliteView);
                 LinearLayout satelliteLayout = view.findViewById(R.id.satelliteLayout);
                 TextView satelliteViewNotAvailable = view.findViewById(R.id.satelliteViewNotAvailable);
@@ -115,15 +126,68 @@ public class SatelliteFragment extends Fragment implements Renderer {
     @Override
     public void cleanup() {
         try {
-            View view = getView();
-            if (view != null) {
-                SatelliteView satelliteView = (SatelliteView)view;
-                satelliteView.setSatelliteBitmap(null);
-                satelliteView.resetScale();
+            if (_satelliteView != null) {
+                _satelliteView.setSatelliteBitmap(null);
+                _satelliteView.resetScale();
             }
         } catch (Throwable t) {
             _logger.warning("Radar view reset scale error: " + t.getMessage());
         }
         _satelliteView = null;
+    }
+
+    @Override
+    public boolean canSwipe(float x, float y) {
+        if (_satelliteView != null) {
+            Rect outRect = new Rect();
+            int[] location = new int[2];
+            _satelliteView.getDrawingRect(outRect);
+            _satelliteView.getLocationOnScreen(location);
+            outRect.offset(location[0], location[1]);
+            return !outRect.contains((int)x,(int)y);
+        }
+        return true;
+    }
+
+    private class ZoomInButtonListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            try {
+                _satelliteView.zoomIn();
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in ZoomInButtonListener.onClick.");
+            }
+        }
+    }
+
+    private class ZoomOutButtonListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            try {
+                _satelliteView.zoomOut();
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in ZoomOutButtonListener.onClick.");
+            }
+        }
+    }
+
+    private class ResetZoomButtonListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            try {
+                _satelliteView.resetZoom();
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in ResetZoomButtonListener.onClick.");
+            }
+        }
     }
 }

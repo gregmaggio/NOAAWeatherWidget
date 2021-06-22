@@ -20,7 +20,7 @@ import ca.datamagic.noaa.logging.LogFactory;
 /**
  * Created by Greg on 1/10/2016.
  */
-public class DiscussionFragment extends Fragment implements Renderer {
+public class DiscussionFragment extends Fragment implements Renderer, NonSwipeableFragment {
     private static Logger _logger = LogFactory.getLogger(DiscussionFragment.class);
     private String _discussion = null;
 
@@ -68,6 +68,11 @@ public class DiscussionFragment extends Fragment implements Renderer {
     @Override
     public void cleanup() {
         _discussion = null;
+    }
+
+    @Override
+    public boolean canSwipe(float x, float y) {
+        return true;
     }
 
     private class DiscussionListener implements AsyncTaskListener<String> {

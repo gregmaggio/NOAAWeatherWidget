@@ -1,6 +1,7 @@
 package ca.datamagic.noaa.widget;
 
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -33,9 +34,12 @@ import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarTimeDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class RadarFragment extends Fragment implements Renderer {
+public class RadarFragment extends Fragment implements Renderer, NonSwipeableFragment {
     private static Logger _logger = LogFactory.getLogger(RadarFragment.class);
     private int _tile = -1;
+    private ImageButton _zoomInButton = null;
+    private ImageButton _zoomOutButton = null;
+    private ImageButton _resetZoomButton = null;
     private ImageButton _playPauseButton = null;
     private TextView _radarTime = null;
     private SimpleDateFormat _radarTimeFormat = null;
@@ -164,6 +168,12 @@ public class RadarFragment extends Fragment implements Renderer {
             }
             View view = getView();
             if (view != null) {
+                _zoomInButton = view.findViewById(R.id.zoomInButton);
+                _zoomInButton.setOnClickListener(new ZoomInButtonListener());
+                _zoomOutButton = view.findViewById(R.id.zoomOutButton);
+                _zoomOutButton.setOnClickListener(new ZoomOutButtonListener());
+                _resetZoomButton = view.findViewById(R.id.resetZoomButton);
+                _resetZoomButton.setOnClickListener(new ResetZoomButtonListener());
                 _playPauseButton = view.findViewById(R.id.playPauseButton);
                 _radarTime = view.findViewById(R.id.radarTime);
                 _radarView = view.findViewById(R.id.radarView);
@@ -283,6 +293,61 @@ public class RadarFragment extends Fragment implements Renderer {
         }
         _radarView = null;
         _timer = null;
+    }
+
+    @Override
+    public boolean canSwipe(float x, float y) {
+        if (_radarView != null) {
+            Rect outRect = new Rect();
+            int[] location = new int[2];
+            _radarView.getDrawingRect(outRect);
+            _radarView.getLocationOnScreen(location);
+            outRect.offset(location[0], location[1]);
+            return !outRect.contains((int)x,(int)y);
+        }
+        return true;
+    }
+
+    private class ZoomInButtonListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            try {
+                _radarView.zoomIn();
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in ZoomInButtonListener.onClick.");
+            }
+        }
+    }
+
+    private class ZoomOutButtonListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            try {
+                _radarView.zoomOut();
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in ZoomOutButtonListener.onClick.");
+            }
+        }
+    }
+
+    private class ResetZoomButtonListener implements View.OnClickListener {
+        @Override
+        public void onClick(View view) {
+            try {
+                _radarView.resetZoom();
+            } catch (Throwable t) {
+                if ((t != null) && (t.getMessage() != null)) {
+                    _logger.warning(t.getMessage());
+                }
+                _logger.warning("Unexpected Exception in ResetZoomButtonListener.onClick.");
+            }
+        }
     }
 
     private class PlayPauseButtonListener implements View.OnClickListener {

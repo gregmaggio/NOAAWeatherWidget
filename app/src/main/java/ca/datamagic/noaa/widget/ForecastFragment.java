@@ -44,7 +44,7 @@ import ca.datamagic.noaa.logging.LogFactory;
 /**
  * Created by Greg on 1/10/2016.
  */
-public class ForecastFragment extends Fragment implements Renderer {
+public class ForecastFragment extends Fragment implements Renderer, NonSwipeableFragment {
     private static Logger _logger = LogFactory.getLogger(ForecastFragment.class);
     private static DecimalFormat _temperatureFormat = new DecimalFormat("0");
     private static DecimalFormat _windFormat = new DecimalFormat("0");
@@ -124,6 +124,11 @@ public class ForecastFragment extends Fragment implements Renderer {
 
     }
 
+    @Override
+    public boolean canSwipe(float x, float y) {
+        return true;
+    }
+
     private void render(View view, LayoutInflater inflater) {
         TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         int childCount = forecastTable.getChildCount();
@@ -143,8 +148,12 @@ public class ForecastFragment extends Fragment implements Renderer {
         FeatureDTO dailyForecastFeature = CurrentDailyForecast.getDailyForecastFeature();
         ForecastsDTO forecasts = CurrentForecasts.getForecasts();
         if ((feature != null) && (dailyForecastFeature != null)) {
+            TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+            forecastErrorLabel.setVisibility(View.GONE);
             render(view, inflater, feature, dailyForecastFeature);
         } else  if (forecasts != null) {
+            TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+            forecastErrorLabel.setVisibility(View.GONE);
             render(view, inflater, forecasts);
         } else {
             // Render something here
@@ -154,7 +163,7 @@ public class ForecastFragment extends Fragment implements Renderer {
         (new AccountingTask("Daily", "Render")).execute((Void[])null);
     }
 
-    private void render(View view, LayoutInflater inflater, FeatureDTO feature, FeatureDTO dailyForecastFeature) {
+    private void render(final View view, LayoutInflater inflater, FeatureDTO feature, final FeatureDTO dailyForecastFeature) {
         final TableLayout forecastTable = (TableLayout)view.findViewById(R.id.forecastTable);
         final List<TableRow> rows = new ArrayList<TableRow>();
         int totalWidth = forecastTable.getWidth();
@@ -168,23 +177,23 @@ public class ForecastFragment extends Fragment implements Renderer {
             city = featureProperties.getCity();
             state = featureProperties.getState();
         }
-        if ((city != null) && (state != null)) {
-            TableRow descriptionRow = new TableRow(getContext());
-            descriptionRow.setVisibility(View.VISIBLE);
-            descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
-            LinearLayout description = (LinearLayout) inflater.inflate(R.layout.forecast_description, null);
-            TextView descriptionText = description.findViewById(R.id.description);
-            descriptionText.setText(city + ", " + state);
-            description.setVisibility(View.VISIBLE);
-            descriptionRow.addView(description);
-            rows.add(descriptionRow);
-        }
         FeaturePropertiesDTO dailyForecastFeatureProperties = null;
         if (dailyForecastFeature != null) {
             dailyForecastFeatureProperties = dailyForecastFeature.getProperties();
         }
         String timeZoneId = getTimeZoneId();
         if ((dailyForecastFeatureProperties != null) && (timeZoneId != null)) {
+            if ((city != null) && (state != null)) {
+                TableRow descriptionRow = new TableRow(getContext());
+                descriptionRow.setVisibility(View.VISIBLE);
+                descriptionRow.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
+                LinearLayout description = (LinearLayout) inflater.inflate(R.layout.forecast_description, null);
+                TextView descriptionText = description.findViewById(R.id.description);
+                descriptionText.setText(city + ", " + state);
+                description.setVisibility(View.VISIBLE);
+                descriptionRow.addView(description);
+                rows.add(descriptionRow);
+            }
             TimeStampDTO timeStampDTO = new TimeStampDTO(timeZoneId);
             PeriodDTO[] periods = dailyForecastFeatureProperties.getPeriods();
             if (periods != null) {
@@ -349,14 +358,29 @@ public class ForecastFragment extends Fragment implements Renderer {
                 }
             }
         }
-        MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (TableRow row : rows) {
-                    forecastTable.addView(row);
+        if (rows.size() > 0) {
+            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    for (TableRow row : rows) {
+                        forecastTable.addView(row);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+                    if ((dailyForecastFeature != null) && (dailyForecastFeature.getDetail() != null) && (dailyForecastFeature.getDetail().length() > 0)) {
+                        forecastErrorLabel.setText(dailyForecastFeature.getDetail());
+                    } else {
+                        forecastErrorLabel.setText(R.string.forecast_error);
+                    }
+                    forecastErrorLabel.setVisibility(View.VISIBLE);
+                }
+            });
+        }
     }
 
     private void render(View view, LayoutInflater inflater, ForecastsDTO forecasts) {
@@ -495,13 +519,19 @@ public class ForecastFragment extends Fragment implements Renderer {
                 }
             }
         }
-        MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                for (TableRow row : rows) {
-                    forecastTable.addView(row);
+        if (rows.size() > 0) {
+            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    for (TableRow row : rows) {
+                        forecastTable.addView(row);
+                    }
                 }
-            }
-        });
+            });
+        } else {
+            TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+            forecastErrorLabel.setText(R.string.forecast_error);
+            forecastErrorLabel.setVisibility(View.VISIBLE);
+        }
     }
 }

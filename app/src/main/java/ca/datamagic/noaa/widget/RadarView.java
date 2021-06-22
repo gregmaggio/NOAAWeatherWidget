@@ -6,6 +6,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -28,25 +29,34 @@ public class RadarView extends View {
     private int _activePointerId = 0;
     private float _posX = 0f;
     private float _posY = 0f;
+    private GestureDetector _gestureDetector = null;
 
     public RadarView(Context context) {
         super(context);
         _scaleDetector = new ScaleGestureDetector(context, new RadarView.ScaleListener());
+        _gestureDetector = new GestureDetector(context, new RadarView.DoubleTapListener());
+        setLongClickable(false);
     }
 
     public RadarView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
         _scaleDetector = new ScaleGestureDetector(context, new RadarView.ScaleListener());
+        _gestureDetector = new GestureDetector(context, new RadarView.DoubleTapListener());
+        setLongClickable(false);
     }
 
     public RadarView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         _scaleDetector = new ScaleGestureDetector(context, new RadarView.ScaleListener());
+        _gestureDetector = new GestureDetector(context, new RadarView.DoubleTapListener());
+        setLongClickable(false);
     }
 
     public RadarView(Context context, @Nullable AttributeSet attrs, int defStyleAttr, int defStyleRes) {
         super(context, attrs, defStyleAttr, defStyleRes);
         _scaleDetector = new ScaleGestureDetector(context, new RadarView.ScaleListener());
+        _gestureDetector = new GestureDetector(context, new RadarView.DoubleTapListener());
+        setLongClickable(false);
     }
 
     public double getAspectRatio() {
@@ -96,6 +106,7 @@ public class RadarView extends View {
 
             // Let the ScaleGestureDetector inspect all events.
             _scaleDetector.onTouchEvent(event);
+            _gestureDetector.onTouchEvent(event);
 
             int action = event.getAction() & MotionEvent.ACTION_MASK;
             _logger.info("action: " + action);
@@ -183,6 +194,29 @@ public class RadarView extends View {
         canvas.restore();
     }
 
+    public void zoomIn() {
+        _scaleFactor *= 2f;
+
+        // Don't let the object get too small or too large.
+        _scaleFactor = Math.max(0.1f, Math.min(_scaleFactor, 10.0f));
+
+        invalidate();
+    }
+
+    public void zoomOut() {
+        _scaleFactor /= 2f;
+
+        // Don't let the object get too small or too large.
+        _scaleFactor = Math.max(0.1f, Math.min(_scaleFactor, 10.0f));
+
+        invalidate();
+    }
+
+    public void resetZoom() {
+        resetScale();
+        invalidate();
+    }
+
     @Override
     protected void onDraw(Canvas canvas) {
         _logger.info("width: " + Integer.toString(canvas.getWidth()));
@@ -200,6 +234,22 @@ public class RadarView extends View {
         @Override
         public boolean onScale(ScaleGestureDetector detector) {
             _scaleFactor *= detector.getScaleFactor();
+
+            // Don't let the object get too small or too large.
+            _scaleFactor = Math.max(0.1f, Math.min(_scaleFactor, 10.0f));
+
+            invalidate();
+            return true;
+        }
+    }
+
+    private class DoubleTapListener extends GestureDetector.SimpleOnGestureListener {
+        @Override
+        public boolean onDoubleTapEvent(MotionEvent event) {
+            _logger.info("Double Tap Event");
+            _scaleFactor *= 2f;
+            _posX = 0;
+            _posY = 0;
 
             // Don't let the object get too small or too large.
             _scaleFactor = Math.max(0.1f, Math.min(_scaleFactor, 10.0f));

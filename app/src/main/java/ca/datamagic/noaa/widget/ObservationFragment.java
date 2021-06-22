@@ -60,7 +60,7 @@ import ca.datamagic.noaa.util.WindDirectionConverter;
 /**
  * Created by Greg on 1/10/2016.
  */
-public class ObservationFragment extends Fragment implements Renderer {
+public class ObservationFragment extends Fragment implements Renderer, NonSwipeableFragment {
     private static Logger _logger = LogFactory.getLogger(ObservationFragment.class);
     private static char _degrees = (char)0x00B0;
     private static DecimalFormat _coordinatesFormat = new DecimalFormat("0.0");
@@ -153,6 +153,11 @@ public class ObservationFragment extends Fragment implements Renderer {
 
     }
 
+    @Override
+    public boolean canSwipe(float x, float y) {
+        return true;
+    }
+
     private void render(View view, LayoutInflater inflater) {
         TextView observationErrorLabel = view.findViewById(R.id.observation_error_label);
         TableLayout observationTable = (TableLayout)view.findViewById(R.id.observationTable);
@@ -165,6 +170,8 @@ public class ObservationFragment extends Fragment implements Renderer {
         row.setLayoutParams(new TableRow.LayoutParams(TableRow.LayoutParams.MATCH_PARENT, TableRow.LayoutParams.WRAP_CONTENT));
 
         if (observation != null) {
+            observationErrorLabel.setVisibility(View.GONE);
+
             PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
             PreferencesDTO preferencesDTO = preferencesDAO.read();
 
