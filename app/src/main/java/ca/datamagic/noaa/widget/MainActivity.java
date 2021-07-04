@@ -598,11 +598,19 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
-                    writeCurrentState();
                     _processing = false;
-                    _spinner.setVisibility(View.GONE);
-                    refreshView();
-                    CurrentWidgets.refreshWidgets(getApplicationContext());
+                    try {
+                        if (_spinner != null) {
+                            _spinner.setVisibility(View.GONE);
+                        }
+                        writeCurrentState();
+                        refreshView();
+                        CurrentWidgets.refreshWidgets(getApplicationContext());
+                    } catch (Throwable t) {
+                        if (_logger != null) {
+                            _logger.log(Level.WARNING, "Unknown Exception in workflow completed.", t);
+                        }
+                    }
                 }
             });
             refreshWorkflow.start();
@@ -610,7 +618,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         } catch (Throwable t) {
             // TODO: Show Error
             _processing = false;
-            _spinner.setVisibility(View.GONE);
+            if (_spinner != null) {
+                _spinner.setVisibility(View.GONE);
+            }
             if (_logger != null) {
                 _logger.log(Level.WARNING, "Unknown Exception in refresh.", t);
             }
