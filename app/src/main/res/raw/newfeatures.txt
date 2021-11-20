@@ -1,6 +1,5 @@
-* Added zoom in, zoom out, and reset zoom buttons to the radar/satellite
-* Double tap on radar/satellite zooms in
-* Tap and drag to move the radar/satellite view
-* Updated location API. Hopefully, this fixes some (or all) of the location issues
-* Added some additional error handling for when API tells me that marine forecasts not yet supported
-* Some additional minor bug fixes
+* Added a service to download the radar images
+* Integrated the radar into an overlay on a GoogleMap that zooms to the current location
+* The radar is using a new Google Cloud Run service, let me know if there are problems
+* Updates to dependencies
+* Update to target SDK version as per Google's requirements

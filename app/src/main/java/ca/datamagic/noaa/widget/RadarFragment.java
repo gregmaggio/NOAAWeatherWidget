@@ -1,7 +1,6 @@
 package ca.datamagic.noaa.widget;
 
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,131 +9,68 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
+import com.google.android.gms.maps.model.BitmapDescriptor;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlay;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.material.snackbar.Snackbar;
+
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Hashtable;
-import java.util.List;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
-import ca.datamagic.noaa.async.RadarBackgroundTask;
+import ca.datamagic.noaa.async.RadarImageMetaDataTask;
 import ca.datamagic.noaa.async.RadarImageTask;
-import ca.datamagic.noaa.async.RadarTimeStampsTask;
+import ca.datamagic.noaa.async.RadarTask;
+import ca.datamagic.noaa.async.RadarUrlsTask;
 import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
-import ca.datamagic.noaa.dao.RadarDAO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
-import ca.datamagic.noaa.dto.RadarTimeDTO;
+import ca.datamagic.noaa.dto.RadarDTO;
+import ca.datamagic.noaa.dto.RadarImageMetaDataDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class RadarFragment extends Fragment implements Renderer, NonSwipeableFragment {
+public class RadarFragment extends Fragment implements Renderer, NonSwipeableFragment, OnMapReadyCallback {
     private static Logger _logger = LogFactory.getLogger(RadarFragment.class);
-    private int _tile = -1;
-    private ImageButton _zoomInButton = null;
-    private ImageButton _zoomOutButton = null;
-    private ImageButton _resetZoomButton = null;
+    private static Pattern _dateTimePattern = Pattern.compile("(\\d{4})(\\d{2})(\\d{2})_(\\d{2})(\\d{2})(\\d{2})", Pattern.CASE_INSENSITIVE);
+    private static int DELAY = 0;
+    private static int PERIOD = 2000;
+    private static int MAX_IMAGES = 15;
     private ImageButton _playPauseButton = null;
     private TextView _radarTime = null;
     private SimpleDateFormat _radarTimeFormat = null;
-    private LinearLayout _moveTileLayout = null;
-    private LinearLayout _leftLayout = null;
-    private ImageButton _leftButton = null;
-    private LinearLayout _upLayout = null;
-    private ImageButton _upButton = null;
-    private LinearLayout _downLayout = null;
-    private ImageButton _downButton = null;
-    private LinearLayout _rightLayout = null;
-    private ImageButton _rightButton = null;
-    private RadarView _radarView = null;
-    private List<RadarTimeDTO> _timeStamps = null;
-    private Timer _timer = null;
-    private Hashtable<String, Bitmap> _radarBitmaps = null;
+    private GoogleMap _map = null;
+    private RadarDTO _radar = null;
+    private String[] _urls = null;
+    private RadarImageMetaDataDTO _metaData = null;
+    private LatLngBounds _bounds = null;
     private int _currentIndex = 0;
+    private RadarTimerTask _timerTask = null;
+    private Timer _timer = null;
+    private GroundOverlay _radarOverlay = null;
 
     public static RadarFragment newInstance() {
         RadarFragment fragment = new RadarFragment();
         return fragment;
-    }
-
-    private void updateMoveTileButtons() {
-        switch (_tile) {
-            case 2:
-            {
-                _leftLayout.setVisibility(View.GONE);
-                _upLayout.setVisibility(View.GONE);
-                _downLayout.setVisibility(View.VISIBLE);
-                _rightLayout.setVisibility(View.VISIBLE);
-                break;
-            }
-            case 3:
-            {
-                _leftLayout.setVisibility(View.VISIBLE);
-                _upLayout.setVisibility(View.GONE);
-                _downLayout.setVisibility(View.VISIBLE);
-                _rightLayout.setVisibility(View.VISIBLE);
-                break;
-            }
-            case 4:
-            {
-                _leftLayout.setVisibility(View.VISIBLE);
-                _upLayout.setVisibility(View.GONE);
-                _downLayout.setVisibility(View.VISIBLE);
-                _rightLayout.setVisibility(View.VISIBLE);
-                break;
-            }
-            case 5:
-            {
-                _leftLayout.setVisibility(View.VISIBLE);
-                _upLayout.setVisibility(View.GONE);
-                _downLayout.setVisibility(View.VISIBLE);
-                _rightLayout.setVisibility(View.GONE);
-                break;
-            }
-            case 8:
-            {
-                _leftLayout.setVisibility(View.GONE);
-                _upLayout.setVisibility(View.VISIBLE);
-                _downLayout.setVisibility(View.GONE);
-                _rightLayout.setVisibility(View.VISIBLE);
-                break;
-            }
-            case 9:
-            {
-                _leftLayout.setVisibility(View.VISIBLE);
-                _upLayout.setVisibility(View.VISIBLE);
-                _downLayout.setVisibility(View.GONE);
-                _rightLayout.setVisibility(View.VISIBLE);
-                break;
-            }
-            case 10:
-            {
-                _leftLayout.setVisibility(View.VISIBLE);
-                _upLayout.setVisibility(View.VISIBLE);
-                _downLayout.setVisibility(View.GONE);
-                _rightLayout.setVisibility(View.VISIBLE);
-                break;
-            }
-            case 11:
-            {
-                _leftLayout.setVisibility(View.VISIBLE);
-                _upLayout.setVisibility(View.VISIBLE);
-                _downLayout.setVisibility(View.GONE);
-                _rightLayout.setVisibility(View.GONE);
-                break;
-            }
-            default:
-            {
-                _moveTileLayout.setVisibility(View.GONE);
-                break;
-            }
-        }
     }
 
     public static int getLayoutId() {
@@ -168,30 +104,10 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             }
             View view = getView();
             if (view != null) {
-                _zoomInButton = view.findViewById(R.id.zoomInButton);
-                _zoomInButton.setOnClickListener(new ZoomInButtonListener());
-                _zoomOutButton = view.findViewById(R.id.zoomOutButton);
-                _zoomOutButton.setOnClickListener(new ZoomOutButtonListener());
-                _resetZoomButton = view.findViewById(R.id.resetZoomButton);
-                _resetZoomButton.setOnClickListener(new ResetZoomButtonListener());
                 _playPauseButton = view.findViewById(R.id.playPauseButton);
-                _radarTime = view.findViewById(R.id.radarTime);
-                _radarView = view.findViewById(R.id.radarView);
                 _playPauseButton.setVisibility(View.GONE);
                 _playPauseButton.setOnClickListener(new PlayPauseButtonListener());
-                _moveTileLayout = view.findViewById(R.id.moveTileLayout);
-                _leftLayout = view.findViewById(R.id.leftLayout);
-                _leftButton = view.findViewById(R.id.leftButton);
-                _leftButton.setOnClickListener(new MoveTileButtonListener());
-                _upLayout = view.findViewById(R.id.upLayout);
-                _upButton = view.findViewById(R.id.upButton);
-                _upButton.setOnClickListener(new MoveTileButtonListener());
-                _downLayout = view.findViewById(R.id.downLayout);
-                _downButton = view.findViewById(R.id.downButton);
-                _downButton.setOnClickListener(new MoveTileButtonListener());
-                _rightLayout = view.findViewById(R.id.rightLayout);
-                _rightButton = view.findViewById(R.id.rightButton);
-                _rightButton.setOnClickListener(new MoveTileButtonListener());
+                _radarTime = view.findViewById(R.id.radarTime);
                 _radarTime.setText(null);
                 LinearLayout radarLayout = view.findViewById(R.id.radarLayout);
                 TextView radarViewNotAvailable = view.findViewById(R.id.radarViewNotAvailable);
@@ -206,63 +122,11 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 } else {
                     radarViewNotAvailable.setVisibility(View.GONE);
                     radarLayout.setVisibility(View.VISIBLE);
+                    // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+                    SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+                    mapFragment.getMapAsync(this);
+                    MainActivity.getThisInstance().startBusy();
                 }
-                RadarDAO dao = new RadarDAO();
-                _tile = dao.getRadarTile(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-                _logger.info("tile: " + _tile);
-                this.updateMoveTileButtons();
-                if (_tile < 1) {
-                    radarViewNotAvailableForThisLocation.setVisibility(View.VISIBLE);
-                    radarLayout.setVisibility(View.GONE);
-                    return;
-                } else {
-                    radarViewNotAvailableForThisLocation.setVisibility(View.GONE);
-                    radarLayout.setVisibility(View.VISIBLE);
-                }
-                RadarBackgroundTask task1 = new RadarBackgroundTask(_tile);
-                task1.addListener(new AsyncTaskListener<Bitmap>() {
-                    @Override
-                    public void completed(AsyncTaskResult<Bitmap> result) {
-                        try {
-                            MainActivity.getThisInstance().stopBusy();
-                            Bitmap bitmap = result.getResult();
-                            if (bitmap != null) {
-                                double width = bitmap.getWidth();
-                                double height = bitmap.getHeight();
-                                double aspectRatio = width / height;
-                                _radarView.setAspectRatio(aspectRatio);
-                                _radarView.setBackgroundBitmap(bitmap);
-                            } else {
-                                _radarView.setBackgroundBitmap(null);
-                            }
-                            _radarView.invalidate();
-                        } catch (Throwable t) {
-                            _logger.warning("Radar background task complete error: " + t.getMessage());
-                        }
-                    }
-                });
-
-                RadarTimeStampsTask task2 = new RadarTimeStampsTask();
-                task2.addListener(new AsyncTaskListener<List<RadarTimeDTO>>() {
-                    @Override
-                    public void completed(AsyncTaskResult<List<RadarTimeDTO>> result) {
-                        try {
-                            _timeStamps = result.getResult();
-                            _logger.info("timeStamps: " + _timeStamps);
-                            if ((_timeStamps != null) && (_timeStamps.size() > 0)) {
-                                _timer = new Timer();
-                                _timer.scheduleAtFixedRate(new RadarTimerTask(), 500, 3000);
-                                _radarBitmaps = new Hashtable<String, Bitmap>();
-                                _moveTileLayout.setVisibility(View.VISIBLE);
-                            }
-                        } catch (Throwable t) {
-                            _logger.warning("Radar timestamps task complete error: " + t.getMessage());
-                        }
-                    }
-                });
-                task1.execute((Void[])null);
-                task2.execute((Void[])null);
-                MainActivity.getThisInstance().startBusy();
             }
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
@@ -273,80 +137,155 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
 
     @Override
     public void cleanup() {
-        try {
-            if (_timer != null) {
+        if (_timer != null) {
+            try {
                 _timer.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
             }
-        } catch (Throwable t) {
-            _logger.warning("Radar cancel timer error: " + t.getMessage());
         }
-        try {
-            View view = getView();
-            if (view != null) {
-                RadarView radarView = (RadarView)view;
-                radarView.setBackgroundBitmap(null);
-                radarView.setRadarBitmap(null);
-                radarView.resetScale();
+        if (_timer != null) {
+            try {
+                _timer.purge();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
             }
-        } catch (Throwable t) {
-            _logger.warning("Radar view reset scale error: " + t.getMessage());
         }
-        _radarView = null;
+        if (_timerTask != null) {
+            try {
+                _timerTask.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        if (_map != null) {
+            try {
+                _map.clear();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        _playPauseButton = null;
+        _radarTime = null;
+        _radarTimeFormat = null;
+        _map = null;
+        _radar = null;
+        _urls = null;
+        _metaData = null;
+        _bounds = null;
+        _currentIndex = 0;
+        _timerTask = null;
         _timer = null;
+        _radarOverlay = null;
     }
 
     @Override
     public boolean canSwipe(float x, float y) {
-        if (_radarView != null) {
-            Rect outRect = new Rect();
-            int[] location = new int[2];
-            _radarView.getDrawingRect(outRect);
-            _radarView.getLocationOnScreen(location);
-            outRect.offset(location[0], location[1]);
-            return !outRect.contains((int)x,(int)y);
-        }
+
         return true;
     }
 
-    private class ZoomInButtonListener implements View.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            try {
-                _radarView.zoomIn();
-            } catch (Throwable t) {
-                if ((t != null) && (t.getMessage() != null)) {
-                    _logger.warning(t.getMessage());
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        try {
+            _map = googleMap;
+            UiSettings settings = this._map.getUiSettings();
+            settings.setZoomControlsEnabled(true);
+            RadarTask task = new RadarTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            task.addListener(new AsyncTaskListener<RadarDTO>() {
+                @Override
+                public void completed(AsyncTaskResult<RadarDTO> result) {
+                    radarSiteLoaded(result.getResult());
                 }
-                _logger.warning("Unexpected Exception in ZoomInButtonListener.onClick.");
-            }
+            });
+            task.execute((Void)null);
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+            MainActivity.getThisInstance().stopBusy();
+            Snackbar.make(getView(), "Error initializing map", Snackbar.LENGTH_LONG).show();
         }
     }
 
-    private class ZoomOutButtonListener implements View.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            try {
-                _radarView.zoomOut();
-            } catch (Throwable t) {
-                if ((t != null) && (t.getMessage() != null)) {
-                    _logger.warning(t.getMessage());
-                }
-                _logger.warning("Unexpected Exception in ZoomOutButtonListener.onClick.");
-            }
+    private void radarSiteLoaded(RadarDTO radar) {
+        _radar = radar;
+        if (_radar == null) {
+            MainActivity.getThisInstance().stopBusy();
+            Snackbar.make(getView(), "Cannot find a radar for current location", Snackbar.LENGTH_LONG).show();
+            return;
         }
+        RadarUrlsTask task = new RadarUrlsTask(_radar.getICAO());
+        task.addListener(new AsyncTaskListener<String[]>() {
+            @Override
+            public void completed(AsyncTaskResult<String[]> result) {
+                radarUrlsLoaded(result.getResult());
+            }
+        });
+        task.execute((Void)null);
     }
 
-    private class ResetZoomButtonListener implements View.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            try {
-                _radarView.resetZoom();
-            } catch (Throwable t) {
-                if ((t != null) && (t.getMessage() != null)) {
-                    _logger.warning(t.getMessage());
-                }
-                _logger.warning("Unexpected Exception in ResetZoomButtonListener.onClick.");
+    private void radarUrlsLoaded(String[] urls) {
+        _urls = urls;
+        if ((_urls == null) || (_urls.length < 1)) {
+            MainActivity.getThisInstance().stopBusy();
+            Snackbar.make(getView(), "Cannot find radar images for current location", Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        int endIndex = _urls.length;
+        int startIndex = _urls.length - MAX_IMAGES - 1;
+        _urls = Arrays.copyOfRange(_urls, startIndex, endIndex);
+        RadarImageMetaDataTask task = new RadarImageMetaDataTask(_urls[0]);
+        task.addListener(new AsyncTaskListener<RadarImageMetaDataDTO>() {
+            @Override
+            public void completed(AsyncTaskResult<RadarImageMetaDataDTO> result) {
+                imageMetaDataLoaded(result.getResult());
             }
+        });
+        task.execute((Void)null);
+    }
+
+    private void imageMetaDataLoaded(RadarImageMetaDataDTO metaData) {
+        _metaData = metaData;
+        if (_metaData == null) {
+            MainActivity.getThisInstance().stopBusy();
+            Snackbar.make(getView(), "Failed to load radar image meta data", Snackbar.LENGTH_LONG).show();
+            return;
+        }
+        double[] upperCorner = _metaData.getUpperCorner();
+        double[] lowerCorner = _metaData.getLowerCorner();
+        _bounds = new LatLngBounds(new LatLng(lowerCorner[1], lowerCorner[0]), new LatLng(upperCorner[1], upperCorner[0]));
+        _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
+        _currentIndex = 0;
+        _timerTask = new RadarTimerTask();
+        _timer = new Timer("Timer");
+        _timer.scheduleAtFixedRate(_timerTask, DELAY, PERIOD);
+        _playPauseButton.setVisibility(View.VISIBLE);
+        MainActivity.getThisInstance().stopBusy();
+    }
+
+    private void renderRadarImage(String imageUrl, Bitmap bitmap) {
+        try {
+            if (_radarOverlay == null) {
+                BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
+                _radarOverlay = _map.addGroundOverlay(new GroundOverlayOptions()
+                        .image(descriptor)
+                        .positionFromBounds(_bounds));
+            } else {
+                _radarOverlay.setImage(BitmapDescriptorFactory.fromBitmap(bitmap));
+            }
+            Matcher dateTimeMatcher = _dateTimePattern.matcher(imageUrl);
+            if (dateTimeMatcher.find()) {
+                Calendar calendar = Calendar.getInstance();
+                calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
+                calendar.set(Calendar.YEAR, Integer.parseInt(dateTimeMatcher.group(1)));
+                calendar.set(Calendar.MONTH, Integer.parseInt(dateTimeMatcher.group(2)) - 1);
+                calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateTimeMatcher.group(3)));
+                calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(dateTimeMatcher.group(4)));
+                calendar.set(Calendar.MINUTE, Integer.parseInt(dateTimeMatcher.group(5)));
+                calendar.set(Calendar.SECOND, Integer.parseInt(dateTimeMatcher.group(6)));
+                _radarTime.setText(_radarTimeFormat.format(calendar.getTime()));
+            }
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
         }
     }
 
@@ -369,7 +308,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                             _playPauseButton.setImageResource(R.drawable.pause);
                             _playPauseButton.setTag("pause");
                             _timer = new Timer();
-                            _timer.scheduleAtFixedRate(new RadarTimerTask(), 500, 3000);
+                            _timer.scheduleAtFixedRate(_timerTask, DELAY, PERIOD);
                         }
                     }
                 }
@@ -382,173 +321,33 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         }
     }
 
-    private class MoveTileButtonListener implements View.OnClickListener {
-        @Override
-        public void onClick(View view) {
-            try {
-                String tag = (String) view.getTag();
-                _logger.info("tag: " + tag);
-                if (tag != null) {
-                    int newTile = _tile;
-                    if (tag.compareToIgnoreCase("left") == 0) {
-                        switch (_tile) {
-                            case 2: newTile = 2; break;
-                            case 3: newTile = 2; break;
-                            case 4: newTile = 3; break;
-                            case 5: newTile = 4; break;
-                            case 8: newTile = 8; break;
-                            case 9: newTile = 8; break;
-                            case 10: newTile = 9; break;
-                            case 11: newTile = 10; break;
-                        }
-                    } else if (tag.compareToIgnoreCase("up") == 0) {
-                        switch (_tile) {
-                            case 2: newTile = 2; break;
-                            case 3: newTile = 3; break;
-                            case 4: newTile = 4; break;
-                            case 5: newTile = 5; break;
-                            case 8: newTile = 2; break;
-                            case 9: newTile = 3; break;
-                            case 10: newTile = 4; break;
-                            case 11: newTile = 5; break;
-                        }
-                    } else if (tag.compareToIgnoreCase("down") == 0) {
-                        switch (_tile) {
-                            case 2: newTile = 8; break;
-                            case 3: newTile = 9; break;
-                            case 4: newTile = 10; break;
-                            case 5: newTile = 11; break;
-                            case 8: newTile = 8; break;
-                            case 9: newTile = 9; break;
-                            case 10: newTile = 10; break;
-                            case 11: newTile = 11; break;
-                        }
-                    } else if (tag.compareToIgnoreCase("right") == 0) {
-                        switch (_tile) {
-                            case 2: newTile = 3; break;
-                            case 3: newTile = 4; break;
-                            case 4: newTile = 5; break;
-                            case 5: newTile = 5; break;
-                            case 8: newTile = 9; break;
-                            case 9: newTile = 10; break;
-                            case 10: newTile = 11; break;
-                            case 11: newTile = 11; break;
-                        }
-                    }
-                    if (newTile != _tile) {
-                        _tile = newTile;
-                        if (_timer != null) {
-                            _timer.cancel();
-                        }
-                        _timer = null;
-                        _currentIndex = 0;
-                        _radarBitmaps.clear();
-                        _logger.info("tile: " + _tile);
-                        updateMoveTileButtons();
-                        RadarBackgroundTask task = new RadarBackgroundTask(_tile);
-                        task.addListener(new AsyncTaskListener<Bitmap>() {
-                            @Override
-                            public void completed(AsyncTaskResult<Bitmap> result) {
-                                try {
-                                    MainActivity.getThisInstance().stopBusy();
-                                    Bitmap bitmap = result.getResult();
-                                    if (bitmap != null) {
-                                        double width = bitmap.getWidth();
-                                        double height = bitmap.getHeight();
-                                        double aspectRatio = width / height;
-                                        _radarView.setAspectRatio(aspectRatio);
-                                        _radarView.setBackgroundBitmap(bitmap);
-                                        _radarView.setRadarBitmap(null);
-                                    } else {
-                                        _radarView.setBackgroundBitmap(null);
-                                        _radarView.setRadarBitmap(null);
-                                    }
-                                    _radarView.invalidate();
-                                    _playPauseButton.setImageResource(R.drawable.pause);
-                                    _playPauseButton.setTag("pause");
-                                    _timer = new Timer();
-                                    _timer.scheduleAtFixedRate(new RadarTimerTask(), 500, 3000);
-                                } catch (Throwable t) {
-                                    _logger.warning("Radar background task complete error: " + t.getMessage());
-                                }
-                            }
-                        });
-                        task.execute((Void[])null);
-                        MainActivity.getThisInstance().startBusy();
-                    }
-                }
-            } catch (Throwable t) {
-                if ((t != null) && (t.getMessage() != null)) {
-                    _logger.warning(t.getMessage());
-                }
-                _logger.warning("Unexpected Exception in MoveTileButtonListener.onClick.");
-            }
-        }
-    }
-
     private class RadarTimerTask extends TimerTask {
         @Override
         public void run() {
-            // Get the radar image for the timestamp
-            final RadarTimeDTO radarTime = _timeStamps.get(_currentIndex);
-            final String timeStamp = radarTime.getTimeStamp();
-            final Date time = radarTime.getTime();
-            _logger.info("timeStamp: " + timeStamp);
-            if (_radarBitmaps.containsKey(timeStamp)) {
-                _logger.info("found bitmap.");
-                MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            _radarTime.setText(_radarTimeFormat.format(time));
-                            _radarView.setRadarBitmap(_radarBitmaps.get(timeStamp));
-                            _radarView.invalidate();
-                        } catch (Throwable t) {
-                            _logger.warning("Set radar bitmap on UI thread error: " + t.getMessage());
-                        }
-                    }
-                });
+            if (_urls == null) {
                 return;
             }
-            RadarImageTask task = new RadarImageTask(timeStamp, _tile);
+            _logger.info("currentIndex: " + _currentIndex);
+            if ((_currentIndex < 0) || (_currentIndex > (_urls.length - 1))) {
+                return;
+            }
+            final String imageUrl = _urls[_currentIndex];
+            RadarImageTask task = new RadarImageTask(imageUrl);
             task.addListener(new AsyncTaskListener<Bitmap>() {
                 @Override
                 public void completed(AsyncTaskResult<Bitmap> result) {
-                    if (result.getResult() != null) {
-                        _logger.info("downloaded bitmap.");
-                        final Bitmap bitmap = result.getResult();
-                        MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                try {
-                                    _radarBitmaps.put(timeStamp, bitmap);
-                                    _radarTime.setText(_radarTimeFormat.format(time));
-                                    _radarView.setRadarBitmap(_radarBitmaps.get(timeStamp));
-                                    _radarView.invalidate();
-                                } catch (Throwable t) {
-                                    _logger.warning("Radar bitmap set on UI thread error: " + t.getMessage());
-                                }
-                            }
-                        });
+                    Bitmap bitmap = result.getResult();
+                    if (bitmap != null) {
+                        renderRadarImage(imageUrl, bitmap);
+                        if (_currentIndex < (_urls.length - 1)) {
+                            ++_currentIndex;
+                        } else {
+                            _currentIndex = 0;
+                        }
                     }
                 }
             });
-            task.execute((Void[])null);
-            if ((++_currentIndex) == _timeStamps.size()) {
-                _currentIndex = 0;
-            }
-            if (_playPauseButton != null) {
-                if (_playPauseButton.getVisibility() == View.GONE) {
-                    MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if (_playPauseButton != null) {
-                                _playPauseButton.setVisibility(View.VISIBLE);
-                            }
-                        }
-                    });
-                }
-            }
+            task.execute((Void)null);
         }
     }
 }

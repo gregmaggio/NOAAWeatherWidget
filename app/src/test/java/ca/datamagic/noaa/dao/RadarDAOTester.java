@@ -1,21 +1,33 @@
 package ca.datamagic.noaa.dao;
 
+import android.graphics.Bitmap;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.FileOutputStream;
 import java.util.List;
 
 import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
+import ca.datamagic.noaa.dto.RadarDTO;
+import ca.datamagic.noaa.dto.RadarImageMetaDataDTO;
 import ca.datamagic.noaa.dto.RadarTimeDTO;
 
 public class RadarDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
-        RadarDAO dao = new RadarDAO();
-        List<RadarTimeDTO> radarTimes = dao.getTimeStamps();
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(radarTimes);
-        System.out.println(json);
+        RadarDAO dao = new RadarDAO();
+        RadarDTO radar = dao.loadNearest(39.0045396, -76.9066824);
+        System.out.println("radar: " + mapper.writeValueAsString(radar));
+        String[] urls = dao.loadUrls(radar.getICAO());
+        System.out.println("urls: " + mapper.writeValueAsString(urls));
+        String imageUrl = urls[0];
+        RadarImageMetaDataDTO metaData = dao.loadMetaData(imageUrl);
+        System.out.println("metaData: " + mapper.writeValueAsString(metaData));
+        Bitmap bitmap = dao.loadImage(imageUrl);
+        Assert.assertNotNull(bitmap);
     }
 }

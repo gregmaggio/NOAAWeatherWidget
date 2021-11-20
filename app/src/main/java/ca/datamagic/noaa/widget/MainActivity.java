@@ -425,7 +425,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.WARNING, _filesPath, true);
+            LogFactory.initialize(Level.ALL, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
             _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
@@ -460,6 +460,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public void onDestroy() {
         if (_stationsHelper != null) {
             _stationsHelper.close();
+        }
+        if (_mainPageAdapter != null) {
+            _mainPageAdapter.performCleanup(_currentPage);
         }
         super.onDestroy();
     }
@@ -526,8 +529,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 actionSendError();
                 return true;
             case R.id.action_exit:
-                (new AccountingTask("Application", "Exit")).execute((Void[]) null);
-                finish();
+                actionExit();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -745,8 +747,26 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         }
     }
 
+    private void actionExit() {
+        try {
+            if (_mainPageAdapter != null) {
+                _mainPageAdapter.performCleanup(_currentPage);
+            }
+            (new AccountingTask("Application", "Exit")).execute((Void[]) null);
+            finish();
+        } catch (Throwable t) {
+            // TODO: Show Error
+            if (_logger != null) {
+                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
+            }
+        }
+    }
+
     @Override
     public boolean onClose() {
+        if (_mainPageAdapter != null) {
+            _mainPageAdapter.performCleanup(_currentPage);
+        }
         return false;
     }
 
