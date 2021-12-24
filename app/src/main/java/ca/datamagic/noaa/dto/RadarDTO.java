@@ -3,6 +3,9 @@ package ca.datamagic.noaa.dto;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import androidx.annotation.Nullable;
+import ca.datamagic.noaa.async.RadarTask;
+
 public class RadarDTO {
     private String _icao = null;
     private String _wfo = null;
@@ -15,6 +18,16 @@ public class RadarDTO {
 
     public RadarDTO() {
 
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj != null) {
+            if (obj instanceof RadarDTO) {
+                return _icao.compareToIgnoreCase(((RadarDTO)obj)._icao) == 0;
+            }
+        }
+        return super.equals(obj);
     }
 
     public RadarDTO(JSONObject obj) throws JSONException {

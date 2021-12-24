@@ -16,6 +16,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.GroundOverlay;
 import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
@@ -59,6 +60,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     private TextView _radarTime = null;
     private SimpleDateFormat _radarTimeFormat = null;
     private GoogleMap _map = null;
+    private boolean _mapLocationInitialized = false;
     private RadarDTO _radar = null;
     private String[] _urls = null;
     private RadarImageMetaDataDTO _metaData = null;
@@ -169,6 +171,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         _radarTime = null;
         _radarTimeFormat = null;
         _map = null;
+        _mapLocationInitialized = false;
         _radar = null;
         _urls = null;
         _metaData = null;
@@ -206,8 +209,59 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         }
     }
 
+    private void resetForNewLocation(RadarDTO radar) {
+        if (_timer != null) {
+            try {
+                _timer.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        if (_timer != null) {
+            try {
+                _timer.purge();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        if (_timerTask != null) {
+            try {
+                _timerTask.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        _timerTask = null;
+        _timer = null;
+
+        try {
+            Thread.sleep(PERIOD);
+        } catch (InterruptedException e) {
+            _logger.warning("InterruptedException: " + e.getMessage());
+        }
+
+        // Check to make sure we are not already initializing for this location
+        // Map move sends events fast and furious
+        if (_radar != null) {
+            if (_radar.equals(radar)) {
+                return;
+            }
+        }
+        _logger.info("Going to reset for ICAO " + radar.getICAO());
+        radarSiteLoaded(radar);
+        MainActivity.getThisInstance().startBusy();
+    }
+
     private void radarSiteLoaded(RadarDTO radar) {
         _radar = radar;
+        _urls = null;
+        _metaData = null;
+        _bounds = null;
+        _currentIndex = 0;
+        if (_radarOverlay != null) {
+            _radarOverlay.remove();
+            _radarOverlay = null;
+        }
         if (_radar == null) {
             MainActivity.getThisInstance().stopBusy();
             Snackbar.make(getView(), "Cannot find a radar for current location", Snackbar.LENGTH_LONG).show();
@@ -253,7 +307,11 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         double[] upperCorner = _metaData.getUpperCorner();
         double[] lowerCorner = _metaData.getLowerCorner();
         _bounds = new LatLngBounds(new LatLng(lowerCorner[1], lowerCorner[0]), new LatLng(upperCorner[1], upperCorner[0]));
-        _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
+        if (!_mapLocationInitialized) {
+            _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
+            _mapLocationInitialized = true;
+        }
+        _map.setOnCameraMoveListener(new CameraMoveListener());
         _currentIndex = 0;
         _timerTask = new RadarTimerTask();
         _timer = new Timer("Timer");
@@ -348,6 +406,47 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 }
             });
             task.execute((Void)null);
+        }
+    }
+
+    private class CameraMoveListener implements GoogleMap.OnCameraMoveListener, AsyncTaskListener<RadarDTO> {
+        private boolean _loading = false;
+
+        @Override
+        public void onCameraMove() {
+            //_logger.info("onCameraMove");
+            if (_loading) {
+                return;
+            }
+            CameraPosition cameraPosition = _map.getCameraPosition();
+            if (cameraPosition != null) {
+                if (cameraPosition.target != null) {
+                    this.loadRadar(cameraPosition.target.latitude, cameraPosition.target.longitude);
+                }
+            }
+        }
+
+        private void loadRadar(double latitude, double longitude) {
+            RadarTask task = new RadarTask(latitude, longitude);
+            task.addListener(this);
+            task.execute((Void)null);
+            _loading = true;
+        }
+
+        @Override
+        public void completed(AsyncTaskResult<RadarDTO> result) {
+            _loading = false;
+            if (result.getResult() != null) {
+                if (_radar != null) {
+                    String currICAO = _radar.getICAO();
+                    String newICAO = result.getResult().getICAO();
+                    if (currICAO.compareToIgnoreCase(newICAO) != 0) {
+                        _logger.info("Moved from " + _radar.getICAO() + " to " + result.getResult().getICAO());
+                        // Stop everything and re-initialize with the new ICAO
+                        resetForNewLocation(result.getResult());
+                    }
+                }
+            }
         }
     }
 }

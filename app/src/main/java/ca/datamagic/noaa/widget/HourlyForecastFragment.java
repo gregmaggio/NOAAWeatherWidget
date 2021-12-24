@@ -14,6 +14,7 @@ import com.luckycatlabs.sunrisesunset.SunriseSunsetCalculator;
 import com.luckycatlabs.sunrisesunset.dto.Location;
 
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.TimeZone;
 import java.util.logging.Logger;
@@ -175,6 +176,7 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                 if (periods != null) {
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
+                    SimpleDateFormat hourFormat = new SimpleDateFormat(preferencesDTO.getTimeFormat().replace(":mm", ""));
                     String currentDayOfWeek = null;
                     for (int ii = 0; ii < periods.length; ii++) {
                         Calendar calendar = null;
@@ -185,7 +187,7 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                         if (periods[ii].getStartTime() != null) {
                             timeStampDTO.setTimeStamp(periods[ii].getStartTime());
                             dayOfWeek = timeStampDTO.getDayOfWeek();
-                            hourOfDay = timeStampDTO.get12HourOfDay();
+                            hourOfDay = hourFormat.format(timeStampDTO.getCalendar().getTime());
                             calendar = (Calendar)timeStampDTO.getCalendar().clone();
                             calendar.setTimeZone(tz);
                             _logger.info("Current Time: " + calendar.toString());
