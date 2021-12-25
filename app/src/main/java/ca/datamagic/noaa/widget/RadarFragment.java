@@ -418,10 +418,12 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             if (_loading) {
                 return;
             }
-            CameraPosition cameraPosition = _map.getCameraPosition();
-            if (cameraPosition != null) {
-                if (cameraPosition.target != null) {
-                    this.loadRadar(cameraPosition.target.latitude, cameraPosition.target.longitude);
+            if (_map != null) {
+                CameraPosition cameraPosition = _map.getCameraPosition();
+                if (cameraPosition != null) {
+                    if (cameraPosition.target != null) {
+                        this.loadRadar(cameraPosition.target.latitude, cameraPosition.target.longitude);
+                    }
                 }
             }
         }
@@ -436,15 +438,13 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         @Override
         public void completed(AsyncTaskResult<RadarDTO> result) {
             _loading = false;
-            if (result.getResult() != null) {
-                if (_radar != null) {
-                    String currICAO = _radar.getICAO();
-                    String newICAO = result.getResult().getICAO();
-                    if (currICAO.compareToIgnoreCase(newICAO) != 0) {
-                        _logger.info("Moved from " + _radar.getICAO() + " to " + result.getResult().getICAO());
-                        // Stop everything and re-initialize with the new ICAO
-                        resetForNewLocation(result.getResult());
-                    }
+            if ((result != null) && (result.getResult() != null) && (_radar != null)) {
+                String currICAO = _radar.getICAO();
+                String newICAO = result.getResult().getICAO();
+                if (currICAO.compareToIgnoreCase(newICAO) != 0) {
+                    _logger.info("Moved from " + _radar.getICAO() + " to " + result.getResult().getICAO());
+                    // Stop everything and re-initialize with the new ICAO
+                    resetForNewLocation(result.getResult());
                 }
             }
         }
