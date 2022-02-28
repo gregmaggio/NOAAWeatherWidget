@@ -4,7 +4,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import androidx.annotation.Nullable;
-import ca.datamagic.noaa.async.RadarTask;
 
 public class RadarDTO {
     private String _icao = null;
@@ -15,19 +14,10 @@ public class RadarDTO {
     private String _equipment = null;
     private Double _latitude = null;
     private Double _longitude = null;
+    private RadarImageMetaDataDTO _siteInfo = null;
 
     public RadarDTO() {
 
-    }
-
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj != null) {
-            if (obj instanceof RadarDTO) {
-                return _icao.compareToIgnoreCase(((RadarDTO)obj)._icao) == 0;
-            }
-        }
-        return super.equals(obj);
     }
 
     public RadarDTO(JSONObject obj) throws JSONException {
@@ -39,6 +29,17 @@ public class RadarDTO {
         _equipment = obj.optString("equipment");
         _latitude = obj.getDouble("latitude");
         _longitude = obj.getDouble("longitude");
+        _siteInfo = new RadarImageMetaDataDTO(obj.getJSONObject("siteInfo"));
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj != null) {
+            if (obj instanceof RadarDTO) {
+                return _icao.compareToIgnoreCase(((RadarDTO)obj)._icao) == 0;
+            }
+        }
+        return super.equals(obj);
     }
 
     public String getICAO() {
@@ -103,5 +104,13 @@ public class RadarDTO {
 
     public void setLongitude(Double newVal) {
         _longitude = newVal;
+    }
+
+    public RadarImageMetaDataDTO getSiteInfo() {
+        return _siteInfo;
+    }
+
+    public void setSiteInfo(RadarImageMetaDataDTO newVal) {
+        _siteInfo = newVal;
     }
 }

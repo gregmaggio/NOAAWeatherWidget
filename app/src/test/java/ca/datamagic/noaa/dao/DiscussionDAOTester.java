@@ -14,7 +14,7 @@ public class DiscussionDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
         DiscussionDAO dao = new DiscussionDAO();
-        String discussion = dao.load("LWX");
+        String discussion = dao.load("LZK");
         System.out.println(discussion);
     }
 }

@@ -7,8 +7,12 @@ android {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 87
-        versionName "1.94"
+        versionCode 88
+        versionName "1.95"
+    }
+    compileOptions {
+        sourceCompatibility 1.8
+        targetCompatibility 1.8
     }
     buildTypes {
         release {
@@ -34,17 +38,17 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.json:json:20210307'
+    testImplementation 'org.json:json:20211205'
     testImplementation group: 'commons-io', name: 'commons-io', version: '2.11.0'
-    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.0'
+    testImplementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.13.1'
     implementation 'androidx.appcompat:appcompat:1.3.1'
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
-    implementation 'androidx.media:media:1.3.1'
+    implementation 'androidx.media:media:1.4.3'
     implementation 'androidx.preference:preference:1.1.1'
     implementation "androidx.drawerlayout:drawerlayout:1.1.1"
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
+    implementation 'com.google.android.gms:play-services-location:19.0.0'
     implementation 'com.google.android.gms:play-services-places:17.0.0'
-    implementation 'com.google.android.gms:play-services-maps:18.0.0'
+    implementation 'com.google.android.gms:play-services-maps:18.0.1'
     implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
     implementation group: 'it.sephiroth.android.library.imagezoom', name: 'imagezoom', version: '2.3.0'
     implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.9.1'

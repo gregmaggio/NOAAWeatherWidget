@@ -14,12 +14,11 @@ import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.dto.RadarDTO;
-import ca.datamagic.noaa.dto.RadarImageMetaDataDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class RadarDAO {
-    private static Logger _logger = LogFactory.getLogger(RadarDAO.class);
+    private static final Logger _logger = LogFactory.getLogger(RadarDAO.class);
 
     public RadarDTO loadNearest(double latitude, double longitude) {
         HttpsURLConnection connection = null;
@@ -74,43 +73,6 @@ public class RadarDAO {
                 urls[ii] = array.getString(ii);
             }
             return urls;
-        } catch (Throwable t) {
-            String message = t.getMessage();
-            _logger.warning("Exception: " + message);
-            return null;
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
-        }
-    }
-
-    public RadarImageMetaDataDTO loadMetaData(String imageUrl) {
-        HttpsURLConnection connection = null;
-        try {
-            String urlSpec = "https://radar-mjm5ilkcrq-ue.a.run.app/api/image/metaData";
-            _logger.info("urlSpec: " + urlSpec);
-            URL url = new URL(urlSpec);
-            connection = (HttpsURLConnection)url.openConnection();
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-            connection.setRequestMethod("POST");
-            connection.setConnectTimeout(2000);
-            connection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            connection.connect();
-            OutputStream outputStream = connection.getOutputStream();
-            outputStream.write(imageUrl.getBytes());
-            outputStream.flush();
-            outputStream.close();
-            String responseText = IOUtils.readEntireString(connection.getInputStream());
-            _logger.info("responseLength: " + responseText.length());
-            _logger.info("responseText: " + responseText);
-            JSONObject obj = new JSONObject(responseText);
-            return new RadarImageMetaDataDTO(obj);
         } catch (Throwable t) {
             String message = t.getMessage();
             _logger.warning("Exception: " + message);

@@ -1,4 +1,2 @@
-* Change the radar location when map is dragged
-* Changing the radar location does NOT change the current forecast location
-* Let me know using the Send Error if you think it should change the forecast location
-* Minor bug fix to use current time format for the hourly forecast (this can be changed from settings)
+* Updates to dependencies
+* Optimizations to radar to lower my GCP costs

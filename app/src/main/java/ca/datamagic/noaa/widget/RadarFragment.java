@@ -38,7 +38,6 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
-import ca.datamagic.noaa.async.RadarImageMetaDataTask;
 import ca.datamagic.noaa.async.RadarImageTask;
 import ca.datamagic.noaa.async.RadarTask;
 import ca.datamagic.noaa.async.RadarUrlsTask;
@@ -267,6 +266,15 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             Snackbar.make(getView(), "Cannot find a radar for current location", Snackbar.LENGTH_LONG).show();
             return;
         }
+        _metaData = radar.getSiteInfo();
+        double[] upperCorner = _metaData.getUpperCorner();
+        double[] lowerCorner = _metaData.getLowerCorner();
+        _bounds = new LatLngBounds(new LatLng(lowerCorner[1], lowerCorner[0]), new LatLng(upperCorner[1], upperCorner[0]));
+        if (!_mapLocationInitialized) {
+            _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
+            _mapLocationInitialized = true;
+        }
+        _map.setOnCameraMoveListener(new CameraMoveListener());
         RadarUrlsTask task = new RadarUrlsTask(_radar.getICAO());
         task.addListener(new AsyncTaskListener<String[]>() {
             @Override
@@ -287,31 +295,6 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         int endIndex = _urls.length;
         int startIndex = _urls.length - MAX_IMAGES - 1;
         _urls = Arrays.copyOfRange(_urls, startIndex, endIndex);
-        RadarImageMetaDataTask task = new RadarImageMetaDataTask(_urls[0]);
-        task.addListener(new AsyncTaskListener<RadarImageMetaDataDTO>() {
-            @Override
-            public void completed(AsyncTaskResult<RadarImageMetaDataDTO> result) {
-                imageMetaDataLoaded(result.getResult());
-            }
-        });
-        task.execute((Void)null);
-    }
-
-    private void imageMetaDataLoaded(RadarImageMetaDataDTO metaData) {
-        _metaData = metaData;
-        if (_metaData == null) {
-            MainActivity.getThisInstance().stopBusy();
-            Snackbar.make(getView(), "Failed to load radar image meta data", Snackbar.LENGTH_LONG).show();
-            return;
-        }
-        double[] upperCorner = _metaData.getUpperCorner();
-        double[] lowerCorner = _metaData.getLowerCorner();
-        _bounds = new LatLngBounds(new LatLng(lowerCorner[1], lowerCorner[0]), new LatLng(upperCorner[1], upperCorner[0]));
-        if (!_mapLocationInitialized) {
-            _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
-            _mapLocationInitialized = true;
-        }
-        _map.setOnCameraMoveListener(new CameraMoveListener());
         _currentIndex = 0;
         _timerTask = new RadarTimerTask();
         _timer = new Timer("Timer");

@@ -6,8 +6,11 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -20,6 +23,8 @@ public class DiscussionDAO {
     private static Logger _logger = LogFactory.getLogger(DiscussionDAO.class);
     private static String _discussionStart = "<pre class=\"glossaryProduct\">".toLowerCase();
     private static String _discussionEnd = "</pre>".toLowerCase();
+    private static Pattern _watchesWarningsAdvisoriesPattern = Pattern.compile("(WATCHES)|(WARNINGS)|(ADVISORIES)", Pattern.CASE_INSENSITIVE);
+    private static Pattern _pointPattern = Pattern.compile("POINT", Pattern.CASE_INSENSITIVE);
 
     public String load(String issuedBy) throws Throwable {
         URL url = new URL(MessageFormat.format("https://forecast.weather.gov/product.php?site={0}&issuedby={0}&product=AFD&format=txt&version=1&glossary=0", issuedBy));
@@ -86,7 +91,7 @@ public class DiscussionDAO {
             if ((responseText == null) || (responseText.length() < 1)) {
                 throw new Exception("Discussion was null");
             }
-            return responseText;
+            return removeAdditionalNewLines(responseText);
         } catch (Throwable t) {
             String message = t.getMessage();
             _logger.warning("Exception: " + message);
@@ -103,5 +108,45 @@ public class DiscussionDAO {
             }
         }
         return null;
+    }
+
+    private static String removeAdditionalNewLines(String discussion) {
+        StringBuilder builder = new StringBuilder();
+        Scanner scanner = new Scanner(discussion);
+        boolean inSection = false;
+        while (scanner.hasNextLine()) {
+            String line = scanner.nextLine();
+            if (inSection) {
+                if (line.compareTo("&&") == 0) {
+                    // End of a section
+                    builder.append("\n");
+                    builder.append(line);
+                    builder.append("\n");
+                    inSection = false;
+                    continue;
+                }
+            }
+            if (line.startsWith(".") && line.endsWith(".")) {
+                Matcher watchesWarningsAdvisoriesMatcher = _watchesWarningsAdvisoriesPattern.matcher(line);
+                Matcher pointMatcher = _pointPattern.matcher(line);
+                if (!watchesWarningsAdvisoriesMatcher.find() && !pointMatcher.find()) {
+                    // Start of a section
+                    builder.append(line);
+                    builder.append("\n");
+                    inSection = true;
+                    continue;
+                }
+            }
+            if (line.length() > 0) {
+                builder.append(line);
+                if (!inSection) {
+                    builder.append("\n");
+                }
+            } else {
+                builder.append("\n");
+            }
+        }
+        scanner.close();
+        return builder.toString();
     }
 }
