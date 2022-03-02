@@ -4,8 +4,11 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.dao.APIDAO;
+import ca.datamagic.noaa.dao.RadarDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
+import ca.datamagic.noaa.dto.RadarDTO;
+import ca.datamagic.noaa.exception.MarineForecastNotSupportedException;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class HourlyForecastTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
@@ -27,10 +30,26 @@ public class HourlyForecastTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
                 if (featureProperties != null) {
                     timeZone = featureProperties.getTimeZone();
                 }
-                hourlyFeature = _dao.loadForecastHourly(feature);
-                FeaturePropertiesDTO hourlyFeatureProperties = hourlyFeature.getProperties();
-                if (hourlyFeatureProperties != null) {
-                    hourlyFeatureProperties.setTimeZone(timeZone);
+                try {
+                    hourlyFeature = _dao.loadForecastHourly(feature);
+                } catch (MarineForecastNotSupportedException ex) {
+                    _logger.warning("MarineForecastNotSupportedException");
+                    if ((feature.getProperties() != null) && (feature.getProperties().getRadarStation() != null)) {
+                        RadarDAO radarDAO = new RadarDAO();
+                        RadarDTO radar = radarDAO.load(feature.getProperties().getRadarStation());
+                        if (radar != null) {
+                            FeatureDTO radarFeature = _dao.loadFeature(radar.getLatitude(), radar.getLongitude());
+                            if (radarFeature != null) {
+                                hourlyFeature = _dao.loadForecastHourly(radarFeature);
+                            }
+                        }
+                    }
+                }
+                if (hourlyFeature != null) {
+                    FeaturePropertiesDTO hourlyFeatureProperties = hourlyFeature.getProperties();
+                    if (hourlyFeatureProperties != null) {
+                        hourlyFeatureProperties.setTimeZone(timeZone);
+                    }
                 }
             }
             return new AsyncTaskResult<FeatureDTO>(hourlyFeature);

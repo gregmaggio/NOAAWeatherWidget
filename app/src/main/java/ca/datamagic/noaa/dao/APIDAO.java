@@ -9,17 +9,18 @@ import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.dto.FeatureDTO;
+import ca.datamagic.noaa.exception.MarineForecastNotSupportedException;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class APIDAO {
     private static Logger _logger = LogFactory.getLogger(APIDAO.class);
 
-    private static FeatureDTO loadFeature(String urlSpec) throws Throwable {
-        URL url = new URL(urlSpec);
-        _logger.info("url: " + url.toString());
+    private static FeatureDTO loadFeature(String urlSpec) {
+        _logger.info("urlSpec: " + urlSpec);
         HttpsURLConnection connection = null;
         try {
+            URL url = new URL(urlSpec);
             connection = (HttpsURLConnection) url.openConnection();
             connection.setDoInput(true);
             connection.setDoOutput(false);
@@ -37,10 +38,12 @@ public class APIDAO {
             connection.setRequestProperty("Sec-Fetch-Dest", "document");
             connection.connect();
             String responseText = null;
-            if (connection.getResponseCode() == 404) {
-                responseText = IOUtils.readEntireString(connection.getErrorStream());
-            } else {
+            int responseCode = connection.getResponseCode();
+            _logger.info("responseCode: " + responseCode);
+            if ((connection.getResponseCode() > 199) && (connection.getResponseCode() < 300)) {
                 responseText = IOUtils.readEntireString(connection.getInputStream());
+            } else {
+                responseText = IOUtils.readEntireString(connection.getErrorStream());
             }
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
@@ -64,15 +67,27 @@ public class APIDAO {
         return null;
     }
 
-    public FeatureDTO loadFeature(double latitude, double longitude) throws Throwable {
+    public FeatureDTO loadFeature(double latitude, double longitude) {
         return loadFeature(MessageFormat.format("https://api.weather.gov/points/{0},{1}", Double.toString(latitude), Double.toString(longitude)));
     }
 
-    public FeatureDTO loadForecastHourly(FeatureDTO feature) throws Throwable {
-        return loadFeature(feature.getProperties().getForecastHourly());
+    public FeatureDTO loadForecastHourly(FeatureDTO feature) throws MarineForecastNotSupportedException {
+        FeatureDTO forecastHourly = loadFeature(feature.getProperties().getForecastHourly());
+        if ((forecastHourly != null) && (forecastHourly.getStatus() != null) && (forecastHourly.getStatus() == 404)) {
+            if ((forecastHourly.getDetail() != null) && (forecastHourly.getDetail().toLowerCase().contains("marine areas are not yet supported"))) {
+                throw new MarineForecastNotSupportedException();
+            }
+        }
+        return forecastHourly;
     }
 
-    public FeatureDTO loadForecast(FeatureDTO feature) throws Throwable {
-        return loadFeature(feature.getProperties().getForecast());
+    public FeatureDTO loadForecast(FeatureDTO feature) throws MarineForecastNotSupportedException {
+        FeatureDTO forecastDaily = loadFeature(feature.getProperties().getForecast());
+        if ((forecastDaily != null) && (forecastDaily.getStatus() != null) && (forecastDaily.getStatus() == 404)) {
+            if ((forecastDaily.getDetail() != null) && (forecastDaily.getDetail().toLowerCase().contains("marine areas are not yet supported"))) {
+                throw new MarineForecastNotSupportedException();
+            }
+        }
+        return forecastDaily;
     }
 }

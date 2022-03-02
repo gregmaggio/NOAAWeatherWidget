@@ -46,7 +46,6 @@ public class DiscussionFragment extends Fragment implements Renderer, NonSwipeab
             if (view != null) {
                 if (_discussion != null) {
                     TextView discussionView = view.findViewById(R.id.discussionView);
-                    discussionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 31.0f);
                     if (_discussion.length() > 0) {
                         discussionView.setText(_discussion);
                     } else {
@@ -95,7 +94,6 @@ public class DiscussionFragment extends Fragment implements Renderer, NonSwipeab
             View view = getView();
             if (view != null) {
                 TextView discussionView = view.findViewById(R.id.discussionView);
-                discussionView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 31.0f);
                 if ((_discussion != null) && (_discussion.length() > 0)) {
                     discussionView.setText(_discussion);
                 } else {

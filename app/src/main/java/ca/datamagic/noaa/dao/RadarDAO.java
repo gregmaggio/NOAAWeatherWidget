@@ -52,6 +52,38 @@ public class RadarDAO {
         }
     }
 
+    public RadarDTO load(String icao) {
+        HttpsURLConnection connection = null;
+        try {
+            String urlSpec = MessageFormat.format("https://radar-mjm5ilkcrq-ue.a.run.app/api/{0}", icao);
+            _logger.info("urlSpec: " + urlSpec);
+            URL url = new URL(urlSpec);
+            connection = (HttpsURLConnection)url.openConnection();
+            connection.setDoInput(true);
+            connection.setDoOutput(false);
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(2000);
+            connection.connect();
+            String responseText = IOUtils.readEntireString(connection.getInputStream());
+            _logger.info("responseLength: " + responseText.length());
+            _logger.info("responseText: " + responseText);
+            JSONObject obj = new JSONObject(responseText);
+            return new RadarDTO(obj);
+        } catch (Throwable t) {
+            String message = t.getMessage();
+            _logger.warning("Exception: " + message);
+            return null;
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.disconnect();
+                } catch (Throwable t) {
+                    _logger.warning("Exception: " + t.getMessage());
+                }
+            }
+        }
+    }
+
     public String[] loadUrls(String icao) {
         HttpsURLConnection connection = null;
         try {
