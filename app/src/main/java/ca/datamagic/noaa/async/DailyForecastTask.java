@@ -3,11 +3,11 @@ package ca.datamagic.noaa.async;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.current.CurrentFeature;
+import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.APIDAO;
-import ca.datamagic.noaa.dao.RadarDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
-import ca.datamagic.noaa.dto.RadarDTO;
+import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.exception.MarineForecastNotSupportedException;
 import ca.datamagic.noaa.logging.LogFactory;
 
@@ -24,26 +24,42 @@ public class DailyForecastTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
         try {
             FeatureDTO feature = CurrentFeature.getFeature();
             FeatureDTO dailyFeature = null;
+            StationDTO[] nearest = CurrentStation.getNearest();
+            try {
+                dailyFeature = _dao.loadForecast(feature);
+                if (dailyFeature == null) {
+                    feature = null;
+                }
+            } catch (MarineForecastNotSupportedException ex) {
+                _logger.warning("MarineForecastNotSupportedException");
+                feature = null;
+                dailyFeature = null;
+            }
+            if (feature == null) {
+                for (int ii = 0; ii < nearest.length; ii++) {
+                    feature = _dao.loadFeature(nearest[ii].getLatitude(), nearest[ii].getLongitude());
+                    if (feature != null) {
+                        try {
+                            dailyFeature = _dao.loadForecast(feature);
+                            if (dailyFeature == null) {
+                                feature = null;
+                            }
+                        } catch (MarineForecastNotSupportedException ex) {
+                            _logger.warning("MarineForecastNotSupportedException");
+                            feature = null;
+                            dailyFeature = null;
+                        }
+                    }
+                    if (feature != null) {
+                        break;
+                    }
+                }
+            }
             if (feature != null) {
                 String timeZone = "";
                 FeaturePropertiesDTO featureProperties = feature.getProperties();
                 if (featureProperties != null) {
                     timeZone = featureProperties.getTimeZone();
-                }
-                try {
-                    dailyFeature = _dao.loadForecast(feature);
-                } catch (MarineForecastNotSupportedException ex) {
-                    _logger.warning("MarineForecastNotSupportedException");
-                    if ((feature.getProperties() != null) && (feature.getProperties().getRadarStation() != null)) {
-                        RadarDAO radarDAO = new RadarDAO();
-                        RadarDTO radar = radarDAO.load(feature.getProperties().getRadarStation());
-                        if (radar != null) {
-                            FeatureDTO radarFeature = _dao.loadFeature(radar.getLatitude(), radar.getLongitude());
-                            if (radarFeature != null) {
-                                dailyFeature = _dao.loadForecast(radarFeature);
-                            }
-                        }
-                    }
                 }
                 if (dailyFeature != null) {
                     FeaturePropertiesDTO dailyFeatureProperties = dailyFeature.getProperties();

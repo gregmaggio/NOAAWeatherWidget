@@ -25,8 +25,6 @@ public class RadarDAOTester extends BaseTester {
         String[] urls = dao.loadUrls(radar.getICAO());
         System.out.println("urls: " + mapper.writeValueAsString(urls));
         String imageUrl = urls[0];
-        RadarImageMetaDataDTO metaData = dao.loadMetaData(imageUrl);
-        System.out.println("metaData: " + mapper.writeValueAsString(metaData));
         Bitmap bitmap = dao.loadImage(imageUrl);
         Assert.assertNotNull(bitmap);
     }

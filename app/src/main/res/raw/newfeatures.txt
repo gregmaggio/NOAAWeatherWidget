@@ -1,4 +1,1 @@
-* Updates to dependencies
-* Optimizations to radar to lower my GCP costs
-* Minor fix to try a second forecast location when user's location is near a coastline (marine forecast not supported by NOAA API)
-* Removed some test discussion code that was not meant to make it to production
+* Use nearby stations (if any) when hourly and/or daily forecast errors.

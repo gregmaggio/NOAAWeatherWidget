@@ -15,7 +15,7 @@ public class StationDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
         StationDAO stationDAO = new StationDAO(new FileInputStream("C:/Dev/Android/NOAAWeatherWidget/app/src/main/res/raw/stations.csv"));
-        StationDTO station = stationDAO.readNearest(34.1981981981982,-118.92222039020855, distance, units);
-        Assert.assertNotNull(station);
+        StationDTO[] nearest = stationDAO.readNearest(34.1981981981982,-118.92222039020855, distance, units);
+        Assert.assertNotNull(nearest);
     }
 }

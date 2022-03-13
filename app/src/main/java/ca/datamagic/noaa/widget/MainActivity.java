@@ -583,20 +583,20 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
             _processing = true;
             _spinner.setVisibility(View.VISIBLE);
+            StationTask stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             DWMLTask dwmlTask = new DWMLTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             FeatureTask featureTask = new FeatureTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             HazardsTask hazardsTask = new HazardsTask();
             HourlyForecastTask hourlyForecastTask = new HourlyForecastTask();
             DailyForecastTask dailyForecastTask = new DailyForecastTask();
-            StationTask stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
 
             Workflow refreshWorkflow = new Workflow();
+            refreshWorkflow.addStep(new WorkflowStep(stationTask, _stationListener));
             refreshWorkflow.addStep(new WorkflowStep(dwmlTask, _dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(featureTask, _featureListener));
             refreshWorkflow.addStep(new WorkflowStep(hazardsTask, _hazardsListener));
             refreshWorkflow.addStep(new WorkflowStep(hourlyForecastTask, _hourlyForecastListener));
             refreshWorkflow.addStep(new WorkflowStep(dailyForecastTask, _dailyForecastListener));
-            refreshWorkflow.addStep(new WorkflowStep(stationTask, _stationListener));
             refreshWorkflow.addListener(new Workflow.WorkflowListener() {
                 @Override
                 public void completed(boolean success) {
@@ -883,6 +883,25 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         (new AccountingTask("Station", "Remove")).execute((Void[])null);
     }
 
+    private class StationListener implements AsyncTaskListener<StationDTO[]> {
+        @Override
+        public void completed(AsyncTaskResult<StationDTO[]> result) {
+            if (result.getThrowable() != null) {
+                if (_logger != null) {
+                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
+                }
+                CurrentStation.setNearest(null);
+                CurrentStation.setStation(null);
+            } else {
+                StationDTO[] nearest = result.getResult();
+                if ((nearest != null) && (nearest.length > 0)) {
+                    CurrentStation.setNearest(nearest);
+                    CurrentStation.setStation(nearest[0]);
+                }
+            }
+        }
+    }
+
     private class DWMLListener implements AsyncTaskListener<DWMLDTO> {
         @Override
         public void completed(AsyncTaskResult<DWMLDTO> result) {
@@ -958,23 +977,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 CurrentDailyForecast.setDailyForecastFeature(null);
             } else {
                 CurrentDailyForecast.setDailyForecastFeature(result.getResult());
-            }
-        }
-    }
-
-    private class StationListener implements AsyncTaskListener<StationDTO> {
-        @Override
-        public void completed(AsyncTaskResult<StationDTO> result) {
-            if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
-                }
-                CurrentStation.setStation(null);
-            } else {
-                CurrentStation.setStation(result.getResult());
-                if (result.getResult() != null) {
-                    _stationsAdapter.add(result.getResult());
-                }
             }
         }
     }

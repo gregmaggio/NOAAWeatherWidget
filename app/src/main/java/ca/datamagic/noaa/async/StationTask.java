@@ -7,7 +7,7 @@ import ca.datamagic.noaa.dao.StationDAO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
+public class StationTask extends AsyncTaskBase<Void, Void, StationDTO[]> {
     private static final Logger _logger = LogFactory.getLogger(StationTask.class);
     private static final double distance = 75;
     private static final String units = "statute miles";
@@ -20,22 +20,22 @@ public class StationTask extends AsyncTaskBase<Void, Void, StationDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<StationDTO> doInBackground(Void... params) {
+    protected AsyncTaskResult<StationDTO[]> doInBackground(Void... params) {
         try {
             _logger.info("Loading Station...");
-            StationDTO station = null;
+            StationDTO[] nearest = null;
             StationDAO dao = CurrentStations.getStationDAO();
             if (dao != null) {
-                station = dao.readNearest(_latitude, _longitude, distance, units);
+                nearest = dao.readNearest(_latitude, _longitude, distance, units);
             }
-            return new AsyncTaskResult<StationDTO>(station);
+            return new AsyncTaskResult<StationDTO[]>(nearest);
         } catch (Throwable t) {
-            return new AsyncTaskResult<StationDTO>(t);
+            return new AsyncTaskResult<StationDTO[]>(t);
         }
     }
 
     @Override
-    protected void onPostExecute(AsyncTaskResult<StationDTO> result) {
+    protected void onPostExecute(AsyncTaskResult<StationDTO[]> result) {
         _logger.info("...station loaded.");
         fireCompleted(result);
     }

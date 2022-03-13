@@ -7,12 +7,14 @@ import com.univocity.parsers.csv.CsvParserSettings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import ca.datamagic.noaa.dto.StationDTO;
 
 public class StationDAO {
     private static final double _radiusOfEarthMeters = 6371e3;
+    private static final int _maxReturn = 5;
     private List<StationDTO> _stations = new ArrayList<StationDTO>();
 
     public StationDAO(InputStream inputStream) throws IOException {
@@ -55,29 +57,24 @@ public class StationDAO {
         return _stations.get(index);
     }
 
-    public StationDTO readNearest(double latitude, double longitude, double distance, String units) {
-        StationDTO nearest = null;
-        double nearestDistance = Double.NaN;
+    public StationDTO[] readNearest(double latitude, double longitude, double distance, String units) {
         distance = distanceToMeters(distance, units);
-        //System.out.println("distance: " + distance);
+        List<NearestStationResult> results = new ArrayList<NearestStationResult>();
         for (int ii = 0; ii < _stations.size(); ii++) {
             StationDTO station = _stations.get(ii);
             double distanceToStation = computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
             if (distanceToStation <= distance) {
-                //System.out.println("StationName: " + station.getStationName());
-                //System.out.println("distanceToStation: " + distanceToStation);
-                if (nearest == null) {
-                    nearest = station;
-                    nearestDistance = distanceToStation;
-                } else if (nearestDistance > distanceToStation) {
-                    nearest = station;
-                    nearestDistance = distanceToStation;
-                }
+                results.add(new NearestStationResult(station, distanceToStation));
             }
         }
-        if (nearest != null) {
-            //System.out.println("nearest: " + nearest.getStationName());
-            //System.out.println("nearestDistance: " + nearestDistance);
+        results.sort(new NearestStationResultComparator());
+        int numberReturned = results.size();
+        if (numberReturned > _maxReturn) {
+            numberReturned = _maxReturn;
+        }
+        StationDTO[] nearest = new StationDTO[numberReturned];
+        for (int ii = 0; ii < numberReturned; ii++) {
+            nearest[ii] = results.get(ii).getStation();
         }
         return nearest;
     }
@@ -102,5 +99,36 @@ public class StationDAO {
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double distance = _radiusOfEarthMeters * c;
         return distance;
+    }
+
+    private class NearestStationResult {
+        private StationDTO _station = null;
+        private double _distance = 0.0;
+
+        public NearestStationResult(StationDTO station, double distance) {
+            _station = station;
+            _distance = distance;
+        }
+
+        public StationDTO getStation() {
+            return _station;
+        }
+
+        public double getDistance() {
+            return _distance;
+        }
+    }
+
+    private class NearestStationResultComparator implements Comparator<NearestStationResult> {
+        @Override
+        public int compare(NearestStationResult result1, NearestStationResult result2) {
+            if (result1.getDistance() < result2.getDistance()) {
+                return -1;
+            }
+            if (result1.getDistance() > result2.getDistance()) {
+                return 1;
+            }
+            return 0;
+        }
     }
 }

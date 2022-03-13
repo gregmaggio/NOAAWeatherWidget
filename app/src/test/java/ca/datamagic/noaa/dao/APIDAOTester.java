@@ -12,7 +12,7 @@ public class APIDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
         APIDAO dao = new APIDAO();
-        FeatureDTO feature = dao.loadFeature(39.0103,-76.9124);
+        FeatureDTO feature = dao.loadFeature(38.6015787,-76.3896103);
         System.out.println("feature: " + feature);
         FeatureDTO forecast = dao.loadForecast(feature);
         System.out.println("forecast: " + forecast);
