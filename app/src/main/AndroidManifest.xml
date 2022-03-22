@@ -13,13 +13,13 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <receiver android:name=".BootCompleteReceiver">
+        <receiver android:name=".BootCompleteReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".CurrentTemperatureWidget">
+        <receiver android:name=".CurrentTemperatureWidget" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -27,7 +27,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/current_temperature_widget_info" />
         </receiver>
-        <receiver android:name=".CurrentPressureWidget">
+        <receiver android:name=".CurrentPressureWidget" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -35,7 +35,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/current_pressure_widget_info" />
         </receiver>
-        <receiver android:name=".CurrentVisibilityWidget">
+        <receiver android:name=".CurrentVisibilityWidget" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -43,7 +43,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/current_visibility_widget_info" />
         </receiver>
-        <receiver android:name=".CurrentDewPointWidget">
+        <receiver android:name=".CurrentDewPointWidget" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -51,7 +51,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/current_dewpoint_widget_info" />
         </receiver>
-        <receiver android:name=".CurrentHumidityWidget">
+        <receiver android:name=".CurrentHumidityWidget" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -59,7 +59,7 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/current_humidity_widget_info" />
         </receiver>
-        <receiver android:name=".CurrentWindWidget">
+        <receiver android:name=".CurrentWindWidget" android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -70,7 +70,8 @@
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:theme="@style/AppTheme.NoActionBar"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.SEARCH" />

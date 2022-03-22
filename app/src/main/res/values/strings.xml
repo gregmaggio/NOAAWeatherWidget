@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">NOAAWeatherWidget</string>
+    <string name="app_name">NOAA Weather</string>
     <string name="my_location">My Location</string>
     <string name="add_location">Add Location</string>
     <string name="action_refresh">Refresh</string>
@@ -89,7 +89,7 @@
 	<string name="timeFormat12Hour">12 Hour</string>
     <string name="add_widget">Add widget</string>
 	<string name="widgetFontColor">Widget Font Color</string>
-    <string name="service_name">NOAA Weather Widget</string>
+    <string name="service_name">NOAA Weather Service</string>
 	<string name="channel_name">NOAAWeatherChannel</string>
 	<string name="channel_description">NOAA Weather Channel</string>
 	<string name="showNextTime">Show this screen next time</string>

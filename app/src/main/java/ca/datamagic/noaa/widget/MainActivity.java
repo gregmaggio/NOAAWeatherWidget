@@ -435,6 +435,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         for (int ii = 0; ii < permissions.length; ii++) {
             _permissions.put(permissions[ii], grantResults[ii]);
         }
@@ -897,6 +898,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 if ((nearest != null) && (nearest.length > 0)) {
                     CurrentStation.setNearest(nearest);
                     CurrentStation.setStation(nearest[0]);
+                    _stationsAdapter.add(nearest[0]);
                 }
             }
         }
