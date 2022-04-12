@@ -1,4 +1,1 @@
-* Use nearby stations (if any) when hourly and/or daily forecast errors.
-* Update to use the marine forecast redirect when it comes back for the observation.
-* Dropped Widget from the app name. The widgets are still there.
-* Dependency updates
+* Update to the way the backend service starts when widgets are used

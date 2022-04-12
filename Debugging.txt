@@ -1,0 +1,12 @@
+Build Debug Version
+
+	gradlew.bat assembleDebug
+
+Run Emulator
+
+	C:\Users\Greg\AppData\Local\Android\Sdk\emulator\emulator.exe -avd Pixel_4_XL_API_31 -wipe-data
+
+Install App
+
+	C:\Users\Greg\AppData\Local\Android\Sdk\platform-tools\adb.exe install C:\Dev\Android\NOAAWeatherWidget\app\build\outputs\apk\debug\app-debug.apk
+

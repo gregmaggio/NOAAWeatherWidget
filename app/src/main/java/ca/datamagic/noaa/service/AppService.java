@@ -54,18 +54,18 @@ public class AppService extends Service {
         _timer.scheduleAtFixedRate(_appTimerTask, AppTimerTask.HALF_HOUR_MILLIS, AppTimerTask.HALF_HOUR_MILLIS);
 
         try {
-            if (createNotificationChannel()) {
-                Intent notificationIntent = new Intent(this, MainActivity.class);
-                PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
-                startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
-                        NOTIF_CHANNEL_ID) // don't forget create a notification channel first
-                        .setOngoing(true)
-                        .setSmallIcon(R.drawable.ic_drawer)
-                        .setContentTitle(getString(R.string.app_name))
-                        .setContentText("Service is running background")
-                        .setContentIntent(pendingIntent)
-                        .build());
-            }
+            createNotificationChannel();
+            Intent notificationIntent = new Intent(this, MainActivity.class);
+            int pendingIntentFlags = (Build.VERSION.SDK_INT >= 23) ? PendingIntent.FLAG_IMMUTABLE : PendingIntent.FLAG_UPDATE_CURRENT;
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, pendingIntentFlags);
+            startForeground(NOTIF_ID, new NotificationCompat.Builder(this,
+                    NOTIF_CHANNEL_ID) // don't forget create a notification channel first
+                    .setOngoing(true)
+                    .setSmallIcon(R.drawable.ic_drawer)
+                    .setContentTitle(getString(R.string.app_name))
+                    .setContentText("Service is running background")
+                    .setContentIntent(pendingIntent)
+                    .build());
         } catch (Throwable t) {
             _logger.warning("Bullshit: " + t.getMessage());
         }
