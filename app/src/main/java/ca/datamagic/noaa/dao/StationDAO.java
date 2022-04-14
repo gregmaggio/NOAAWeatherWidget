@@ -7,6 +7,7 @@ import com.univocity.parsers.csv.CsvParserSettings;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -67,7 +68,7 @@ public class StationDAO {
                 results.add(new NearestStationResult(station, distanceToStation));
             }
         }
-        results.sort(new NearestStationResultComparator());
+        Collections.sort(results, new NearestStationResultComparator());
         int numberReturned = results.size();
         if (numberReturned > _maxReturn) {
             numberReturned = _maxReturn;

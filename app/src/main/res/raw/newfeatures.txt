@@ -1,1 +1,1 @@
-* Update to the way the backend service starts when widgets are used
+* Update to the nearest station sort to support older devices
