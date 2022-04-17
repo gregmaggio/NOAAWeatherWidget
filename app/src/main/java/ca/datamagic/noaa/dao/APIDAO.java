@@ -130,28 +130,34 @@ public class APIDAO {
     }
 
     public FeatureDTO loadForecastHourly(FeatureDTO feature) throws MarineForecastNotSupportedException {
-        FeatureDTO forecastHourly = loadForecast(feature.getProperties().getForecastHourly());
-        if ((forecastHourly != null) && (forecastHourly.getStatus() != null) && (forecastHourly.getStatus() == 404)) {
-            if ((forecastHourly.getDetail() != null) && (forecastHourly.getDetail().toLowerCase().contains("marine areas are not yet supported"))) {
-                throw new MarineForecastNotSupportedException();
+        if ((feature != null) && (feature.getProperties() != null) && (feature.getProperties().getForecastHourly() != null)) {
+            FeatureDTO forecastHourly = loadForecast(feature.getProperties().getForecastHourly());
+            if ((forecastHourly != null) && (forecastHourly.getStatus() != null) && (forecastHourly.getStatus() == 404)) {
+                if ((forecastHourly.getDetail() != null) && (forecastHourly.getDetail().toLowerCase().contains("marine areas are not yet supported"))) {
+                    throw new MarineForecastNotSupportedException();
+                }
             }
+            if ((forecastHourly != null) && (forecastHourly.getStatus() != null) && (forecastHourly.getStatus() == 500)) {
+                return null;
+            }
+            return forecastHourly;
         }
-        if ((forecastHourly != null) && (forecastHourly.getStatus() != null) && (forecastHourly.getStatus() == 500)) {
-            return null;
-        }
-        return forecastHourly;
+        return null;
     }
 
     public FeatureDTO loadForecast(FeatureDTO feature) throws MarineForecastNotSupportedException {
-        FeatureDTO forecastDaily = loadForecast(feature.getProperties().getForecast());
-        if ((forecastDaily != null) && (forecastDaily.getStatus() != null) && (forecastDaily.getStatus() == 404)) {
-            if ((forecastDaily.getDetail() != null) && (forecastDaily.getDetail().toLowerCase().contains("marine areas are not yet supported"))) {
-                throw new MarineForecastNotSupportedException();
+        if ((feature != null) && (feature.getProperties() != null) && (feature.getProperties().getForecastHourly() != null)) {
+            FeatureDTO forecastDaily = loadForecast(feature.getProperties().getForecast());
+            if ((forecastDaily != null) && (forecastDaily.getStatus() != null) && (forecastDaily.getStatus() == 404)) {
+                if ((forecastDaily.getDetail() != null) && (forecastDaily.getDetail().toLowerCase().contains("marine areas are not yet supported"))) {
+                    throw new MarineForecastNotSupportedException();
+                }
             }
+            if ((forecastDaily != null) && (forecastDaily.getStatus() != null) && (forecastDaily.getStatus() == 500)) {
+                return null;
+            }
+            return forecastDaily;
         }
-        if ((forecastDaily != null) && (forecastDaily.getStatus() != null) && (forecastDaily.getStatus() == 500)) {
-            return null;
-        }
-        return forecastDaily;
+        return null;
     }
 }

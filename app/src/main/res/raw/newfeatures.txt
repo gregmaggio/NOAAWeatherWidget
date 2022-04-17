@@ -1,1 +1,1 @@
-* Update to the nearest station sort to support older devices
+* Minor fix to handle nulls from the NOAA API
