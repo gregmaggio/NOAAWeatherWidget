@@ -80,6 +80,23 @@ public class StationDAO {
         return nearest;
     }
 
+    public StationDTO readNearest(double latitude, double longitude) {
+        StationDTO nearest = null;
+        double distanceToNearest = 0.0;
+        for (int ii = 0; ii < _stations.size(); ii++) {
+            StationDTO station = _stations.get(ii);
+            double distanceToStation = computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
+            if (nearest == null) {
+                nearest = station;
+                distanceToNearest = distanceToStation;
+            } else if (distanceToNearest > distanceToStation) {
+                nearest = station;
+                distanceToNearest = distanceToStation;
+            }
+        }
+        return nearest;
+    }
+
     private static double distanceToMeters(double distance, String units) {
         if (units.compareToIgnoreCase("statute miles") == 0) {
             return distance * 1609.34;

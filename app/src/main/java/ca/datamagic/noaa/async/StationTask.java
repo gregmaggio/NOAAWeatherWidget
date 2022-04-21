@@ -27,6 +27,12 @@ public class StationTask extends AsyncTaskBase<Void, Void, StationDTO[]> {
             StationDAO dao = CurrentStations.getStationDAO();
             if (dao != null) {
                 nearest = dao.readNearest(_latitude, _longitude, distance, units);
+                if ((nearest == null) || (nearest.length < 1)) {
+                    StationDTO nearestStation = dao.readNearest(_latitude, _longitude);
+                    if (nearestStation != null) {
+                        nearest = new StationDTO[] { nearestStation };
+                    }
+                }
             }
             return new AsyncTaskResult<StationDTO[]>(nearest);
         } catch (Throwable t) {

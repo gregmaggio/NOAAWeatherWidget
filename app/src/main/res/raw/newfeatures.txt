@@ -1,1 +1,1 @@
-* Minor fix to handle nulls from the NOAA API
+* Minor fix to use the nearest station even when the location is really really far away from the US

@@ -36,22 +36,24 @@ public class DailyForecastTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
                 dailyFeature = null;
             }
             if (feature == null) {
-                for (int ii = 0; ii < nearest.length; ii++) {
-                    feature = _dao.loadFeature(nearest[ii].getLatitude(), nearest[ii].getLongitude());
-                    if (feature != null) {
-                        try {
-                            dailyFeature = _dao.loadForecast(feature);
-                            if (dailyFeature == null) {
+                if (nearest != null) {
+                    for (int ii = 0; ii < nearest.length; ii++) {
+                        feature = _dao.loadFeature(nearest[ii].getLatitude(), nearest[ii].getLongitude());
+                        if (feature != null) {
+                            try {
+                                dailyFeature = _dao.loadForecast(feature);
+                                if (dailyFeature == null) {
+                                    feature = null;
+                                }
+                            } catch (MarineForecastNotSupportedException ex) {
+                                _logger.warning("MarineForecastNotSupportedException");
                                 feature = null;
+                                dailyFeature = null;
                             }
-                        } catch (MarineForecastNotSupportedException ex) {
-                            _logger.warning("MarineForecastNotSupportedException");
-                            feature = null;
-                            dailyFeature = null;
                         }
-                    }
-                    if (feature != null) {
-                        break;
+                        if (feature != null) {
+                            break;
+                        }
                     }
                 }
             }

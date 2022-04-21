@@ -14,8 +14,14 @@ public class StationDAOTester extends BaseTester {
 
     @Test
     public void test1() throws Throwable {
+        double latitude = 46.09893035888672;
+        double longitude = -64.78649139404297;
         StationDAO stationDAO = new StationDAO(new FileInputStream("C:/Dev/Android/NOAAWeatherWidget/app/src/main/res/raw/stations.csv"));
-        StationDTO[] nearest = stationDAO.readNearest(34.1981981981982,-118.92222039020855, distance, units);
+        StationDTO[] nearest = stationDAO.readNearest(latitude,longitude, distance, units);
         Assert.assertNotNull(nearest);
+        System.out.println("nearest: " + nearest.length);
+        StationDTO nearestStation = stationDAO.readNearest(latitude,longitude);
+        Assert.assertNotNull(nearestStation);
+        System.out.println("StationId: " + nearestStation.getStationId());
     }
 }
