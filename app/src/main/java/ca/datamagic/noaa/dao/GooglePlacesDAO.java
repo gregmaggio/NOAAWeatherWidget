@@ -35,8 +35,9 @@ public class GooglePlacesDAO {
         _apiKey = newVal;
     }
 
-    public List<PredictionDTO> loadAutoCompletePredictions(String searchText) throws IOException {
-        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/autocomplete/json?input={0}&types=geocode&language=en&key={1}", searchText, _apiKey));
+    public List<PredictionDTO> loadAutoCompletePredictions(String searchText, String sessionToken) throws IOException {
+        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/autocomplete/json?input={0}&types=geocode&language=en&sessiontoken={1}&key={2}", searchText, sessionToken, _apiKey));
+        //sessiontoken
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
         InputStream inputStream = null;

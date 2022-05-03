@@ -1,1 +1,1 @@
-* Minor fix to use the nearest station even when the location is really really far away from the US
+* Update to use auto complete session when using the places api to search for suggestions. It is starting to cost me a little too much money for a free app.

@@ -15,17 +15,19 @@ public class GooglePredictionsTask extends AsyncTaskBase<Void, Void, List<Predic
     private Logger _logger = LogFactory.getLogger(GooglePredictionsTask.class);
     private GooglePlacesDAO _dao = null;
     private String _searchText = null;
+    private String _sessionToken = null;
 
-    public GooglePredictionsTask(String searchText) {
+    public GooglePredictionsTask(String searchText, String sessionToken) {
         _dao = new GooglePlacesDAO();
         _searchText = searchText;
+        _sessionToken = sessionToken;
     }
 
     @Override
     protected AsyncTaskResult<List<PredictionDTO>> doInBackground(Void... voids) {
         try {
             _logger.info("Loading predictions...");
-            List<PredictionDTO> predictions = _dao.loadAutoCompletePredictions(_searchText);
+            List<PredictionDTO> predictions = _dao.loadAutoCompletePredictions(_searchText, _sessionToken);
             return new AsyncTaskResult<List<PredictionDTO>>(predictions);
         } catch (Throwable t) {
             return new AsyncTaskResult<List<PredictionDTO>>(t);

@@ -35,6 +35,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -118,6 +119,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private boolean _processing = false;
     private ProgressBar _spinner = null;
     private int _currentPage = 0;
+    private String _sessionToken = null;
 
     public MainActivity() {
         _thisInstance = this;
@@ -784,7 +786,13 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         if (_googlePredictionsTask != null) {
             return true;
         }
-        _googlePredictionsTask = new GooglePredictionsTask(newText);
+        if ((newText.length() == 2) && (_sessionToken != null)) {
+            _sessionToken = null;
+        }
+        if (_sessionToken == null) {
+            _sessionToken = UUID.randomUUID().toString().toUpperCase();
+        }
+        _googlePredictionsTask = new GooglePredictionsTask(newText, _sessionToken);
         _googlePredictionsTask.addListener(new AsyncTaskListener<List<PredictionDTO>>() {
             @Override
             public void completed(AsyncTaskResult<List<PredictionDTO>> result) {
@@ -853,6 +861,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     (new AccountingTask("Search", "Select")).execute((Void[])null);
                 }
                 _googlePlaceTask = null;
+                _sessionToken = null;
             }
         });
         _googlePlaceTask.execute((Void)null);

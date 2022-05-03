@@ -5,6 +5,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.List;
+import java.util.UUID;
 
 import ca.datamagic.noaa.ca.datamagic.testing.BaseTester;
 import ca.datamagic.noaa.dto.PlaceDTO;
@@ -18,7 +19,7 @@ public class GooglePlacesDAOTester extends BaseTester {
     @Test
     public void test1() throws Throwable {
         GooglePlacesDAO dao = new GooglePlacesDAO();
-        List<PredictionDTO> predictions = dao.loadAutoCompletePredictions("Haymarket");
+        List<PredictionDTO> predictions = dao.loadAutoCompletePredictions("Haymarket", UUID.randomUUID().toString().toUpperCase());
         PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId());
         System.out.println("Name: " + place.getName());
         System.out.println("Latitude: " + place.getLatitude());
@@ -30,7 +31,7 @@ public class GooglePlacesDAOTester extends BaseTester {
     @Test
     public void test2() throws Throwable {
         GooglePlacesDAO dao = new GooglePlacesDAO();
-        List<PredictionDTO> predictions = dao.loadAutoCompletePredictions("Colville,WA");
+        List<PredictionDTO> predictions = dao.loadAutoCompletePredictions("Colville,WA", UUID.randomUUID().toString().toUpperCase());
         PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId());
         System.out.println("Name: " + place.getName());
         System.out.println("Latitude: " + place.getLatitude());
