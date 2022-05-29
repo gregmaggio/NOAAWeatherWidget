@@ -36,8 +36,7 @@ public class GooglePlacesDAO {
     }
 
     public List<PredictionDTO> loadAutoCompletePredictions(String searchText, String sessionToken) throws IOException {
-        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/autocomplete/json?input={0}&types=geocode&language=en&sessiontoken={1}&key={2}", searchText, sessionToken, _apiKey));
-        //sessiontoken
+        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/autocomplete/json?input={0}&types=geocode&language=en&fields=place_id,description&sessiontoken={1}&key={2}", searchText, sessionToken, _apiKey));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
         InputStream inputStream = null;
@@ -81,7 +80,7 @@ public class GooglePlacesDAO {
     }
 
     public PlaceDTO loadPlace(String placeId) throws MalformedURLException {
-        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/details/json?placeid={0}&key={1}", placeId, _apiKey));
+        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/details/json?fields=place_id,name,geometry&placeid={0}&key={1}", placeId, _apiKey));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
         InputStream inputStream = null;

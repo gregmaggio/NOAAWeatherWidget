@@ -5,7 +5,6 @@ import android.app.SearchManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.MatrixCursor;
@@ -174,6 +173,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         _unit = dto.getUnit();
         _format = dto.getFormat();
         _showNewFeatures = dto.getShowNewFeatures();
+        _sessionToken = dto.getSessionToken();
     }
 
     public void writePreferences() {
@@ -785,12 +785,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         }
         if (_googlePredictionsTask != null) {
             return true;
-        }
-        if ((newText.length() == 2) && (_sessionToken != null)) {
-            _sessionToken = null;
-        }
-        if (_sessionToken == null) {
-            _sessionToken = UUID.randomUUID().toString().toUpperCase();
         }
         _googlePredictionsTask = new GooglePredictionsTask(newText, _sessionToken);
         _googlePredictionsTask.addListener(new AsyncTaskListener<List<PredictionDTO>>() {

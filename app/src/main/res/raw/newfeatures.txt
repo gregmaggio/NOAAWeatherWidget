@@ -1,1 +1,1 @@
-* Update to use auto complete session when using the places api to search for suggestions. It is starting to cost me a little too much money for a free app.
+* Some additional autocomplete and places api optimizations. Last month was a little on the expensive side.

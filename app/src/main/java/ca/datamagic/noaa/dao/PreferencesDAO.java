@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 
+import java.util.UUID;
+
 import androidx.preference.PreferenceManager;
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -37,6 +39,7 @@ public class PreferencesDAO {
         dto.setTimeFormat(_preferences.getString("timeFormat", "HH:mm"));
         dto.setWidgetFontColor(_preferences.getInt("widgetFontColor", Color.WHITE));
         dto.setShowNewFeatures(_preferences.getBoolean("showNewFeatures." + BuildConfig.VERSION_CODE, Boolean.TRUE));
+        dto.setSessionToken(_preferences.getString("sessionToken", UUID.randomUUID().toString().toUpperCase()));
         return dto;
     }
 
@@ -56,6 +59,7 @@ public class PreferencesDAO {
         String timeFormat = (dto.getTimeFormat() != null) ? dto.getTimeFormat() : "HH:mm";
         Integer widgetFontColor = (dto.getWidgetFontColor() != null) ? dto.getWidgetFontColor() : Color.WHITE;
         Boolean showNewFeatures = (dto.getShowNewFeatures() != null) ? dto.getShowNewFeatures() : Boolean.TRUE;
+        String sessionToken = (dto.getSessionToken() != null) ? dto.getSessionToken() : UUID.randomUUID().toString().toUpperCase();
         SharedPreferences.Editor editor = _preferences.edit();
         editor.putFloat("latitude", (float)latitude);
         editor.putFloat("longitude", (float)longitude);
@@ -72,6 +76,7 @@ public class PreferencesDAO {
         editor.putString("timeFormat", timeFormat);
         editor.putInt("widgetFontColor", widgetFontColor);
         editor.putBoolean("showNewFeatures." + BuildConfig.VERSION_CODE, showNewFeatures);
+        editor.putString("sessionToken", sessionToken);
         editor.commit();
     }
 }

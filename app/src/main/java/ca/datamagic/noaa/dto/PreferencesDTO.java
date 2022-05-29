@@ -2,6 +2,8 @@ package ca.datamagic.noaa.dto;
 
 import android.graphics.Color;
 
+import java.util.UUID;
+
 public class PreferencesDTO {
     private Double _latitude = null;
     private Double _longitude = null;
@@ -18,6 +20,7 @@ public class PreferencesDTO {
     private String _timeFormat = "HH:mm";
     private Integer _widgetFontColor = Color.WHITE;
     private Boolean _showNewFeatures = Boolean.TRUE;
+    private String _sessionToken = UUID.randomUUID().toString().toUpperCase();
 
     public Double getLatitude() {
         return _latitude;
@@ -77,6 +80,10 @@ public class PreferencesDTO {
         return _showNewFeatures;
     }
 
+    public String getSessionToken() {
+        return _sessionToken;
+    }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -133,5 +140,9 @@ public class PreferencesDTO {
 
     public void setShowNewFeatures(Boolean newVal) {
         _showNewFeatures = newVal;
+    }
+
+    public void setSessionToken(String newVal) {
+        _sessionToken = newVal;
     }
 }
