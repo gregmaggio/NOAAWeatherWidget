@@ -81,6 +81,7 @@ import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.PlaceDTO;
 import ca.datamagic.noaa.dto.PredictionDTO;
+import ca.datamagic.noaa.dto.PredictionListDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
@@ -786,16 +787,16 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         if (_googlePredictionsTask != null) {
             return true;
         }
-        _googlePredictionsTask = new GooglePredictionsTask(newText, _sessionToken);
-        _googlePredictionsTask.addListener(new AsyncTaskListener<List<PredictionDTO>>() {
+        _googlePredictionsTask = new GooglePredictionsTask(getBaseContext(), newText, _sessionToken);
+        _googlePredictionsTask.addListener(new AsyncTaskListener<PredictionListDTO>() {
             @Override
-            public void completed(AsyncTaskResult<List<PredictionDTO>> result) {
+            public void completed(AsyncTaskResult<PredictionListDTO> result) {
                 if (result.getThrowable() != null) {
                     if (_logger != null) {
                         _logger.log(Level.WARNING, "Error retrieving predictions for text.", result.getThrowable());
                     }
                 } else {
-                    List<PredictionDTO> predictions = result.getResult();
+                    PredictionListDTO predictions = result.getResult();
                     _logger.info("predictions: " + predictions.size());
                     String[] columns = new String[]{"_id", "placeId", "description"};
                     MatrixCursor cursor = new MatrixCursor(columns);
@@ -834,7 +835,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         int index = cursor.getColumnIndex("placeId");
         String placeId = cursor.getString(index);
 
-        _googlePlaceTask = new GooglePlaceTask(placeId);
+        _googlePlaceTask = new GooglePlaceTask(getBaseContext(), placeId);
         _googlePlaceTask.addListener(new AsyncTaskListener<PlaceDTO>() {
             @Override
             public void completed(AsyncTaskResult<PlaceDTO> result) {

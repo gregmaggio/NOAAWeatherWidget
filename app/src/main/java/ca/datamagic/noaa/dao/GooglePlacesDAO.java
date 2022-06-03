@@ -8,14 +8,12 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.logging.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.dto.PlaceDTO;
-import ca.datamagic.noaa.dto.PredictionDTO;
+import ca.datamagic.noaa.dto.PredictionListDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 
@@ -35,7 +33,7 @@ public class GooglePlacesDAO {
         _apiKey = newVal;
     }
 
-    public List<PredictionDTO> loadAutoCompletePredictions(String searchText, String sessionToken) throws IOException {
+    public PredictionListDTO loadAutoCompletePredictions(String searchText, String sessionToken) throws IOException {
         URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/autocomplete/json?input={0}&types=geocode&language=en&fields=place_id,description&sessiontoken={1}&key={2}", searchText, sessionToken, _apiKey));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
@@ -52,14 +50,7 @@ public class GooglePlacesDAO {
             _logger.info("responseText: " + responseText);
             JSONObject responseObj = new JSONObject(responseText);
             JSONArray predictions = (JSONArray)responseObj.get("predictions");
-            List<PredictionDTO> list = new ArrayList<PredictionDTO>();
-            for (int jj = 0; jj < predictions.length(); jj++) {
-                PredictionDTO prediction = new PredictionDTO(predictions.getJSONObject(jj));
-                if ((prediction.getDescription() != null) && (prediction.getDescription().length() > 0) && (prediction.getDescription().toUpperCase().contains("USA"))) {
-                    list.add(prediction);
-                }
-            }
-            return list;
+            return new PredictionListDTO(predictions);
         } catch (Throwable t) {
             String message = t.getMessage();
             _logger.warning("Exception: " + message);

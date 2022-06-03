@@ -18,6 +18,7 @@ public class PlaceDTO {
     private Double _latitude = null;
     private Double _longtitude = null;
     private AddressComponentDTO[] _addressComponents = null;
+    private String _json = null;
 
     public PlaceDTO() {
 
@@ -48,6 +49,7 @@ public class PlaceDTO {
                 }
             }
         }
+        _json = obj.toString();
     }
 
     public String getPlaceId() {
@@ -114,17 +116,6 @@ public class PlaceDTO {
 
     @Override
     public String toString() {
-        StringBuilder builder = new StringBuilder();
-        String name = getName();
-        String city = getCity();
-        String state = getState();
-        if ((city != null) && (city.length() > 0) && (state != null) && (state.length() > 0)) {
-            builder.append(city);
-            builder.append(", ");
-            builder.append(state);
-        } else if ((name != null) && (name.length() > 0)) {
-            builder.append(name);
-        }
-        return builder.toString();
+        return  _json;
     }
 }
