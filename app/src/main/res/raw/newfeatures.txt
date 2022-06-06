@@ -1,3 +1,4 @@
 * Added autocomplete and places api caching.
 * Google bill getting a little too high for a free app.
 * Changed Google key. Old key will be shut down.
+* Updated app title and icon because reasons.
