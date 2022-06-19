@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
 	android:layout_height="wrap_content">
-	<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	<LinearLayout
 		android:orientation="vertical"
 		android:layout_width="match_parent"
 		android:layout_height="match_parent">
@@ -312,6 +312,32 @@
 				android:text="Yellow"
 				android:buttonTint="@color/colorPrimary"/>
 		</RadioGroup>
+		<TextView
+			android:id="@+id/radarTotalMinutesLabel"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:paddingLeft="8dip"
+			android:paddingRight="8dip"
+			android:text="@string/radarTotalMinutes" />
+		<Spinner
+			android:id="@+id/radarTotalMinutes"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:spinnerMode="dropdown" />
+		<TextView
+			android:id="@+id/radarDelaySecondsLabel"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_weight="1"
+			android:paddingLeft="8dip"
+			android:paddingRight="8dip"
+			android:text="@string/radarDelaySeconds" />
+		<Spinner
+			android:id="@+id/radarDelaySeconds"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:spinnerMode="dropdown" />
 		<LinearLayout
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"

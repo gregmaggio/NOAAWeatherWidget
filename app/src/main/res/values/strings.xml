@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Weather App</string>
+    <string name="app_name">Weather App (Powered by NOAA)</string>
     <string name="my_location">My Location</string>
     <string name="add_location">Add Location</string>
     <string name="action_refresh">Refresh</string>
@@ -98,4 +98,6 @@
 	<string name="ok">OK</string>
 	<string name="observation_error">An error occurred retrieving the observation reading from the NOAA API. This problem usually resolves in a few hours. In the meantime, you can use the search to try some nearby locations.</string>
 	<string name="forecast_error">An error occurred retrieving the forecast from the NOAA API. This problem usually resolves in a few hours. In the meantime, you can use the search to try some nearby locations.</string>
+    <string name="radarTotalMinutes">Total Hours Back for Radar Images</string>
+    <string name="radarDelaySeconds">Delay in seconds for radar animation</string>
 </resources>

@@ -6,12 +6,17 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.ArrayAdapter;
+import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -28,6 +33,37 @@ import ca.datamagic.noaa.dto.VisibilityUnitsDTO;
 import ca.datamagic.noaa.dto.WindSpeedUnitsDTO;
 
 public class SettingsDialog extends Dialog implements View.OnClickListener {
+    private static final String[] _hours = new String[]
+            {
+                    "1 Hour",
+                    "2 Hours",
+                    "3 Hours",
+                    "4 Hours",
+                    "5 Hours",
+                    "6 Hours",
+                    "7 Hours",
+                    "8 Hours",
+                    "9 Hours",
+                    "10 Hours",
+                    "11 Hours",
+                    "12 Hours",
+                    "13 Hours",
+                    "14 Hours",
+                    "15 Hours"
+            };
+    private static final String[] _seconds = new String[]
+            {
+                    "1 Second",
+                    "2 Seconds",
+                    "3 Seconds",
+                    "4 Seconds",
+                    "5 Seconds",
+                    "6 Seconds",
+                    "7 Seconds",
+                    "8 Seconds",
+                    "9 Seconds",
+                    "10 Seconds"
+            };
     private RadioGroup _temperatureUnits = null;
     private RadioGroup _windSpeedUnits = null;
     private RadioGroup _pressureUnits = null;
@@ -37,6 +73,8 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
     private RadioGroup _dateFormats = null;
     private RadioGroup _timeFormats = null;
     private RadioGroup _widgetFontColor = null;
+    private Spinner _radarTotalMinutes = null;
+    private Spinner _radarDelaySeconds = null;
     private Button _saveSettingsButton = null;
     private Button _cancelSettingsButton = null;
     private ProgressBar _saveSettingsProgress = null;
@@ -52,6 +90,24 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
 
     protected SettingsDialog(@NonNull Context context, boolean cancelable, @Nullable OnCancelListener cancelListener) {
         super(context, cancelable, cancelListener);
+    }
+
+    private static int radarTotalMinutesToIndex(int radarTotalMinutes) {
+        int hours = (int)Math.floor((double)radarTotalMinutes / 60.0);
+        return hours - 1;
+    }
+
+    private static int indexToRadarTotalMinutes(int index) {
+        int hours = index + 1;
+        return  hours * 60;
+    }
+
+    private static int radarDelaySecondsToIndex(int radarDelaySeconds) {
+        return  radarDelaySeconds - 1;
+    }
+
+    private static int indexToRadarDelaySeconds(int index) {
+        return index + 1;
     }
 
     @Override
@@ -82,8 +138,16 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         _saveSettingsButton = (Button)findViewById(R.id.saveSettings);
         _cancelSettingsButton = (Button)findViewById(R.id.cancelSettings);
         _saveSettingsProgress = (ProgressBar)findViewById(R.id.saveSettingsProgress);
+        _radarTotalMinutes = (Spinner)findViewById(R.id.radarTotalMinutes);
+        _radarDelaySeconds = (Spinner)findViewById(R.id.radarDelaySeconds);
         _saveSettingsButton.setOnClickListener(this);
         _cancelSettingsButton.setOnClickListener(this);
+
+        ArrayAdapter<String> radarTotalMinutesAdapter = new ArrayAdapter<String>(getContext(), R.layout.simple_spinner_item, _hours);
+        _radarTotalMinutes.setAdapter(radarTotalMinutesAdapter);
+
+        ArrayAdapter<String> radarDelaySecondsAdapter = new ArrayAdapter<String>(getContext(), R.layout.simple_spinner_item, _seconds);
+        _radarDelaySeconds.setAdapter(radarDelaySecondsAdapter);
 
         PreferencesDAO dao = new PreferencesDAO(getContext());
         PreferencesDTO dto = dao.read();
@@ -178,6 +242,8 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         this.setDateTimeHint(R.id.dateFormatsMMDDYYYYSlashes);
         this.setDateTimeHint(R.id.dateFormatsDDMMYYYYSlashes);
         this.setDateTimeHint(R.id.dateFormatsDDMMYYYYDashes);
+        _radarTotalMinutes.setSelection(radarTotalMinutesToIndex(dto.getRadarTotalMinutes()));
+        _radarDelaySeconds.setSelection(radarDelaySecondsToIndex(dto.getRadarDelaySeconds()));
         (new AccountingTask("Settings", "Show")).execute((Void[])null);
     }
 
@@ -298,6 +364,9 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
                     dto.setWidgetFontColor(Color.YELLOW);
                     break;
             }
+
+            dto.setRadarTotalMinutes(indexToRadarTotalMinutes(_radarTotalMinutes.getSelectedItemPosition()));
+            dto.setRadarDelaySeconds(indexToRadarDelaySeconds(_radarDelaySeconds.getSelectedItemPosition()));
 
             dao.write(dto);
 

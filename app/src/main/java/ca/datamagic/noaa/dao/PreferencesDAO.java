@@ -40,6 +40,8 @@ public class PreferencesDAO {
         dto.setWidgetFontColor(_preferences.getInt("widgetFontColor", Color.WHITE));
         dto.setShowNewFeatures(_preferences.getBoolean("showNewFeatures." + BuildConfig.VERSION_CODE, Boolean.TRUE));
         dto.setSessionToken(_preferences.getString("sessionToken", UUID.randomUUID().toString().toUpperCase()));
+        dto.setRadarTotalMinutes(_preferences.getInt("radarTotalMinutes", 60));
+        dto.setRadarDelaySeconds(_preferences.getInt("radarDelaySeconds", 2));
         return dto;
     }
 
@@ -60,6 +62,8 @@ public class PreferencesDAO {
         Integer widgetFontColor = (dto.getWidgetFontColor() != null) ? dto.getWidgetFontColor() : Color.WHITE;
         Boolean showNewFeatures = (dto.getShowNewFeatures() != null) ? dto.getShowNewFeatures() : Boolean.TRUE;
         String sessionToken = (dto.getSessionToken() != null) ? dto.getSessionToken() : UUID.randomUUID().toString().toUpperCase();
+        Integer radarTotalMinutes = (dto.getRadarTotalMinutes() != null) ? dto.getRadarTotalMinutes() : 60;
+        Integer radarDelaySeconds = (dto.getRadarDelaySeconds() != null) ? dto.getRadarDelaySeconds() : 2;
         SharedPreferences.Editor editor = _preferences.edit();
         editor.putFloat("latitude", (float)latitude);
         editor.putFloat("longitude", (float)longitude);
@@ -77,6 +81,8 @@ public class PreferencesDAO {
         editor.putInt("widgetFontColor", widgetFontColor);
         editor.putBoolean("showNewFeatures." + BuildConfig.VERSION_CODE, showNewFeatures);
         editor.putString("sessionToken", sessionToken);
+        editor.putInt("radarTotalMinutes", radarTotalMinutes);
+        editor.putInt("radarDelaySeconds", radarDelaySeconds);
         editor.commit();
     }
 }

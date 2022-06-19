@@ -1,4 +1,4 @@
-* Added autocomplete and places api caching.
-* Google bill getting a little too high for a free app.
-* Changed Google key. Old key will be shut down.
-* Updated app title and icon because reasons.
+* Added a setting so you can go back further than one hour for radar
+* Added a setting so that you can change the delay for each radar image
+* Updated app title
+* Minor fix to radar animation delay

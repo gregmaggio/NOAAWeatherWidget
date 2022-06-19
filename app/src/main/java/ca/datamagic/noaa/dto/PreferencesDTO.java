@@ -21,6 +21,8 @@ public class PreferencesDTO {
     private Integer _widgetFontColor = Color.WHITE;
     private Boolean _showNewFeatures = Boolean.TRUE;
     private String _sessionToken = UUID.randomUUID().toString().toUpperCase();
+    private Integer _radarTotalMinutes = 60;
+    private Integer _radarDelaySeconds = 2;
 
     public Double getLatitude() {
         return _latitude;
@@ -84,6 +86,14 @@ public class PreferencesDTO {
         return _sessionToken;
     }
 
+    public Integer getRadarTotalMinutes() {
+        return _radarTotalMinutes;
+    }
+
+    public Integer getRadarDelaySeconds() {
+        return _radarDelaySeconds;
+    }
+
     public void setLatitude(Double newVal) {
         _latitude = newVal;
     }
@@ -144,5 +154,13 @@ public class PreferencesDTO {
 
     public void setSessionToken(String newVal) {
         _sessionToken = newVal;
+    }
+
+    public void setRadarTotalMinutes(Integer newVal) {
+        _radarTotalMinutes = newVal;
+    }
+
+    public void setRadarDelaySeconds(Integer newVal) {
+        _radarDelaySeconds = newVal;
     }
 }
