@@ -1,4 +1,2 @@
-* Added a setting so you can go back further than one hour for radar
-* Added a setting so that you can change the delay for each radar image
-* Updated app title
-* Minor fix to radar animation delay
+* Fix so that time format changes the sunrise/sunset time
+* Update to android dependencies

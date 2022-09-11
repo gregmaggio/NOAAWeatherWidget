@@ -337,8 +337,8 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
             String sunrise = "";
             String sunset = "";
             String timeZoneId = getTimeZoneId();
+            TimeZone tz = TimeZone.getTimeZone(timeZoneId);
             if ((latitude != null) && (longitude != null) && (timeZoneId != null)) {
-                TimeZone tz = TimeZone.getTimeZone(timeZoneId);
                 Calendar today = Calendar.getInstance();
                 today.setTimeZone(tz);
                 SunriseSunsetCalculator calculator = new SunriseSunsetCalculator(new Location(latitude, longitude), timeZoneId);
@@ -346,8 +346,8 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
                 sunset = calculator.getOfficialSunsetForDate(today);
             }
             if ((sunrise != null) && (sunrise.length() > 0) && (sunset != null) && (sunset.length() > 0)) {
-                sunriseText.setText(sunrise);
-                sunsetText.setText(sunset);
+                sunriseText.setText(getFormattedSunriseSunsetTime(sunrise, tz, preferencesDTO));
+                sunsetText.setText(getFormattedSunriseSunsetTime(sunset, tz, preferencesDTO));
             } else {
                 sunriseLayout.setVisibility(View.GONE);
                 sunsetLayout.setVisibility(View.GONE);
@@ -588,6 +588,27 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
                     buffer.append(getResources().getString(R.string.inchesOfMercury));
                 }
             }
+        }
+        return buffer.toString();
+    }
+
+    private String getFormattedSunriseSunsetTime(String timeString, TimeZone timeZone, PreferencesDTO preferences) {
+        int index = timeString.indexOf(':');
+        int hours = Integer.parseInt(timeString.substring(0, index));
+        int minutes = Integer.parseInt(timeString.substring(index + 1));
+        Calendar today = Calendar.getInstance();
+        today.setTimeZone(timeZone);
+        today.set(Calendar.HOUR_OF_DAY, hours);
+        today.set(Calendar.MINUTE, minutes);
+        StringBuffer buffer = new StringBuffer();
+        String timeFormat = preferences.getTimeFormat();
+        if ((timeFormat != null) && (timeFormat.length() > 0)) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
+            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            if (buffer.length() > 0) {
+                buffer.append(" ");
+            }
+            buffer.append(simpleDateFormat.format(today.getTime()));
         }
         return buffer.toString();
     }
