@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Weather App (Powered by NOAA)</string>
+    <string name="app_name">NOAA Weather</string>
     <string name="my_location">My Location</string>
     <string name="add_location">Add Location</string>
     <string name="action_refresh">Refresh</string>

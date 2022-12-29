@@ -1,2 +1,3 @@
-* Fix so that time format changes the sunrise/sunset time
+* Update to lowest supported API as per Google's recommendations
 * Update to android dependencies
+* Update title to include NOAA since that is where the data is coming from

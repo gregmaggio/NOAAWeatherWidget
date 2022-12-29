@@ -5,10 +5,10 @@ android {
 
     defaultConfig {
         applicationId "ca.datamagic.noaaweatherwidget"
-        minSdkVersion 21
+        minSdkVersion 30
         targetSdkVersion 32
-        versionCode 109
-        versionName "2.06"
+        versionCode 110
+        versionName "2.07"
     }
     compileOptions {
         sourceCompatibility 1.8
@@ -36,7 +36,8 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.json:json:20220320'
+    testImplementation 'org.json:json:20220924'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.14.1'
     implementation 'androidx.appcompat:appcompat:1.5.1'
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.1.0'
     implementation 'androidx.media:media:1.6.0'
@@ -45,11 +46,11 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:20.0.0'
     implementation 'com.google.android.gms:play-services-places:17.0.0'
     implementation 'com.google.android.gms:play-services-maps:18.1.0'
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.14.3'
-    implementation group: 'it.sephiroth.android.library.imagezoom', name: 'imagezoom', version: '2.3.0'
-    implementation group: 'com.univocity', name: 'univocity-parsers', version: '2.9.1'
-    implementation group: 'org.apmem.tools', name: 'layouts', version: '1.10'
-    implementation group: 'com.google.android.material', name: 'material', version: '1.6.1'
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'it.sephiroth.android.library.imagezoom:imagezoom:2.3.0'
+    implementation 'com.univocity:univocity-parsers:2.9.1'
+    implementation 'org.apmem.tools:layouts:1.10'
+    implementation 'com.google.android.material:material:1.7.0'
     implementation 'androidx.work:work-runtime-ktx:2.7.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel:2.5.1"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
