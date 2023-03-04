@@ -36,6 +36,8 @@ import java.util.regex.Pattern;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+
+import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarImageTask;
@@ -78,6 +80,46 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     }
 
     @Override
+    public void onPause() {
+        super.onPause();
+        _logger.info("onPause");
+        if (_timer != null) {
+            try {
+                _timer.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        if (_timer != null) {
+            try {
+                _timer.purge();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        if (_timerTask != null) {
+            try {
+                _timerTask.cancel();
+            } catch (Throwable t) {
+                _logger.warning("Throwable: " + t.getMessage());
+            }
+        }
+        _timer = null;
+        _timerTask = null;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        _logger.info("onResume");
+        if (_urls != null) {
+            _timerTask = new RadarTimerTask();
+            _timer = new Timer("Timer");
+            _timer.scheduleAtFixedRate(_timerTask, _radarDelayMilliseconds, _radarDelayMilliseconds);
+        }
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.radar_main, container, false);
         return view;
@@ -93,7 +135,6 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     public void onSaveInstanceState(@NonNull Bundle outState) {
         _logger.info("onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        cleanup();
     }
 
     @Override
@@ -130,6 +171,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                     MainActivity.getThisInstance().startBusy();
                 }
             }
+            (new AccountingTask("Radar", "Render")).execute((Void[]) null);
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);

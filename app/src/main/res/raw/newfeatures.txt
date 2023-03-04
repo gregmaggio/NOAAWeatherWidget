@@ -1,3 +1,2 @@
-* Update to lowest supported API as per Google's recommendations
-* Update to android dependencies
-* Update title to include NOAA since that is where the data is coming from
+* Minor fix to resume the radar when the app pauses or stops
+* Turn logging down to warning

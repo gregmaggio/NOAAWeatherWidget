@@ -452,12 +452,28 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     @Override
     protected void onStart() {
         super.onStart();
+        _logger.info("onStart");
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        _logger.info("onPause");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        _logger.info("onResume");
+        //_mainPageAdapter.getItem(0).onResume();
+        //_currentPage
     }
 
     @Override
     protected void onStop() {
         writeCurrentState();
         super.onStop();
+        _logger.info("onStop");
     }
 
     @Override

@@ -19,11 +19,12 @@ import ca.datamagic.noaa.util.IOUtils;
 
 public class RadarDAO {
     private static final Logger _logger = LogFactory.getLogger(RadarDAO.class);
+    private static final String _radarUrl = "https://radar-dot-api-project-378578942759.ue.r.appspot.com";
 
     public RadarDTO loadNearest(double latitude, double longitude) {
         HttpsURLConnection connection = null;
         try {
-            String urlSpec = MessageFormat.format("https://radar-mjm5ilkcrq-ue.a.run.app/api/{0}/{1}/nearest", Double.toString(latitude), Double.toString(longitude));
+            String urlSpec = MessageFormat.format("{0}/api/{1}/{2}/nearest", _radarUrl, Double.toString(latitude), Double.toString(longitude));
             _logger.info("urlSpec: " + urlSpec);
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection)url.openConnection();
@@ -55,7 +56,7 @@ public class RadarDAO {
     public RadarDTO load(String icao) {
         HttpsURLConnection connection = null;
         try {
-            String urlSpec = MessageFormat.format("https://radar-mjm5ilkcrq-ue.a.run.app/api/{0}", icao);
+            String urlSpec = MessageFormat.format("{0}/api/{1}", _radarUrl, icao);
             _logger.info("urlSpec: " + urlSpec);
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection)url.openConnection();
@@ -87,7 +88,7 @@ public class RadarDAO {
     public String[] loadUrls(String icao) {
         HttpsURLConnection connection = null;
         try {
-            String urlSpec = MessageFormat.format("https://radar-mjm5ilkcrq-ue.a.run.app/api/url/{0}", icao);
+            String urlSpec = MessageFormat.format("{0}/api/url/{1}", _radarUrl, icao);
             _logger.info("urlSpec: " + urlSpec);
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection)url.openConnection();
@@ -123,7 +124,7 @@ public class RadarDAO {
     public Bitmap loadImage(String imageUrl) {
         HttpsURLConnection connection = null;
         try {
-            String urlSpec = "https://radar-mjm5ilkcrq-ue.a.run.app/api/image";
+            String urlSpec = MessageFormat.format("{0}/api/image", _radarUrl);
             _logger.info("urlSpec: " + urlSpec);
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection)url.openConnection();
