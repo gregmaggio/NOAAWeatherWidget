@@ -2,6 +2,7 @@ package ca.datamagic.noaa.dao;
 
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.logging.Logger;
@@ -19,6 +20,7 @@ public class APIDAO {
     private static FeatureDTO loadFeature(String urlSpec) {
         _logger.info("urlSpec: " + urlSpec);
         HttpsURLConnection connection = null;
+        InputStream inputStream = null;
         try {
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection) url.openConnection();
@@ -41,7 +43,8 @@ public class APIDAO {
             int responseCode = connection.getResponseCode();
             _logger.info("responseCode: " + responseCode);
             if ((connection.getResponseCode() > 199) && (connection.getResponseCode() < 300)) {
-                responseText = IOUtils.readEntireString(connection.getInputStream());
+                inputStream = connection.getInputStream();
+                responseText = IOUtils.readEntireString(inputStream);
             } else if ((connection.getResponseCode() > 299) && (connection.getResponseCode() < 400)) {
                 // check for location header
                 String location = connection.getHeaderField("location");
@@ -63,6 +66,9 @@ public class APIDAO {
                 return null;
             }
         } finally {
+            if (inputStream != null) {
+                IOUtils.closeQuietly(inputStream);
+            }
             if (connection != null) {
                 try {
                     connection.disconnect();
@@ -77,6 +83,7 @@ public class APIDAO {
     private static FeatureDTO loadForecast(String urlSpec) {
         _logger.info("urlSpec: " + urlSpec);
         HttpsURLConnection connection = null;
+        InputStream inputStream = null;
         try {
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection) url.openConnection();
@@ -99,10 +106,11 @@ public class APIDAO {
             int responseCode = connection.getResponseCode();
             _logger.info("responseCode: " + responseCode);
             if ((connection.getResponseCode() > 199) && (connection.getResponseCode() < 300)) {
-                responseText = IOUtils.readEntireString(connection.getInputStream());
+                inputStream = connection.getInputStream();
             } else {
-                responseText = IOUtils.readEntireString(connection.getErrorStream());
+                inputStream = connection.getErrorStream();
             }
+            responseText = IOUtils.readEntireString(inputStream);
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
             JSONObject obj = new JSONObject(responseText);
@@ -114,6 +122,9 @@ public class APIDAO {
                 return null;
             }
         } finally {
+            if (inputStream != null) {
+                IOUtils.closeQuietly(inputStream);
+            }
             if (connection != null) {
                 try {
                     connection.disconnect();

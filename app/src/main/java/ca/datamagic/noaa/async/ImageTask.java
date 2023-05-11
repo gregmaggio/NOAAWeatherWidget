@@ -32,11 +32,24 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
 
     @Override
     protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
-        _logger.info("Loading image...");
+        _logger.info("Loading image: " + _imageUrl);
         try {
             Bitmap bitmap = _dao.load(_imageUrl);
+            if (bitmap == null) {
+                _logger.warning("Error loading: " + _imageUrl);
+                int index = _imageUrl.lastIndexOf(',');
+                if (index > -1) {
+                    _imageUrl = _imageUrl.substring(0, index);
+                    bitmap = _dao.load(_imageUrl);
+                    if (bitmap == null) {
+                        throw new Exception("Error loading " + _imageUrl);
+                    }
+                    return new AsyncTaskResult<Bitmap>(bitmap);
+                }
+            }
             return new AsyncTaskResult<Bitmap>(bitmap);
         } catch (Throwable t) {
+            _logger.warning("Error loading: " + _imageUrl);
             return new AsyncTaskResult<Bitmap>(t);
         }
     }
@@ -45,6 +58,7 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
     protected void onPostExecute(AsyncTaskResult<Bitmap> result) {
         _logger.info("...image loaded.");
         if (result.getResult() != null) {
+            _logger.info("Setting image bitmap");
             _imageView.setImageBitmap(result.getResult());
         }
         fireCompleted(result);

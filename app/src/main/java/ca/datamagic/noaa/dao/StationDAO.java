@@ -68,16 +68,19 @@ public class StationDAO {
                 results.add(new NearestStationResult(station, distanceToStation));
             }
         }
-        Collections.sort(results, new NearestStationResultComparator());
-        int numberReturned = results.size();
-        if (numberReturned > _maxReturn) {
-            numberReturned = _maxReturn;
+        if (results.size() > 0) {
+            Collections.sort(results, new NearestStationResultComparator());
+            int numberReturned = results.size();
+            if (numberReturned > _maxReturn) {
+                numberReturned = _maxReturn;
+            }
+            StationDTO[] nearest = new StationDTO[numberReturned];
+            for (int ii = 0; ii < numberReturned; ii++) {
+                nearest[ii] = results.get(ii).getStation();
+            }
+            return nearest;
         }
-        StationDTO[] nearest = new StationDTO[numberReturned];
-        for (int ii = 0; ii < numberReturned; ii++) {
-            nearest[ii] = results.get(ii).getStation();
-        }
-        return nearest;
+        return null;
     }
 
     public StationDTO readNearest(double latitude, double longitude) {

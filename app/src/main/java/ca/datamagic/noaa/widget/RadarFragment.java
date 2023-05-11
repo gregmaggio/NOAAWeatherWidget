@@ -41,14 +41,14 @@ import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RadarImageTask;
-import ca.datamagic.noaa.async.RadarTask;
+import ca.datamagic.noaa.async.RadarSiteTask;
 import ca.datamagic.noaa.async.RadarUrlsTask;
 import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
-import ca.datamagic.noaa.dto.RadarDTO;
-import ca.datamagic.noaa.dto.RadarImageMetaDataDTO;
+import ca.datamagic.noaa.dto.RadarSiteDTO;
+import ca.datamagic.noaa.dto.RadarSiteInfoDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class RadarFragment extends Fragment implements Renderer, NonSwipeableFragment, OnMapReadyCallback {
@@ -61,9 +61,9 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     private SimpleDateFormat _radarTimeFormat = null;
     private GoogleMap _map = null;
     private boolean _mapLocationInitialized = false;
-    private RadarDTO _radar = null;
+    private RadarSiteDTO _radarSite = null;
     private String[] _urls = null;
-    private RadarImageMetaDataDTO _metaData = null;
+    private RadarSiteInfoDTO _metaData = null;
     private LatLngBounds _bounds = null;
     private int _currentIndex = 0;
     private RadarTimerTask _timerTask = null;
@@ -214,7 +214,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         _radarTimeFormat = null;
         _map = null;
         _mapLocationInitialized = false;
-        _radar = null;
+        _radarSite = null;
         _urls = null;
         _metaData = null;
         _bounds = null;
@@ -236,10 +236,10 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             _map = googleMap;
             UiSettings settings = this._map.getUiSettings();
             settings.setZoomControlsEnabled(true);
-            RadarTask task = new RadarTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-            task.addListener(new AsyncTaskListener<RadarDTO>() {
+            RadarSiteTask task = new RadarSiteTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
+            task.addListener(new AsyncTaskListener<RadarSiteDTO>() {
                 @Override
-                public void completed(AsyncTaskResult<RadarDTO> result) {
+                public void completed(AsyncTaskResult<RadarSiteDTO> result) {
                     radarSiteLoaded(result.getResult());
                 }
             });
@@ -251,7 +251,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         }
     }
 
-    private void resetForNewLocation(RadarDTO radar) {
+    private void resetForNewLocation(RadarSiteDTO radar) {
         if (_timer != null) {
             try {
                 _timer.cancel();
@@ -284,8 +284,8 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
 
         // Check to make sure we are not already initializing for this location
         // Map move sends events fast and furious
-        if (_radar != null) {
-            if (_radar.equals(radar)) {
+        if (_radarSite != null) {
+            if (_radarSite.equals(radar)) {
                 return;
             }
         }
@@ -294,8 +294,8 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         MainActivity.getThisInstance().startBusy();
     }
 
-    private void radarSiteLoaded(RadarDTO radar) {
-        _radar = radar;
+    private void radarSiteLoaded(RadarSiteDTO radar) {
+        _radarSite = radar;
         _urls = null;
         _metaData = null;
         _bounds = null;
@@ -304,7 +304,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             _radarOverlay.remove();
             _radarOverlay = null;
         }
-        if (_radar == null) {
+        if (_radarSite == null) {
             MainActivity.getThisInstance().stopBusy();
             Snackbar.make(getView(), "Cannot find a radar for current location", Snackbar.LENGTH_LONG).show();
             return;
@@ -318,7 +318,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             _mapLocationInitialized = true;
         }
         _map.setOnCameraMoveListener(new CameraMoveListener());
-        RadarUrlsTask task = new RadarUrlsTask(_radar.getICAO());
+        RadarUrlsTask task = new RadarUrlsTask(_radarSite.getICAO());
         task.addListener(new AsyncTaskListener<String[]>() {
             @Override
             public void completed(AsyncTaskResult<String[]> result) {
@@ -470,7 +470,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         }
     }
 
-    private class CameraMoveListener implements GoogleMap.OnCameraMoveListener, AsyncTaskListener<RadarDTO> {
+    private class CameraMoveListener implements GoogleMap.OnCameraMoveListener, AsyncTaskListener<RadarSiteDTO> {
         private boolean _loading = false;
 
         @Override
@@ -490,20 +490,20 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         }
 
         private void loadRadar(double latitude, double longitude) {
-            RadarTask task = new RadarTask(latitude, longitude);
+            RadarSiteTask task = new RadarSiteTask(latitude, longitude);
             task.addListener(this);
             task.execute((Void)null);
             _loading = true;
         }
 
         @Override
-        public void completed(AsyncTaskResult<RadarDTO> result) {
+        public void completed(AsyncTaskResult<RadarSiteDTO> result) {
             _loading = false;
-            if ((result != null) && (result.getResult() != null) && (_radar != null)) {
-                String currICAO = _radar.getICAO();
+            if ((result != null) && (result.getResult() != null) && (_radarSite != null)) {
+                String currICAO = _radarSite.getICAO();
                 String newICAO = result.getResult().getICAO();
                 if (currICAO.compareToIgnoreCase(newICAO) != 0) {
-                    _logger.info("Moved from " + _radar.getICAO() + " to " + result.getResult().getICAO());
+                    _logger.info("Moved from " + _radarSite.getICAO() + " to " + result.getResult().getICAO());
                     // Stop everything and re-initialize with the new ICAO
                     resetForNewLocation(result.getResult());
                 }

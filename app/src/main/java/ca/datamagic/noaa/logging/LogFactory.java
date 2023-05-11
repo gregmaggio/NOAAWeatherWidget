@@ -1,5 +1,6 @@
 package ca.datamagic.noaa.logging;
 
+import java.io.File;
 import java.text.MessageFormat;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -24,8 +25,11 @@ public class LogFactory {
         _level = level;
         _logPath = logPath;
         try {
-            _fileHandler = new FileHandler(MessageFormat.format("{0}/NOAAWeatherWidget.txt", logPath), 54939910, 7, true);
-            _fileHandler.setFormatter(new LogFormatter());
+            File file = new File(logPath);
+            if (file.exists()) {
+                _fileHandler = new FileHandler(MessageFormat.format("{0}/NOAAWeatherWidget.txt", logPath), 54939910, 7, true);
+                _fileHandler.setFormatter(new LogFormatter());
+            }
         } catch (Throwable t) {
             _fileHandler = null;
             System.err.println("Exception: " + t.getMessage());
