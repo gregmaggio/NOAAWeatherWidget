@@ -73,6 +73,7 @@ public class RadarDAO {
 
     public RadarDTO load(String icao) {
         HttpsURLConnection connection = null;
+        InputStream inputStream = null;
         try {
             String urlSpec = MessageFormat.format("{0}/api/{1}", _radarUrl, icao);
             _logger.info("urlSpec: " + urlSpec);
@@ -83,7 +84,8 @@ public class RadarDAO {
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(2000);
             connection.connect();
-            String responseText = IOUtils.readEntireString(connection.getInputStream());
+            inputStream = connection.getInputStream();
+            String responseText = IOUtils.readEntireString(inputStream);
             _logger.info("responseLength: " + responseText.length());
             _logger.info("responseText: " + responseText);
             JSONObject obj = new JSONObject(responseText);
@@ -93,13 +95,8 @@ public class RadarDAO {
             _logger.warning("Exception: " + message);
             return null;
         } finally {
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(connection);
         }
     }
 
@@ -158,9 +155,7 @@ public class RadarDAO {
             _logger.warning("Exception: " + message);
             return null;
         } finally {
-            if (tempStream != null) {
-                IOUtils.closeQuietly(tempStream);
-            }
+            IOUtils.closeQuietly(tempStream);
             if (tempFile != null) {
                 try {
                     tempFile.delete();
@@ -168,19 +163,9 @@ public class RadarDAO {
                     _logger.warning("Exception: " + t.getMessage());
                 }
             }
-            if (gzipInputStream != null) {
-                IOUtils.closeQuietly(gzipInputStream);
-            }
-            if (inputStream != null) {
-                IOUtils.closeQuietly(inputStream);
-            }
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(gzipInputStream);
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(connection);
         }
     }
 }

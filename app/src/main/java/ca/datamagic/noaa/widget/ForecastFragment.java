@@ -106,12 +106,14 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
                 return;
             }
             View view = getView();
-            _logger.info("view: " + view);
             LayoutInflater inflater = getLayoutInflater();
-            _logger.info("inflater: " + inflater);
             if ((view != null) && (inflater != null)) {
                 render(view, inflater);
+            } else {
+                RenderTask renderTask = new RenderTask(this);
+                renderTask.execute((Void[])null);
             }
+            (new AccountingTask("Daily", "Render")).execute((Void[])null);
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
@@ -160,7 +162,6 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
             TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
             forecastErrorLabel.setVisibility(View.VISIBLE);
         }
-        (new AccountingTask("Daily", "Render")).execute((Void[])null);
     }
 
     private void render(final View view, LayoutInflater inflater, FeatureDTO feature, final FeatureDTO dailyForecastFeature) {

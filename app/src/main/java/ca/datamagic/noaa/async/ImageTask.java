@@ -7,6 +7,7 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.widget.MainActivity;
 
 /**
  * Created by Greg on 1/1/2016.
@@ -58,8 +59,17 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
     protected void onPostExecute(AsyncTaskResult<Bitmap> result) {
         _logger.info("...image loaded.");
         if (result.getResult() != null) {
-            _logger.info("Setting image bitmap");
-            _imageView.setImageBitmap(result.getResult());
+            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        _logger.info("Setting image bitmap");
+                        _imageView.setImageBitmap(result.getResult());
+                    } catch (Throwable t) {
+                        _logger.warning("Throwable: " + t.getMessage());
+                    }
+                }
+            });
         }
         fireCompleted(result);
     }

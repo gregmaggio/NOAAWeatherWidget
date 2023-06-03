@@ -3,6 +3,7 @@ package ca.datamagic.noaa.async;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.widget.MainActivity;
 import ca.datamagic.noaa.widget.Renderer;
 
 public class RenderTask extends AsyncTaskBase<Void, Void, Void> {
@@ -18,7 +19,17 @@ public class RenderTask extends AsyncTaskBase<Void, Void, Void> {
         _logger.info("Rendering...");
         try {
             Thread.sleep(250);
-            _renderer.render();
+            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        _renderer.render();
+                    } catch (Throwable t) {
+                        _logger.warning("Throwable: " + t.getMessage());
+                    }
+                }
+            });
+
             return new AsyncTaskResult<Void>();
         } catch (Throwable t) {
             return new AsyncTaskResult<Void>(t);

@@ -10,7 +10,7 @@ import ca.datamagic.noaa.dao.SatelliteDAO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class SatelliteTask extends AsyncTaskBase<Void, Void, Bitmap> {
-    private static Logger _logger = LogFactory.getLogger(SatelliteTask.class);
+    private static final Logger _logger = LogFactory.getLogger(SatelliteTask.class);
     private ImageDAO _dao = null;
     private String _state = null;
 

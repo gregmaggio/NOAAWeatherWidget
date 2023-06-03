@@ -43,7 +43,10 @@ public class DiscussionFragment extends Fragment implements Renderer, NonSwipeab
                 return;
             }
             View view = getView();
-            if (view != null) {
+            if (view == null) {
+                RenderTask renderTask = new RenderTask(this);
+                renderTask.execute((Void[])null);
+            } else {
                 if (_discussion != null) {
                     TextView discussionView = view.findViewById(R.id.discussionView);
                     if (_discussion.length() > 0) {

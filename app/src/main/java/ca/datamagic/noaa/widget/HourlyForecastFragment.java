@@ -103,7 +103,11 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
             LayoutInflater inflater = getLayoutInflater();
             if ((view != null) && (inflater != null)) {
                 render(view, inflater);
+            } else {
+                RenderTask renderTask = new RenderTask(this);
+                renderTask.execute((Void[])null);
             }
+            (new AccountingTask("Hourly", "Render")).execute((Void[])null);
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
@@ -350,7 +354,6 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                 }
                 forecastErrorLabel.setVisibility(View.VISIBLE);
             }
-            (new AccountingTask("Hourly", "Render")).execute((Void[])null);
         }
     }
 }

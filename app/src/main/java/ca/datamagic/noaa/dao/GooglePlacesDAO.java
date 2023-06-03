@@ -59,13 +59,7 @@ public class GooglePlacesDAO {
             }
         } finally {
             IOUtils.closeQuietly(inputStream);
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(connection);
         }
         return null;
     }
@@ -91,13 +85,7 @@ public class GooglePlacesDAO {
             _logger.warning("Exception: " + t.getMessage());
         } finally {
             IOUtils.closeQuietly(inputStream);
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(connection);
         }
         return null;
     }

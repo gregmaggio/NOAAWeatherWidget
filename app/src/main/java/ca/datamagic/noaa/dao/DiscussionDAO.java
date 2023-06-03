@@ -1,6 +1,7 @@
 package ca.datamagic.noaa.dao;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.MessageFormat;
@@ -12,19 +13,21 @@ import java.util.logging.Logger;
 import javax.net.ssl.HttpsURLConnection;
 
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.util.IOUtils;
 
 /**
  * Created by Greg on 1/2/2016.
  */
 public class DiscussionDAO {
-    private static Logger _logger = LogFactory.getLogger(DiscussionDAO.class);
-    private static String _discussionStart = "<pre class=\"glossaryProduct\">".toLowerCase();
-    private static String _discussionEnd = "</pre>".toLowerCase();
+    private static final Logger _logger = LogFactory.getLogger(DiscussionDAO.class);
+    private static final String _discussionStart = "<pre class=\"glossaryProduct\">".toLowerCase();
+    private static final String _discussionEnd = "</pre>".toLowerCase();
 
     public String load(String issuedBy) throws Throwable {
         URL url = new URL(MessageFormat.format("https://forecast.weather.gov/product.php?site={0}&issuedby={0}&product=AFD&format=txt&version=1&glossary=0", issuedBy));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
+        InputStream inputStream = null;
         try {
             connection = (HttpsURLConnection)url.openConnection();
             connection.setDoInput(true);
@@ -50,20 +53,23 @@ public class DiscussionDAO {
                     _logger.info("key: " + key);
                     if ((key != null) && (key.compareToIgnoreCase("location") == 0)) {
                         List<String> values = headerFields.get(key);
-                        if (values.size() > 0) {
-                            URL newUrl = new URL(values.get(0));
-                            connection.disconnect();
-                            connection = (HttpsURLConnection) url.openConnection();
-                            connection.setDoInput(true);
-                            connection.setDoOutput(false);
-                            connection.setRequestMethod("GET");
-                            connection.setConnectTimeout(5000);
-                            connection.connect();
+                        if (values != null) {
+                            if (values.size() > 0) {
+                                URL newUrl = new URL(values.get(0));
+                                connection.disconnect();
+                                connection = (HttpsURLConnection) newUrl.openConnection();
+                                connection.setDoInput(true);
+                                connection.setDoOutput(false);
+                                connection.setRequestMethod("GET");
+                                connection.setConnectTimeout(5000);
+                                connection.connect();
+                            }
                         }
                     }
                 }
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            inputStream = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             StringBuffer buffer = new StringBuffer();
             String currentLine = null;
             boolean started = false;
@@ -94,13 +100,8 @@ public class DiscussionDAO {
                 return null;
             }
         } finally {
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(connection);
         }
         return null;
     }

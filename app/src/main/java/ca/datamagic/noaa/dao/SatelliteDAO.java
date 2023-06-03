@@ -4,6 +4,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import java.io.InputStream;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class SatelliteDAO {
-    private static Logger _logger = LogFactory.getLogger(SatelliteDAO.class);
-    private static Pattern _satelliteImagePattern = Pattern.compile("(\\d+)\\x5F(\\w+)\\x2D(\\w+)\\x2D(\\w+)\\x2D(\\w+)\\x2D(\\d+)x(\\d+)\\x2Ejpg", Pattern.CASE_INSENSITIVE);
+    private static final Logger _logger = LogFactory.getLogger(SatelliteDAO.class);
+    private static final Pattern _satelliteImagePattern = Pattern.compile("(\\d+)\\x5F(\\w+)\\x2D(\\w+)\\x2D(\\w+)\\x2D(\\w+)\\x2D(\\d+)x(\\d+)\\x2Ejpg", Pattern.CASE_INSENSITIVE);
     //(\d+)\x5F(\w+)\x2D(\w+)\x2D(\w+)\x2D(\w+)\x2D(\d+)x(\d+)\x2Ejpg
     //20203511220_GOES16-ABI-pr-GEOCOLOR-600x600.jpg
     //20203471506_GOES17-ABI-hi-GEOCOLOR-600x600.jpg
@@ -48,6 +49,7 @@ public class SatelliteDAO {
     public static List<String> loadSatelliteImages(String state) throws Throwable {
         String urlSpec = getSatellitePath(state);
         HttpsURLConnection connection = null;
+        InputStream inputStream = null;
         try {
             URL url = new URL(urlSpec);
             connection = (HttpsURLConnection) url.openConnection();
@@ -66,7 +68,8 @@ public class SatelliteDAO {
             connection.setRequestProperty("Sec-Fetch-User", "?1");
             connection.setRequestProperty("Sec-Fetch-Dest", "document");
             connection.connect();
-            String responseText = IOUtils.readEntireString(connection.getInputStream());
+            inputStream = connection.getInputStream();
+            String responseText = IOUtils.readEntireString(inputStream);
 
             List<String> images = new ArrayList<String>();
             Document doc = Jsoup.parse(responseText);
@@ -92,13 +95,8 @@ public class SatelliteDAO {
                 return null;
             }
         } finally {
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(connection);
         }
         return null;
     }

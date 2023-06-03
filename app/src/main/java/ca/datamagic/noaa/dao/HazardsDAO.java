@@ -1,6 +1,7 @@
 package ca.datamagic.noaa.dao;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -15,11 +16,12 @@ import ca.datamagic.noaa.dto.HazardDTO;
 import ca.datamagic.noaa.dto.HazardsDTO;
 import ca.datamagic.noaa.dto.ParametersDTO;
 import ca.datamagic.noaa.logging.LogFactory;
+import ca.datamagic.noaa.util.IOUtils;
 
 public class HazardsDAO {
-    private static Logger _logger = LogFactory.getLogger(HazardsDAO.class);
-    private static String _hazardStart = "<pre>";
-    private static String _hazardEnd = "</pre>";
+    private static final Logger _logger = LogFactory.getLogger(HazardsDAO.class);
+    private static final String _hazardStart = "<pre>";
+    private static final String _hazardEnd = "</pre>";
     private enum ParseState {
         None,
         ParsingHazard
@@ -29,6 +31,7 @@ public class HazardsDAO {
         URL url = new URL(urlSpec.replaceAll("http://", "https://"));
         _logger.info("url: " + url.toString());
         HttpURLConnection connection = null;
+        InputStream inputStream = null;
         try {
             connection = (HttpURLConnection)url.openConnection();
             connection.setDoInput(true);
@@ -52,7 +55,8 @@ public class HazardsDAO {
                 String location = connection.getHeaderField("Location");
                 connection = (HttpURLConnection) new URL(location).openConnection();
             }
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            inputStream = connection.getInputStream();
+            BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
             ParseState parseState = ParseState.None;
             List<String> hazards = new ArrayList<String>();
             StringBuilder builder = null;
@@ -93,13 +97,8 @@ public class HazardsDAO {
                 return null;
             }
         } finally {
-            if (connection != null) {
-                try {
-                    connection.disconnect();
-                } catch (Throwable t) {
-                    _logger.warning("Exception: " + t.getMessage());
-                }
-            }
+            IOUtils.closeQuietly(inputStream);
+            IOUtils.closeQuietly(connection);
         }
         return null;
     }

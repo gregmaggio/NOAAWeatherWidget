@@ -143,33 +143,12 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             if (!MainActivity.getThisInstance().isFragmentActive(this)) {
                 return;
             }
-            PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
-            PreferencesDTO preferencesDTO = preferencesDAO.read();
-            _radarTotalMinutes = preferencesDTO.getRadarTotalMinutes();
-            _radarDelayMilliseconds = preferencesDTO.getRadarDelaySeconds() * 1000;
             View view = getView();
             if (view != null) {
-                _playPauseButton = view.findViewById(R.id.playPauseButton);
-                _playPauseButton.setVisibility(View.GONE);
-                _playPauseButton.setOnClickListener(new PlayPauseButtonListener());
-                _radarTime = view.findViewById(R.id.radarTime);
-                _radarTime.setText(null);
-                LinearLayout radarLayout = view.findViewById(R.id.radarLayout);
-                TextView radarViewNotAvailable = view.findViewById(R.id.radarViewNotAvailable);
-                TextView radarViewNotAvailableForThisLocation = view.findViewById(R.id.radarViewNotAvailableForThisLocation);
-                _radarTimeFormat = new SimpleDateFormat(preferencesDTO.getDateFormat() + " " + preferencesDTO.getTimeFormat());
-                if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
-                    radarViewNotAvailable.setVisibility(View.VISIBLE);
-                    radarLayout.setVisibility(View.GONE);
-                    return;
-                } else {
-                    radarViewNotAvailable.setVisibility(View.GONE);
-                    radarLayout.setVisibility(View.VISIBLE);
-                    // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-                    SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
-                    mapFragment.getMapAsync(this);
-                    MainActivity.getThisInstance().startBusy();
-                }
+                render(view);
+            } else {
+                RenderTask renderTask = new RenderTask(this);
+                renderTask.execute((Void[])null);
             }
             (new AccountingTask("Radar", "Render")).execute((Void[]) null);
         } catch (IllegalStateException ex) {
@@ -294,6 +273,34 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         MainActivity.getThisInstance().startBusy();
     }
 
+    private void render(View view) {
+        PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
+        PreferencesDTO preferencesDTO = preferencesDAO.read();
+        _radarTotalMinutes = preferencesDTO.getRadarTotalMinutes();
+        _radarDelayMilliseconds = preferencesDTO.getRadarDelaySeconds() * 1000;
+        _playPauseButton = view.findViewById(R.id.playPauseButton);
+        _playPauseButton.setVisibility(View.GONE);
+        _playPauseButton.setOnClickListener(new PlayPauseButtonListener());
+        _radarTime = view.findViewById(R.id.radarTime);
+        _radarTime.setText(null);
+        LinearLayout radarLayout = view.findViewById(R.id.radarLayout);
+        TextView radarViewNotAvailable = view.findViewById(R.id.radarViewNotAvailable);
+        TextView radarViewNotAvailableForThisLocation = view.findViewById(R.id.radarViewNotAvailableForThisLocation);
+        _radarTimeFormat = new SimpleDateFormat(preferencesDTO.getDateFormat() + " " + preferencesDTO.getTimeFormat());
+        if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
+            radarViewNotAvailable.setVisibility(View.VISIBLE);
+            radarLayout.setVisibility(View.GONE);
+            return;
+        } else {
+            radarViewNotAvailable.setVisibility(View.GONE);
+            radarLayout.setVisibility(View.VISIBLE);
+            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+            SupportMapFragment mapFragment = (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
+            mapFragment.getMapAsync(this);
+            MainActivity.getThisInstance().startBusy();
+        }
+    }
+
     private void radarSiteLoaded(RadarSiteDTO radar) {
         _radarSite = radar;
         _urls = null;
@@ -313,11 +320,22 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         double[] upperCorner = _metaData.getUpperCorner();
         double[] lowerCorner = _metaData.getLowerCorner();
         _bounds = new LatLngBounds(new LatLng(lowerCorner[1], lowerCorner[0]), new LatLng(upperCorner[1], upperCorner[0]));
+
         if (!_mapLocationInitialized) {
-            _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
-            _mapLocationInitialized = true;
+            getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
+                        _map.setOnCameraMoveListener(new CameraMoveListener());
+                        _mapLocationInitialized = true;
+                    } catch (Throwable t) {
+                        _logger.warning("Throwable: " + t.getMessage());
+                    }
+                }
+            });
         }
-        _map.setOnCameraMoveListener(new CameraMoveListener());
+
         RadarUrlsTask task = new RadarUrlsTask(_radarSite.getICAO());
         task.addListener(new AsyncTaskListener<String[]>() {
             @Override

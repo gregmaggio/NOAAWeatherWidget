@@ -34,7 +34,6 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -48,7 +47,8 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
-import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
+
 import ca.datamagic.noaa.async.AccountingTask;
 import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private ActionBarDrawerToggle _drawerToggle = null;
     private FlowLayout _header = null;
     private MainPageAdapter _mainPageAdapter = null;
-    private NonSwipeableViewPager _viewPager = null;
+    private ViewPager2 _viewPager = null;
     private StationsAdapter _stationsAdapter = null;
     private SearchView _search = null;
     private GooglePredictionsTask _googlePredictionsTask = null;
@@ -120,6 +120,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private ProgressBar _spinner = null;
     private int _currentPage = 0;
     private String _sessionToken = null;
+    private PageChangeListener _pageChangeListener = null;
 
     public MainActivity() {
         _thisInstance = this;
@@ -145,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         return _mainPageAdapter;
     }
 
-    public NonSwipeableViewPager getViewPager() {
+    public ViewPager2 getViewPager() {
         return _viewPager;
     }
 
@@ -240,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
@@ -298,9 +300,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         _drawerLayout.addDrawerListener(_drawerToggle);
 
         _header = findViewById(R.id.header);
-        _mainPageAdapter = new MainPageAdapter(getSupportFragmentManager(), getBaseContext());
+        _mainPageAdapter = new MainPageAdapter(this);
 
-        for (int ii = 0; ii < _mainPageAdapter.getCount(); ii++) {
+        for (int ii = 0; ii < _mainPageAdapter.getItemCount(); ii++) {
             String html = MessageFormat.format("<strong>{0}</strong>", _mainPageAdapter.getPageTitle(ii));
             TextView textView = new TextView(getBaseContext());
             textView.setTextColor(Color.WHITE);
@@ -319,41 +321,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         _viewPager = findViewById(R.id.viewpager);
         _viewPager.setAdapter(_mainPageAdapter);
-        _viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            @Override
-            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            }
 
-            @Override
-            public void onPageSelected(int position) {
-                _logger.info("onPageSelected: " + position);
-                _logger.info("currentPage: " + _currentPage);
-                refreshView();
-                updateHeader();
-                if (_currentPage > -1) {
-                    _mainPageAdapter.performCleanup(_currentPage);
-                }
-                _currentPage = position;
-            }
-
-            @Override
-            public void onPageScrollStateChanged(int state) {
-                switch (state) {
-                    case ViewPager.SCROLL_STATE_DRAGGING:
-                        _logger.info("SCROLL_STATE_DRAGGING");
-                        break;
-                    case ViewPager.SCROLL_STATE_IDLE:
-                        _logger.info("SCROLL_STATE_IDLE");
-                        break;
-                    case ViewPager.SCROLL_STATE_SETTLING:
-                        _logger.info("SCROLL_STATE_SETTLING");
-                        break;
-                    default:
-                        _logger.info("Unexpected: " + state);
-                        break;
-                }
-            }
-        });
         readPreferences();
         updateHeader();
 
@@ -375,7 +343,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public boolean isFragmentActive(Fragment fragment) {
         if ((_viewPager != null) && (_mainPageAdapter != null)) {
             int currentIndex = _viewPager.getCurrentItem();
-            if ((currentIndex > -1) && (currentIndex < _mainPageAdapter.getCount())) {
+            if ((currentIndex > -1) && (currentIndex < _mainPageAdapter.getItemCount())) {
                 return _mainPageAdapter.getItem(currentIndex) == fragment;
             }
         }
@@ -383,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     }
 
     private void updateHeader() {
-        for (int ii = 0; ii < _mainPageAdapter.getCount(); ii++) {
+        for (int ii = 0; ii < _mainPageAdapter.getItemCount(); ii++) {
             int color = (_viewPager.getCurrentItem() == ii) ? Color.YELLOW : Color.WHITE;
             ((TextView) _header.getChildAt(ii)).setTextColor(color);
         }
@@ -624,6 +592,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     try {
                         if (_spinner != null) {
                             _spinner.setVisibility(View.GONE);
+                        }
+                        if (_pageChangeListener == null) {
+                            _pageChangeListener = new PageChangeListener();
+                            _viewPager.registerOnPageChangeCallback(_pageChangeListener);
                         }
                         writeCurrentState();
                         refreshView();
@@ -1000,6 +972,34 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             } else {
                 CurrentDailyForecast.setDailyForecastFeature(result.getResult());
             }
+        }
+    }
+
+    private class PageChangeListener extends ViewPager2.OnPageChangeCallback {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            _logger.info("onPageScrolled: " + position);
+            super.onPageScrolled(position, positionOffset, positionOffsetPixels);
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            _logger.info("onPageSelected: " + position);
+            _logger.info("currentPage: " + _currentPage);
+            if (!_processing) {
+                refreshView();
+                updateHeader();
+                if (_currentPage > -1) {
+                    _mainPageAdapter.performCleanup(_currentPage);
+                }
+                _currentPage = position;
+            }
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+            _logger.info("onPageScrollStateChanged: " + state);
+            super.onPageScrollStateChanged(state);
         }
     }
 }

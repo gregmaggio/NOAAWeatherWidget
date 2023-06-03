@@ -1,3 +1,2 @@
-* Update to radar to be all internal to the app since Google is charging me more money for the app services
-* Update to image loading since sometimes the NOAA api gives me invalid image urls on the hourly tab
-* Some other minor fixes
+* Update tabs to use a newer and non-deprecated api
+* Some other bug fixes and remove some potential leaks

@@ -140,7 +140,11 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
             LayoutInflater inflater = getLayoutInflater();
             if ((view != null) && (inflater != null)) {
                 render(view, inflater);
+            } else {
+                RenderTask renderTask = new RenderTask(this);
+                renderTask.execute((Void[])null);
             }
+            (new AccountingTask("Observation", "Render")).execute((Void[])null);
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
@@ -377,8 +381,6 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
             observationErrorLabel.setVisibility(View.VISIBLE);
         }
         observationTable.addView(row);
-
-        (new AccountingTask("Observation", "Render")).execute((Void[])null);
     }
 
     private String getFormattedObservationTime(Date observationTimeUTC, PreferencesDTO preferences) {

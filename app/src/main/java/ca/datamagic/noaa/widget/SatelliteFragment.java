@@ -20,7 +20,6 @@ import ca.datamagic.noaa.async.AsyncTaskListener;
 import ca.datamagic.noaa.async.AsyncTaskResult;
 import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.async.SatelliteTask;
-import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
@@ -28,7 +27,7 @@ import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class SatelliteFragment extends Fragment implements Renderer, NonSwipeableFragment {
-    private static Logger _logger = LogFactory.getLogger(SatelliteFragment.class);
+    private static final Logger _logger = LogFactory.getLogger(SatelliteFragment.class);
     private ImageButton _zoomInButton = null;
     private ImageButton _zoomOutButton = null;
     private ImageButton _resetZoomButton = null;
@@ -70,50 +69,10 @@ public class SatelliteFragment extends Fragment implements Renderer, NonSwipeabl
             }
             View view = getView();
             if (view != null) {
-                _zoomInButton = view.findViewById(R.id.zoomInButton);
-                _zoomInButton.setOnClickListener(new SatelliteFragment.ZoomInButtonListener());
-                _zoomOutButton = view.findViewById(R.id.zoomOutButton);
-                _zoomOutButton.setOnClickListener(new SatelliteFragment.ZoomOutButtonListener());
-                _resetZoomButton = view.findViewById(R.id.resetZoomButton);
-                _resetZoomButton.setOnClickListener(new SatelliteFragment.ResetZoomButtonListener());
-                _satelliteView = view.findViewById(R.id.satelliteView);
-                LinearLayout satelliteLayout = view.findViewById(R.id.satelliteLayout);
-                TextView satelliteViewNotAvailable = view.findViewById(R.id.satelliteViewNotAvailable);
-                PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
-                PreferencesDTO preferencesDTO = preferencesDAO.read();
-                if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
-                    satelliteViewNotAvailable.setVisibility(View.VISIBLE);
-                    satelliteLayout.setVisibility(View.GONE);
-                    return;
-                } else {
-                    satelliteViewNotAvailable.setVisibility(View.GONE);
-                    satelliteLayout.setVisibility(View.VISIBLE);
-                }
-                String state = null;
-                StationDTO station = CurrentStation.getStation();
-                if (station != null) {
-                    state = station.getState();
-                }
-                SatelliteTask task = new SatelliteTask(state);
-                task.addListener(new AsyncTaskListener<Bitmap>() {
-                    @Override
-                    public void completed(AsyncTaskResult<Bitmap> result) {
-                        MainActivity.getThisInstance().stopBusy();
-                        Bitmap bitmap = result.getResult();
-                        if (bitmap != null) {
-                            double width = bitmap.getWidth();
-                            double height = bitmap.getHeight();
-                            double aspectRatio = width / height;
-                            _satelliteView.setAspectRatio(aspectRatio);
-                            _satelliteView.setSatelliteBitmap(bitmap);
-                        } else {
-                            _satelliteView.setSatelliteBitmap(null);
-                        }
-                        _satelliteView.invalidate();
-                    }
-                });
-                task.execute((Void[])null);
-                MainActivity.getThisInstance().startBusy();
+                render(view);
+            } else {
+                RenderTask renderTask = new RenderTask(this);
+                renderTask.execute((Void[])null);
             }
             (new AccountingTask("Satellite", "Render")).execute((Void[]) null);
         } catch (IllegalStateException ex) {
@@ -134,6 +93,9 @@ public class SatelliteFragment extends Fragment implements Renderer, NonSwipeabl
             _logger.warning("Radar view reset scale error: " + t.getMessage());
         }
         _satelliteView = null;
+        _zoomInButton = null;
+        _zoomOutButton = null;
+        _resetZoomButton = null;
     }
 
     @Override
@@ -147,6 +109,62 @@ public class SatelliteFragment extends Fragment implements Renderer, NonSwipeabl
             return !outRect.contains((int)x,(int)y);
         }
         return true;
+    }
+
+    private void render(View view) {
+        _zoomInButton = view.findViewById(R.id.zoomInButton);
+        _zoomInButton.setOnClickListener(new SatelliteFragment.ZoomInButtonListener());
+        _zoomOutButton = view.findViewById(R.id.zoomOutButton);
+        _zoomOutButton.setOnClickListener(new SatelliteFragment.ZoomOutButtonListener());
+        _resetZoomButton = view.findViewById(R.id.resetZoomButton);
+        _resetZoomButton.setOnClickListener(new SatelliteFragment.ResetZoomButtonListener());
+        _satelliteView = view.findViewById(R.id.satelliteView);
+        LinearLayout satelliteLayout = view.findViewById(R.id.satelliteLayout);
+        TextView satelliteViewNotAvailable = view.findViewById(R.id.satelliteViewNotAvailable);
+        PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
+        PreferencesDTO preferencesDTO = preferencesDAO.read();
+        if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
+            satelliteViewNotAvailable.setVisibility(View.VISIBLE);
+            satelliteLayout.setVisibility(View.GONE);
+            return;
+        } else {
+            satelliteViewNotAvailable.setVisibility(View.GONE);
+            satelliteLayout.setVisibility(View.VISIBLE);
+        }
+        String state = null;
+        StationDTO station = CurrentStation.getStation();
+        if (station != null) {
+            state = station.getState();
+        }
+        SatelliteTask task = new SatelliteTask(state);
+        task.addListener(new AsyncTaskListener<Bitmap>() {
+            @Override
+            public void completed(AsyncTaskResult<Bitmap> result) {
+                MainActivity.getThisInstance().stopBusy();
+                Bitmap bitmap = result.getResult();
+                MainActivity.getThisInstance().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            if (bitmap != null) {
+                                double width = bitmap.getWidth();
+                                double height = bitmap.getHeight();
+                                double aspectRatio = width / height;
+                                _satelliteView.setAspectRatio(aspectRatio);
+                                _satelliteView.setSatelliteBitmap(bitmap);
+                            } else {
+                                _satelliteView.setSatelliteBitmap(null);
+                            }
+                            _satelliteView.invalidate();
+                        } catch (Throwable t) {
+                            _logger.warning("Throwable: " + t.getMessage());
+                        }
+                    }
+                });
+            }
+        });
+        task.execute((Void[])null);
+        MainActivity.getThisInstance().startBusy();
     }
 
     private class ZoomInButtonListener implements View.OnClickListener {

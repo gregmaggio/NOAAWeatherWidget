@@ -14,6 +14,7 @@ import android.view.View;
 import java.util.logging.Logger;
 
 import androidx.annotation.Nullable;
+
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class RadarView extends View {
@@ -96,13 +97,6 @@ public class RadarView extends View {
     public boolean onTouchEvent(MotionEvent event) {
         try {
             _logger.info("Radar Image Touch");
-            MainActivity mainActivity = MainActivity.getThisInstance();
-            if (mainActivity != null) {
-                NonSwipeableViewPager viewPager = mainActivity.getViewPager();
-                if (viewPager != null) {
-                    viewPager.setEnabled(false);
-                }
-            }
 
             // Let the ScaleGestureDetector inspect all events.
             _scaleDetector.onTouchEvent(event);
