@@ -7,12 +7,11 @@ import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.logging.LogFactory;
-import ca.datamagic.noaa.widget.MainActivity;
 
 /**
  * Created by Greg on 1/1/2016.
  */
-public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
+public class ImageTask extends AsyncTaskBase<Bitmap> {
     private Logger _logger = LogFactory.getLogger(ImageTask.class);
     private ImageDAO _dao = null;
     private String _imageUrl = null;
@@ -32,7 +31,7 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
     }
 
     @Override
-    protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
+    protected AsyncTaskResult<Bitmap> doInBackground() {
         _logger.info("Loading image: " + _imageUrl);
         try {
             Bitmap bitmap = _dao.load(_imageUrl);
@@ -59,17 +58,7 @@ public class ImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
     protected void onPostExecute(AsyncTaskResult<Bitmap> result) {
         _logger.info("...image loaded.");
         if (result.getResult() != null) {
-            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        _logger.info("Setting image bitmap");
-                        _imageView.setImageBitmap(result.getResult());
-                    } catch (Throwable t) {
-                        _logger.warning("Throwable: " + t.getMessage());
-                    }
-                }
-            });
+            _imageView.setImageBitmap(result.getResult());
         }
         fireCompleted(result);
     }

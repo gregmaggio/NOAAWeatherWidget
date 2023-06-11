@@ -51,7 +51,7 @@ public class AppTimerTask extends TimerTask {
                     }
                 }
             });
-            task.execute((Void) null);
+            task.execute();
         } catch (Throwable t) {
             _logger.warning("Error in AppTimerTask. Exception: " + t.getMessage());
         }

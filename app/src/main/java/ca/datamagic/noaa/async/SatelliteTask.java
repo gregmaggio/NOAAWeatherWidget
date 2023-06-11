@@ -9,7 +9,7 @@ import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.SatelliteDAO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class SatelliteTask extends AsyncTaskBase<Void, Void, Bitmap> {
+public class SatelliteTask extends AsyncTaskBase<Bitmap> {
     private static final Logger _logger = LogFactory.getLogger(SatelliteTask.class);
     private ImageDAO _dao = null;
     private String _state = null;
@@ -20,7 +20,7 @@ public class SatelliteTask extends AsyncTaskBase<Void, Void, Bitmap> {
     }
 
     @Override
-    protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
+    protected AsyncTaskResult<Bitmap> doInBackground() {
         _logger.info("Retrieving satellite bitmap...");
         try {
             List<String> imageUrls = SatelliteDAO.loadSatelliteImages(_state);

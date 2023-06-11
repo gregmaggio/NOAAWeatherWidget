@@ -38,6 +38,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -89,7 +90,7 @@ import ca.datamagic.noaa.service.AppService;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener, SearchView.OnSuggestionListener, SearchView.OnCloseListener, StationsAdapter.StationsAdapterListener {
-    private Logger _logger = null;
+    private static final Logger _logger = LogFactory.getLogger(MainActivity.class);
     private static MainActivity _thisInstance;
     private HashMap<String, Integer> _permissions = new HashMap<>();
     private String _filesPath = null;
@@ -276,9 +277,13 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
+        try {
+            ActionBar actionBar = getSupportActionBar();
+            actionBar.setDisplayHomeAsUpEnabled(true);
+            actionBar.setHomeButtonEnabled(true);
+        } catch (Throwable t) {
+            _logger.warning("Throwable: " + t.getMessage());
+        }
         _drawerLayout = findViewById(R.id.drawer_layout);
         _drawerToggle = new ActionBarDrawerToggle(this, _drawerLayout,
                 R.string.drawer_open, R.string.drawer_close) {
@@ -307,7 +312,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             TextView textView = new TextView(getBaseContext());
             textView.setTextColor(Color.WHITE);
             textView.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT));
-            textView.setText(Html.fromHtml(html));
+            textView.setText(Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT));
             textView.setPadding(10, 10, 10, 10);
             textView.setTag(ii);
             textView.setOnClickListener(new View.OnClickListener() {
@@ -398,7 +403,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             _filesPath = intPath.getAbsolutePath();
             LogFactory.initialize(Level.WARNING, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
-            _logger = LogFactory.getLogger(MainActivity.class);
         } catch (Throwable t) {
             // Do Nothing
         }
@@ -559,7 +563,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             }
         }
 
-        (new AccountingTask("MyLocation", "Select")).execute((Void[])null);
+        (new AccountingTask("MyLocation", "Select")).execute();
     }
 
     public void actionRefresh() {
@@ -601,14 +605,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                         refreshView();
                         CurrentWidgets.refreshWidgets(getApplicationContext());
                     } catch (Throwable t) {
-                        if (_logger != null) {
-                            _logger.log(Level.WARNING, "Unknown Exception in workflow completed.", t);
-                        }
+                        _logger.log(Level.WARNING, "Unknown Exception in workflow completed.", t);
                     }
                 }
             });
             refreshWorkflow.start();
-            (new AccountingTask("Refresh", "Current")).execute((Void[])null);
+            (new AccountingTask("Refresh", "Current")).execute();
         } catch (Throwable t) {
             // TODO: Show Error
             _processing = false;
@@ -632,9 +634,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             // TODO: Show Error
             _processing = false;
             _spinner.setVisibility(View.GONE);
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
         }
     }
 
@@ -649,9 +649,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             // TODO: Show Error
             _processing = false;
             _spinner.setVisibility(View.GONE);
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
         }
     }
 
@@ -662,9 +660,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 _mainPageAdapter.refreshPage(getSupportFragmentManager(), _viewPager.getCurrentItem());
             }
         } catch (Throwable t) {
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             showError("Some Android weirdness occurred when rendering the widget. Wait a second and try refresh or my location from the menu.");
         }
     }
@@ -673,9 +669,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         try {
             _mainPageAdapter.refreshPage(getSupportFragmentManager(), _viewPager.getCurrentItem());
         } catch (Throwable t) {
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
             showError("Some Android weirdness occurred when rendering the widget. Wait a second and try refresh or my location from the menu.");
         }
     }
@@ -706,9 +700,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             dialog.show();
         } catch (Throwable t) {
             // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in settings.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in settings.", t);
         }
     }
 
@@ -721,9 +713,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             }
         } catch (Throwable t) {
             // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in start/stop service.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in start/stop service.", t);
         }
     }
 
@@ -733,9 +723,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             dialog.show();
         } catch (Throwable t) {
             // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
         }
     }
 
@@ -744,13 +732,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             if (_mainPageAdapter != null) {
                 _mainPageAdapter.performCleanup(_currentPage);
             }
-            (new AccountingTask("Application", "Exit")).execute((Void[]) null);
+            (new AccountingTask("Application", "Exit")).execute();
             finish();
         } catch (Throwable t) {
             // TODO: Show Error
-            if (_logger != null) {
-                _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
-            }
+            _logger.log(Level.WARNING, "Unknown Exception in send error.", t);
         }
     }
 
@@ -780,9 +766,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             @Override
             public void completed(AsyncTaskResult<PredictionListDTO> result) {
                 if (result.getThrowable() != null) {
-                    if (_logger != null) {
-                        _logger.log(Level.WARNING, "Error retrieving predictions for text.", result.getThrowable());
-                    }
+                    _logger.log(Level.WARNING, "Error retrieving predictions for text.", result.getThrowable());
                 } else {
                     PredictionListDTO predictions = result.getResult();
                     _logger.info("predictions: " + predictions.size());
@@ -799,12 +783,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                         cursor.addRow(temp);
                     }
                     _search.setSuggestionsAdapter(new PredictionsSearchAdapter(getBaseContext(), cursor));
-                    (new AccountingTask("Search", "Query")).execute((Void[])null);
+                    (new AccountingTask("Search", "Query")).execute();
                 }
                 _googlePredictionsTask = null;
             }
         });
-        _googlePredictionsTask.execute((Void)null);
+        _googlePredictionsTask.execute();
         return true;
     }
 
@@ -828,9 +812,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             @Override
             public void completed(AsyncTaskResult<PlaceDTO> result) {
                 if (result.getThrowable() != null) {
-                    if (_logger != null) {
-                        _logger.log(Level.WARNING, "Error retrieving place for suggestion.", result.getThrowable());
-                    }
+                    _logger.log(Level.WARNING, "Error retrieving place for suggestion.", result.getThrowable());
                 } else {
                     CurrentLocation.setLatitude(result.getResult().getLatitude());
                     CurrentLocation.setLongitude(result.getResult().getLongitude());
@@ -841,13 +823,13 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                     _search.clearFocus();
                     _search.onActionViewCollapsed();
                     actionRefresh();
-                    (new AccountingTask("Search", "Select")).execute((Void[])null);
+                    (new AccountingTask("Search", "Select")).execute();
                 }
                 _googlePlaceTask = null;
                 _sessionToken = null;
             }
         });
-        _googlePlaceTask.execute((Void)null);
+        _googlePlaceTask.execute();
         return true;
     }
 
@@ -855,7 +837,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     public void onStationAdded(StationDTO station) {
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _stationsAdapter.notifyDataSetChanged();
-        (new AccountingTask("Station", "Added")).execute((Void[])null);
+        (new AccountingTask("Station", "Added")).execute();
     }
 
     @Override
@@ -864,7 +846,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         CurrentLocation.setLatitude(station.getLatitude());
         CurrentLocation.setLongitude(station.getLongitude());
         actionRefresh();
-        (new AccountingTask("Station", "Select")).execute((Void[])null);
+        (new AccountingTask("Station", "Select")).execute();
     }
 
     @Override
@@ -873,16 +855,14 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         _stationsAdapter.notifyDataSetInvalidated();
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _drawerLayout.closeDrawer(Gravity.LEFT);
-        (new AccountingTask("Station", "Remove")).execute((Void[])null);
+        (new AccountingTask("Station", "Remove")).execute();
     }
 
     private class StationListener implements AsyncTaskListener<StationDTO[]> {
         @Override
         public void completed(AsyncTaskResult<StationDTO[]> result) {
             if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
-                }
+                _logger.log(Level.WARNING, "Error retrieving station.", result.getThrowable());
                 CurrentStation.setNearest(null);
                 CurrentStation.setStation(null);
             } else {
@@ -900,9 +880,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         @Override
         public void completed(AsyncTaskResult<DWMLDTO> result) {
             if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
-                }
+                _logger.log(Level.WARNING, "Error retrieving DWML.", result.getThrowable());
                 CurrentDWML.setDWML(null);
                 CurrentObservation.setObervation(null);
                 CurrentForecasts.setForecasts(null);
@@ -923,9 +901,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         @Override
         public void completed(AsyncTaskResult<List<String>> result) {
             if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving hazards.", result.getThrowable());
-                }
+                _logger.log(Level.WARNING, "Error retrieving hazards.", result.getThrowable());
                 CurrentHazards.setHazards(null);
             } else {
                 CurrentHazards.setHazards(result.getResult());
@@ -937,9 +913,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         @Override
         public void completed(AsyncTaskResult<FeatureDTO> result) {
             if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error feature.", result.getThrowable());
-                }
+                _logger.log(Level.WARNING, "Error feature.", result.getThrowable());
                 CurrentFeature.setFeature(null);
             } else {
                 CurrentFeature.setFeature(result.getResult());
@@ -951,9 +925,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         @Override
         public void completed(AsyncTaskResult<FeatureDTO> result) {
             if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving hourly forecast.", result.getThrowable());
-                }
+                _logger.log(Level.WARNING, "Error retrieving hourly forecast.", result.getThrowable());
                 CurrentHourlyForecast.setHourlyForecastFeature(null);
             } else {
                 CurrentHourlyForecast.setHourlyForecastFeature(result.getResult());
@@ -965,9 +937,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         @Override
         public void completed(AsyncTaskResult<FeatureDTO> result) {
             if (result.getThrowable() != null) {
-                if (_logger != null) {
-                    _logger.log(Level.WARNING, "Error retrieving daily forecast.", result.getThrowable());
-                }
+                _logger.log(Level.WARNING, "Error retrieving daily forecast.", result.getThrowable());
                 CurrentDailyForecast.setDailyForecastFeature(null);
             } else {
                 CurrentDailyForecast.setDailyForecastFeature(result.getResult());

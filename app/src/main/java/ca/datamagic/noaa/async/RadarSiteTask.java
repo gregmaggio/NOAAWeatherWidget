@@ -7,7 +7,7 @@ import ca.datamagic.noaa.dao.RadarSiteDAO;
 import ca.datamagic.noaa.dto.RadarSiteDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class RadarSiteTask extends AsyncTaskBase<Void, Void, RadarSiteDTO> {
+public class RadarSiteTask extends AsyncTaskBase<RadarSiteDTO> {
     private static final Logger _logger = LogFactory.getLogger(RadarSiteTask.class);
     private double _latitude = 0.0;
     private double _longitude = 0.0;
@@ -18,7 +18,7 @@ public class RadarSiteTask extends AsyncTaskBase<Void, Void, RadarSiteDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<RadarSiteDTO> doInBackground(Void... params) {
+    protected AsyncTaskResult<RadarSiteDTO> doInBackground() {
         try {
             _logger.info("Loading radar...");
             RadarSiteDAO dao = CurrentRadarSites.getRadarSiteDAO();

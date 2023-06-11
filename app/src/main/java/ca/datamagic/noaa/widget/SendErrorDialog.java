@@ -71,11 +71,11 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.sendErrorOK:
                 sendError();
-                (new AccountingTask("Error", "Send")).execute((Void[])null);
+                (new AccountingTask("Error", "Send")).execute();
                 break;
             case R.id.sendErrorCancel:
                 dismiss();
-                (new AccountingTask("Error", "Cancel")).execute((Void[])null);
+                (new AccountingTask("Error", "Cancel")).execute();
                 break;
         }
     }
@@ -109,7 +109,7 @@ public class SendErrorDialog extends Dialog implements View.OnClickListener {
                     _sendErrorProgress.setVisibility(View.GONE);
                 }
             });
-            task.execute((Void[]) null);
+            task.execute();
             dismiss();
         } catch (Throwable t) {
             // TODO: Show error

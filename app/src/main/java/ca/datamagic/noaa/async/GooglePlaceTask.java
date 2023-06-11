@@ -18,7 +18,7 @@ import ca.datamagic.noaa.logging.LogFactory;
  * Created by Greg on 3/24/2018.
  */
 
-public class GooglePlaceTask extends AsyncTaskBase<Void, Void, PlaceDTO> {
+public class GooglePlaceTask extends AsyncTaskBase<PlaceDTO> {
     private Logger _logger = LogFactory.getLogger(GooglePlaceTask.class);
     private Context _context = null;
     private CacheHelper _cacheHelper = null;
@@ -33,7 +33,7 @@ public class GooglePlaceTask extends AsyncTaskBase<Void, Void, PlaceDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<PlaceDTO> doInBackground(Void... voids) {
+    protected AsyncTaskResult<PlaceDTO> doInBackground() {
         try {
             _logger.info("Loading place...");
             PlaceDTO place = null;

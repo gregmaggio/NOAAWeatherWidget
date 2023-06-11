@@ -10,7 +10,7 @@ import ca.datamagic.noaa.logging.LogFactory;
 /**
  * Created by Greg on 1/3/2016.
  */
-public class DiscussionTask extends AsyncTaskBase<Void, Void, String> {
+public class DiscussionTask extends AsyncTaskBase<String> {
     private static Logger _logger = LogFactory.getLogger(DiscussionTask.class);
     private static DiscussionDAO _dao = new DiscussionDAO();
 
@@ -19,7 +19,7 @@ public class DiscussionTask extends AsyncTaskBase<Void, Void, String> {
     }
 
     @Override
-    protected AsyncTaskResult<String> doInBackground(Void... params) {
+    protected AsyncTaskResult<String> doInBackground() {
         try {
             StationDTO station = CurrentStation.getStation();
             String wfo = null;

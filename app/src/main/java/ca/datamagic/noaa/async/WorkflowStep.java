@@ -11,13 +11,13 @@ import ca.datamagic.noaa.logging.LogFactory;
  * Created by Greg on 2/12/2017.
  */
 
-public class WorkflowStep<Params, Progress, Result> {
+public class WorkflowStep<Result> {
     private Logger _logger = LogFactory.getLogger(WorkflowStep.class);
-    private AsyncTaskBase<Params, Progress, Result> _task = null;
+    private AsyncTaskBase<Result> _task = null;
     private AsyncTaskListener<Result> _listener = null;
     public List<WorkflowStepListener> _listeners = null;
 
-    public WorkflowStep(AsyncTaskBase<Params, Progress, Result> task, AsyncTaskListener<Result> listener) {
+    public WorkflowStep(AsyncTaskBase<Result> task, AsyncTaskListener<Result> listener) {
         _task = task;
         _listener = listener;
         _listeners = new ArrayList<WorkflowStepListener>();
@@ -59,7 +59,7 @@ public class WorkflowStep<Params, Progress, Result> {
                 firePass();
             }
         });
-        _task.execute((Params[])null);
+        _task.execute();
     }
 
     public interface WorkflowStepListener {

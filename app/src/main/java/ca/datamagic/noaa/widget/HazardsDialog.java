@@ -59,6 +59,6 @@ public class HazardsDialog extends Dialog {
             }
         }
         hazardsView.setText(builder.toString());
-        (new AccountingTask("Hazards", "Show")).execute((Void[])null);
+        (new AccountingTask("Hazards", "Show")).execute();
     }
 }

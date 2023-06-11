@@ -72,13 +72,13 @@ public class SatelliteFragment extends Fragment implements Renderer, NonSwipeabl
                 render(view);
             } else {
                 RenderTask renderTask = new RenderTask(this);
-                renderTask.execute((Void[])null);
+                renderTask.execute();
             }
-            (new AccountingTask("Satellite", "Render")).execute((Void[]) null);
+            (new AccountingTask("Satellite", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
         }
     }
 
@@ -142,28 +142,19 @@ public class SatelliteFragment extends Fragment implements Renderer, NonSwipeabl
             public void completed(AsyncTaskResult<Bitmap> result) {
                 MainActivity.getThisInstance().stopBusy();
                 Bitmap bitmap = result.getResult();
-                MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            if (bitmap != null) {
-                                double width = bitmap.getWidth();
-                                double height = bitmap.getHeight();
-                                double aspectRatio = width / height;
-                                _satelliteView.setAspectRatio(aspectRatio);
-                                _satelliteView.setSatelliteBitmap(bitmap);
-                            } else {
-                                _satelliteView.setSatelliteBitmap(null);
-                            }
-                            _satelliteView.invalidate();
-                        } catch (Throwable t) {
-                            _logger.warning("Throwable: " + t.getMessage());
-                        }
-                    }
-                });
+                if (bitmap != null) {
+                    double width = bitmap.getWidth();
+                    double height = bitmap.getHeight();
+                    double aspectRatio = width / height;
+                    _satelliteView.setAspectRatio(aspectRatio);
+                    _satelliteView.setSatelliteBitmap(bitmap);
+                } else {
+                    _satelliteView.setSatelliteBitmap(null);
+                }
+                _satelliteView.invalidate();
             }
         });
-        task.execute((Void[])null);
+        task.execute();
         MainActivity.getThisInstance().startBusy();
     }
 

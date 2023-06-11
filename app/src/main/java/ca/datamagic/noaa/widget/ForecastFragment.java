@@ -111,13 +111,13 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
                 render(view, inflater);
             } else {
                 RenderTask renderTask = new RenderTask(this);
-                renderTask.execute((Void[])null);
+                renderTask.execute();
             }
-            (new AccountingTask("Daily", "Render")).execute((Void[])null);
+            (new AccountingTask("Daily", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
         }
     }
 
@@ -142,7 +142,7 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
         _logger.info("totalWidth: " + totalWidth);
         if (totalWidth < 1) {
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
             _logger.info("Excute Render Task");
             return;
         }
@@ -351,7 +351,7 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
                         String icon = periods[ii].getIcon();
                         if ((icon != null) && (icon.length() > 0)) {
                             ImageTask imageTask = new ImageTask(icon, conditionsView, false);
-                            imageTask.execute((Void[]) null);
+                            imageTask.execute();
                         }
                     }
 
@@ -360,27 +360,16 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
             }
         }
         if (rows.size() > 0) {
-            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    for (TableRow row : rows) {
-                        forecastTable.addView(row);
-                    }
-                }
-            });
+            for (TableRow row : rows) {
+                forecastTable.addView(row);
+            }
         } else {
-            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
-                    if ((dailyForecastFeature != null) && (dailyForecastFeature.getDetail() != null) && (dailyForecastFeature.getDetail().length() > 0)) {
-                        forecastErrorLabel.setText(dailyForecastFeature.getDetail());
-                    } else {
-                        forecastErrorLabel.setText(R.string.forecast_error);
-                    }
-                    forecastErrorLabel.setVisibility(View.VISIBLE);
-                }
-            });
+            TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
+            if ((dailyForecastFeature != null) && (dailyForecastFeature.getDetail() != null) && (dailyForecastFeature.getDetail().length() > 0)) {
+                forecastErrorLabel.setText(dailyForecastFeature.getDetail());
+            } else {
+                forecastErrorLabel.setText(R.string.forecast_error);
+            }
         }
     }
 
@@ -511,8 +500,8 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
 
                     if (!preferencesDTO.isTextOnly()) {
                         if ((items.get(ii).getImageUrl() != null) && (items.get(ii).getImageUrl().length() > 0)) {
-                            ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView, false);
-                            imageTask.execute((Void[]) null);
+                            ImageTask imageTask = new ImageTask(items.get(ii).getImageUrl(), conditionsView, true);
+                            imageTask.execute();
                         }
                     }
 
@@ -521,14 +510,9 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
             }
         }
         if (rows.size() > 0) {
-            MainActivity.getThisInstance().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    for (TableRow row : rows) {
-                        forecastTable.addView(row);
-                    }
-                }
-            });
+            for (TableRow row : rows) {
+                forecastTable.addView(row);
+            }
         } else {
             TextView forecastErrorLabel = view.findViewById(R.id.forecast_error_label);
             forecastErrorLabel.setText(R.string.forecast_error);

@@ -10,7 +10,7 @@ import ca.datamagic.noaa.logging.LogFactory;
  * Created by Greg on 2/18/2017.
  */
 
-public class DWMLTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
+public class DWMLTask extends AsyncTaskBase<DWMLDTO> {
     private static Logger _logger = LogFactory.getLogger(DWMLTask.class);
     private static DWMLDAO _dao = new DWMLDAO();
     private double _latitude = 0.0;
@@ -23,7 +23,7 @@ public class DWMLTask extends AsyncTaskBase<Void, Void, DWMLDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<DWMLDTO> doInBackground(Void... params) {
+    protected AsyncTaskResult<DWMLDTO> doInBackground() {
         _logger.info("Loading DWML...");
         try {
             DWMLDTO dwml = _dao.load(_latitude, _longitude, _unit);

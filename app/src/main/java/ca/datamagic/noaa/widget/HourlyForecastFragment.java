@@ -105,13 +105,13 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                 render(view, inflater);
             } else {
                 RenderTask renderTask = new RenderTask(this);
-                renderTask.execute((Void[])null);
+                renderTask.execute();
             }
-            (new AccountingTask("Hourly", "Render")).execute((Void[])null);
+            (new AccountingTask("Hourly", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
         }
     }
 
@@ -337,8 +337,8 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                                         iconUrl = iconUrl.replace("day", "night");
                                     }
                                 }
-                                ImageTask imageTask = new ImageTask(iconUrl, conditionsView, false);
-                                imageTask.execute((Void[]) null);
+                                ImageTask imageTask = new ImageTask(iconUrl, conditionsView, true);
+                                imageTask.execute();
                             }
                         }
                         currentDayOfWeek = dayOfWeek;

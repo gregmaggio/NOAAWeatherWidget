@@ -142,13 +142,13 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
                 render(view, inflater);
             } else {
                 RenderTask renderTask = new RenderTask(this);
-                renderTask.execute((Void[])null);
+                renderTask.execute();
             }
-            (new AccountingTask("Observation", "Render")).execute((Void[])null);
+            (new AccountingTask("Observation", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
         }
     }
 
@@ -262,7 +262,7 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
                 if (conditionsIcon != null) {
                     ImageView currentConditionsImage = (ImageView) item.findViewById(R.id.currentConditionsImage);
                     ImageTask imageTask = new ImageTask(conditionsIcon, currentConditionsImage);
-                    imageTask.execute((Void[]) null);
+                    imageTask.execute();
                 }
             }
 

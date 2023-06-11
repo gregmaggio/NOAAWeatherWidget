@@ -18,7 +18,7 @@ import ca.datamagic.noaa.logging.LogFactory;
  * Created by Greg on 3/24/2018.
  */
 
-public class GooglePredictionsTask extends AsyncTaskBase<Void, Void, PredictionListDTO> {
+public class GooglePredictionsTask extends AsyncTaskBase<PredictionListDTO> {
     private Logger _logger = LogFactory.getLogger(GooglePredictionsTask.class);
     private Context _context = null;
     private CacheHelper _cacheHelper = null;
@@ -35,7 +35,7 @@ public class GooglePredictionsTask extends AsyncTaskBase<Void, Void, PredictionL
     }
 
     @Override
-    protected AsyncTaskResult<PredictionListDTO> doInBackground(Void... voids) {
+    protected AsyncTaskResult<PredictionListDTO> doInBackground() {
         try {
             _logger.info("Loading predictions...");
             PredictionListDTO predictions = null;

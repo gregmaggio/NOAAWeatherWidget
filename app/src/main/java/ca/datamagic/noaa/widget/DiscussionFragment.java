@@ -45,7 +45,7 @@ public class DiscussionFragment extends Fragment implements Renderer, NonSwipeab
             View view = getView();
             if (view == null) {
                 RenderTask renderTask = new RenderTask(this);
-                renderTask.execute((Void[])null);
+                renderTask.execute();
             } else {
                 if (_discussion != null) {
                     TextView discussionView = view.findViewById(R.id.discussionView);
@@ -57,15 +57,15 @@ public class DiscussionFragment extends Fragment implements Renderer, NonSwipeab
                 } else {
                     DiscussionTask task = new DiscussionTask();
                     task.addListener(new DiscussionListener());
-                    task.execute((Void[])null);
+                    task.execute();
                     MainActivity.getThisInstance().startBusy();
                 }
             }
-            (new AccountingTask("Discussion", "Render")).execute((Void[]) null);
+            (new AccountingTask("Discussion", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
         }
     }
 

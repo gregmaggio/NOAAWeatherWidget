@@ -1,2 +1,3 @@
-* Update tabs to use a newer and non-deprecated api
-* Some other bug fixes and remove some potential leaks
+* Update background processes to use the non-deprecated api
+* Enable the image cache so the hourly and daily forecast tabs load faster
+* Some dependency updates

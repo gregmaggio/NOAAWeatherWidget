@@ -6,7 +6,7 @@ import ca.datamagic.noaa.dao.AccountingDAO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.widget.MainActivity;
 
-public class AccountingTask extends AsyncTaskBase<Void, Void, Void> {
+public class AccountingTask extends AsyncTaskBase<Void> {
     private static Logger _logger = LogFactory.getLogger(AccountingTask.class);
     private AccountingDAO _dao = new AccountingDAO();
     private String _eventName = null;
@@ -18,7 +18,7 @@ public class AccountingTask extends AsyncTaskBase<Void, Void, Void> {
     }
 
     @Override
-    protected AsyncTaskResult<Void> doInBackground(Void... params) {
+    protected AsyncTaskResult<Void> doInBackground() {
         try {
             _logger.info("Posting accounting...");
             MainActivity mainActivity = MainActivity.getThisInstance();

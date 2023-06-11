@@ -11,7 +11,7 @@ import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.exception.MarineForecastNotSupportedException;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class HourlyForecastTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
+public class HourlyForecastTask extends AsyncTaskBase<FeatureDTO> {
     private static Logger _logger = LogFactory.getLogger(HourlyForecastTask.class);
     private static APIDAO _dao = new APIDAO();
 
@@ -19,7 +19,7 @@ public class HourlyForecastTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<FeatureDTO> doInBackground(Void... params) {
+    protected AsyncTaskResult<FeatureDTO> doInBackground() {
         _logger.info("Loading Hourly Forecast...");
         try {
             FeatureDTO feature = CurrentFeature.getFeature();

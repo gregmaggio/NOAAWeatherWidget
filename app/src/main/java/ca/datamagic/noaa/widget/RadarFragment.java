@@ -26,6 +26,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -148,13 +149,13 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 render(view);
             } else {
                 RenderTask renderTask = new RenderTask(this);
-                renderTask.execute((Void[])null);
+                renderTask.execute();
             }
-            (new AccountingTask("Radar", "Render")).execute((Void[]) null);
+            (new AccountingTask("Radar", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);
-            renderTask.execute((Void[])null);
+            renderTask.execute();
         }
     }
 
@@ -222,7 +223,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                     radarSiteLoaded(result.getResult());
                 }
             });
-            task.execute((Void)null);
+            task.execute();
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
             MainActivity.getThisInstance().stopBusy();
@@ -322,18 +323,9 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         _bounds = new LatLngBounds(new LatLng(lowerCorner[1], lowerCorner[0]), new LatLng(upperCorner[1], upperCorner[0]));
 
         if (!_mapLocationInitialized) {
-            getActivity().runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
-                        _map.setOnCameraMoveListener(new CameraMoveListener());
-                        _mapLocationInitialized = true;
-                    } catch (Throwable t) {
-                        _logger.warning("Throwable: " + t.getMessage());
-                    }
-                }
-            });
+            _map.moveCamera(CameraUpdateFactory.newLatLngBounds(_bounds, 50));
+            _map.setOnCameraMoveListener(new CameraMoveListener());
+            _mapLocationInitialized = true;
         }
 
         RadarUrlsTask task = new RadarUrlsTask(_radarSite.getICAO());
@@ -343,7 +335,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 radarUrlsLoaded(result.getResult());
             }
         });
-        task.execute((Void)null);
+        task.execute();
     }
 
     private void radarUrlsLoaded(String[] urls) {
@@ -404,7 +396,10 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(dateTimeMatcher.group(4)));
                 calendar.set(Calendar.MINUTE, Integer.parseInt(dateTimeMatcher.group(5)));
                 calendar.set(Calendar.SECOND, Integer.parseInt(dateTimeMatcher.group(6)));
-                _radarTime.setText(_radarTimeFormat.format(calendar.getTime()));
+                Date time = calendar.getTime();
+                if ((_radarTime != null) && (time != null)) {
+                    _radarTime.setText(_radarTimeFormat.format(calendar.getTime()));
+                }
             }
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
@@ -484,7 +479,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                     _task = null;
                 }
             });
-            _task.execute((Void)null);
+            _task.execute();
         }
     }
 
@@ -510,7 +505,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         private void loadRadar(double latitude, double longitude) {
             RadarSiteTask task = new RadarSiteTask(latitude, longitude);
             task.addListener(this);
-            task.execute((Void)null);
+            task.execute();
             _loading = true;
         }
 

@@ -9,7 +9,7 @@ import ca.datamagic.noaa.dao.HazardsDAO;
 import ca.datamagic.noaa.dto.DWMLDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class HazardsTask extends AsyncTaskBase<Void, Void, List<String>> {
+public class HazardsTask extends AsyncTaskBase<List<String>> {
     private static Logger _logger = LogFactory.getLogger(HazardsTask.class);
     private HazardsDAO _dao = new HazardsDAO();
 
@@ -17,7 +17,7 @@ public class HazardsTask extends AsyncTaskBase<Void, Void, List<String>> {
     }
 
     @Override
-    protected AsyncTaskResult<List<String>> doInBackground(Void... params) {
+    protected AsyncTaskResult<List<String>> doInBackground() {
         try {
             _logger.info("Downloading hazards...");
             DWMLDTO dwml = CurrentDWML.getDWML();

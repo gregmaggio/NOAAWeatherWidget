@@ -244,7 +244,7 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         this.setDateTimeHint(R.id.dateFormatsDDMMYYYYDashes);
         _radarTotalMinutes.setSelection(radarTotalMinutesToIndex(dto.getRadarTotalMinutes()));
         _radarDelaySeconds.setSelection(radarDelaySecondsToIndex(dto.getRadarDelaySeconds()));
-        (new AccountingTask("Settings", "Show")).execute((Void[])null);
+        (new AccountingTask("Settings", "Show")).execute();
     }
 
     private void setDateTimeHint(int id) {
@@ -258,11 +258,11 @@ public class SettingsDialog extends Dialog implements View.OnClickListener {
         switch (v.getId()) {
             case R.id.saveSettings:
                 saveSettings();
-                (new AccountingTask("Settings", "Save")).execute((Void[])null);
+                (new AccountingTask("Settings", "Save")).execute();
                 break;
             case R.id.cancelSettings:
                 dismiss();
-                (new AccountingTask("Settings", "Cancel")).execute((Void[])null);
+                (new AccountingTask("Settings", "Cancel")).execute();
                 break;
         }
     }

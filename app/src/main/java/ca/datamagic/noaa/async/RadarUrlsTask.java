@@ -5,7 +5,7 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.dao.RadarDAO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class RadarUrlsTask extends AsyncTaskBase<Void, Void, String[]> {
+public class RadarUrlsTask extends AsyncTaskBase<String[]> {
     private static final Logger _logger = LogFactory.getLogger(RadarUrlsTask.class);
     private String _icao = null;
 
@@ -14,7 +14,7 @@ public class RadarUrlsTask extends AsyncTaskBase<Void, Void, String[]> {
     }
 
     @Override
-    protected AsyncTaskResult<String[]> doInBackground(Void... params) {
+    protected AsyncTaskResult<String[]> doInBackground() {
         try {
             _logger.info("Loading radar urls...");
             RadarDAO dao = new RadarDAO();

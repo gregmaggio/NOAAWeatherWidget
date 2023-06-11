@@ -8,7 +8,7 @@ import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class FeatureTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
+public class FeatureTask extends AsyncTaskBase<FeatureDTO> {
     private static Logger _logger = LogFactory.getLogger(FeatureTask.class);
     private static APIDAO _dao = new APIDAO();
     private double _latitude = 0.0;
@@ -20,7 +20,7 @@ public class FeatureTask extends AsyncTaskBase<Void, Void, FeatureDTO> {
     }
 
     @Override
-    protected AsyncTaskResult<FeatureDTO> doInBackground(Void... params) {
+    protected AsyncTaskResult<FeatureDTO> doInBackground() {
         _logger.info("Loading Feature...");
         try {
             StationDTO[] nearest = CurrentStation.getNearest();

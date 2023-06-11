@@ -21,7 +21,7 @@ import ca.datamagic.noaa.util.IOUtils;
  * Created by Greg on 4/10/2017.
  */
 
-public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
+public class SendErrorTask extends AsyncTaskBase<Void> {
     private Logger _logger = LogFactory.getLogger(SendErrorTask.class);
     private String _logPath = null;
     private String _mailFrom = null;
@@ -113,7 +113,7 @@ public class SendErrorTask extends AsyncTaskBase<Void, Void, Void> {
     }
 
     @Override
-    protected AsyncTaskResult<Void> doInBackground(Void... params) {
+    protected AsyncTaskResult<Void> doInBackground() {
         _logger.info("Sending error...");
         try {
             StringBuffer mailBody = new StringBuffer(_mailBody);

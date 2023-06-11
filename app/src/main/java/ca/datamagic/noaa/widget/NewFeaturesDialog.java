@@ -56,7 +56,7 @@ public class NewFeaturesDialog extends Dialog implements View.OnClickListener {
         PreferencesDTO dto = dao.read();
         dto.setShowNewFeatures(showNextTime);
         dao.write(dto);
-        (new AccountingTask("NewFeatures", "Version")).execute((Void[])null);
+        (new AccountingTask("NewFeatures", "Version")).execute();
         dismiss();
         if (MainActivity.getThisInstance() != null) {
             MainActivity.getThisInstance().actionRefresh();

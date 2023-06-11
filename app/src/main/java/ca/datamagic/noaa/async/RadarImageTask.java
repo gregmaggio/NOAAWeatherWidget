@@ -7,7 +7,7 @@ import java.util.logging.Logger;
 import ca.datamagic.noaa.dao.RadarDAO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class RadarImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
+public class RadarImageTask extends AsyncTaskBase<Bitmap> {
     private static final Logger _logger = LogFactory.getLogger(RadarImageTask.class);
     private String _imageUrl = null;
 
@@ -16,7 +16,7 @@ public class RadarImageTask extends AsyncTaskBase<Void, Void, Bitmap> {
     }
 
     @Override
-    protected AsyncTaskResult<Bitmap> doInBackground(Void... params) {
+    protected AsyncTaskResult<Bitmap> doInBackground() {
         try {
             _logger.info("Loading radar image ...");
             RadarDAO dao = new RadarDAO();

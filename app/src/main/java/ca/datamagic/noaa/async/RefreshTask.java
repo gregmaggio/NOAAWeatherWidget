@@ -9,7 +9,7 @@ import ca.datamagic.noaa.widget.MainActivity;
  * Created by Greg on 2/19/2017.
  */
 
-public class RefreshTask extends AsyncTaskBase<Void, Void, Void> {
+public class RefreshTask extends AsyncTaskBase<Void> {
     private Logger _logger = LogFactory.getLogger(RefreshTask.class);
     private MainActivity _mainActivity = null;
 
@@ -18,7 +18,7 @@ public class RefreshTask extends AsyncTaskBase<Void, Void, Void> {
     }
 
     @Override
-    protected AsyncTaskResult<Void> doInBackground(Void... params) {
+    protected AsyncTaskResult<Void> doInBackground() {
         _logger.info("Refreshing views...");
         try {
             _mainActivity.actionRefresh();

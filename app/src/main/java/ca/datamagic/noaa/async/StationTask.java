@@ -7,7 +7,7 @@ import ca.datamagic.noaa.dao.StationDAO;
 import ca.datamagic.noaa.dto.StationDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
-public class StationTask extends AsyncTaskBase<Void, Void, StationDTO[]> {
+public class StationTask extends AsyncTaskBase<StationDTO[]> {
     private static final Logger _logger = LogFactory.getLogger(StationTask.class);
     private static final double distance = 75;
     private static final String units = "statute miles";
@@ -20,7 +20,7 @@ public class StationTask extends AsyncTaskBase<Void, Void, StationDTO[]> {
     }
 
     @Override
-    protected AsyncTaskResult<StationDTO[]> doInBackground(Void... params) {
+    protected AsyncTaskResult<StationDTO[]> doInBackground() {
         try {
             _logger.info("Loading Station...");
             StationDTO[] nearest = null;
