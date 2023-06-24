@@ -5,8 +5,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -26,7 +29,6 @@ import com.google.android.material.snackbar.Snackbar;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -53,17 +55,20 @@ import ca.datamagic.noaa.dto.RadarSiteInfoDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 
 public class RadarFragment extends Fragment implements Renderer, NonSwipeableFragment, OnMapReadyCallback {
-    private static Logger _logger = LogFactory.getLogger(RadarFragment.class);
-    private static Pattern _dateTimePattern = Pattern.compile("(\\d{4})(\\d{2})(\\d{2})_(\\d{2})(\\d{2})(\\d{2})", Pattern.CASE_INSENSITIVE);
+    private static final Logger _logger = LogFactory.getLogger(RadarFragment.class);
+    private static final Pattern _dateTimePattern = Pattern.compile("(\\d{4})(\\d{2})(\\d{2})_(\\d{2})(\\d{2})(\\d{2})", Pattern.CASE_INSENSITIVE);
+    private final RadarSiteListener _radarSiteListener = new RadarSiteListener();
+    private final RadarUrlsListener _radRadarUrlsListener = new RadarUrlsListener();
     private int _radarTotalMinutes = 60;
     private int _radarDelayMilliseconds = 2000;
     private ImageButton _playPauseButton = null;
-    private TextView _radarTime = null;
+    private Spinner _radarTime = null;
     private SimpleDateFormat _radarTimeFormat = null;
     private GoogleMap _map = null;
     private boolean _mapLocationInitialized = false;
     private RadarSiteDTO _radarSite = null;
     private String[] _urls = null;
+    private String[] _radarTimes = null;
     private RadarSiteInfoDTO _metaData = null;
     private LatLngBounds _bounds = null;
     private int _currentIndex = 0;
@@ -113,7 +118,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     public void onResume() {
         super.onResume();
         _logger.info("onResume");
-        if (_urls != null) {
+        if ((_urls != null) && (_radarTimes != null)) {
             _timerTask = new RadarTimerTask();
             _timer = new Timer("Timer");
             _timer.scheduleAtFixedRate(_timerTask, _radarDelayMilliseconds, _radarDelayMilliseconds);
@@ -196,6 +201,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         _mapLocationInitialized = false;
         _radarSite = null;
         _urls = null;
+        _radarTimes = null;
         _metaData = null;
         _bounds = null;
         _currentIndex = 0;
@@ -216,13 +222,9 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             _map = googleMap;
             UiSettings settings = this._map.getUiSettings();
             settings.setZoomControlsEnabled(true);
+
             RadarSiteTask task = new RadarSiteTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
-            task.addListener(new AsyncTaskListener<RadarSiteDTO>() {
-                @Override
-                public void completed(AsyncTaskResult<RadarSiteDTO> result) {
-                    radarSiteLoaded(result.getResult());
-                }
-            });
+            task.addListener(_radarSiteListener);
             task.execute();
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
@@ -283,7 +285,42 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         _playPauseButton.setVisibility(View.GONE);
         _playPauseButton.setOnClickListener(new PlayPauseButtonListener());
         _radarTime = view.findViewById(R.id.radarTime);
-        _radarTime.setText(null);
+        _radarTime.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                _logger.info("onItemSelected");
+                _logger.info("i: " + i);
+                _logger.info("l: " + l);
+                if (_urls == null) {
+                    return;
+                }
+                if ((_urls.length - 1) < i) {
+                    return;
+                }
+                if (isTimerRunning()) {
+                    return;
+                }
+                _currentIndex = i;
+                String imageUrl = _urls[_currentIndex];
+                String radarTime = _radarTimes[_currentIndex];
+                RadarImageTask task = new RadarImageTask(imageUrl);
+                task.addListener(new AsyncTaskListener<Bitmap>() {
+                    @Override
+                    public void completed(AsyncTaskResult<Bitmap> result) {
+                        Bitmap bitmap = result.getResult();
+                        if (bitmap != null) {
+                            renderRadarImage(imageUrl, radarTime, bitmap);
+                        }
+                    }
+                });
+                task.execute();
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+                _logger.info("onNothingSelected");
+            }
+        });
         LinearLayout radarLayout = view.findViewById(R.id.radarLayout);
         TextView radarViewNotAvailable = view.findViewById(R.id.radarViewNotAvailable);
         TextView radarViewNotAvailableForThisLocation = view.findViewById(R.id.radarViewNotAvailableForThisLocation);
@@ -305,6 +342,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     private void radarSiteLoaded(RadarSiteDTO radar) {
         _radarSite = radar;
         _urls = null;
+        _radarTimes = null;
         _metaData = null;
         _bounds = null;
         _currentIndex = 0;
@@ -329,12 +367,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         }
 
         RadarUrlsTask task = new RadarUrlsTask(_radarSite.getICAO());
-        task.addListener(new AsyncTaskListener<String[]>() {
-            @Override
-            public void completed(AsyncTaskResult<String[]> result) {
-                radarUrlsLoaded(result.getResult());
-            }
-        });
+        task.addListener(_radRadarUrlsListener);
         task.execute();
     }
 
@@ -345,10 +378,12 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             Snackbar.make(getView(), "Cannot find radar images for current location", Snackbar.LENGTH_LONG).show();
             return;
         }
-        int startIndex = _urls.length - 15 - 1;
+        _radarTimes = new String[_urls.length];
+        int startIndex = -1;
         Calendar now = Calendar.getInstance();
         now.setTimeZone(TimeZone.getTimeZone("UTC"));
         for (int ii = 0; ii < _urls.length; ii++) {
+            _radarTimes[ii] = "";
             Matcher dateTimeMatcher = _dateTimePattern.matcher(_urls[ii]);
             if (dateTimeMatcher.find()) {
                 Calendar calendar = Calendar.getInstance();
@@ -359,15 +394,27 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(dateTimeMatcher.group(4)));
                 calendar.set(Calendar.MINUTE, Integer.parseInt(dateTimeMatcher.group(5)));
                 calendar.set(Calendar.SECOND, Integer.parseInt(dateTimeMatcher.group(6)));
+                _radarTimes[ii] = _radarTimeFormat.format(calendar.getTime());
                 int minutes = (int)((now.getTimeInMillis() - calendar.getTimeInMillis()) / 1000 / 60);
-                if (minutes < _radarTotalMinutes) {
+                if ((minutes < _radarTotalMinutes) && (startIndex == -1)) {
                     startIndex = ii;
-                    break;
                 }
+            }
+        }
+        if (startIndex == -1) {
+            startIndex = _urls.length - 15 - 1;
+            if (startIndex < 0) {
+                startIndex = 0;
             }
         }
         int endIndex = _urls.length;
         _urls = Arrays.copyOfRange(_urls, startIndex, endIndex);
+        _radarTimes = Arrays.copyOfRange(_radarTimes, startIndex, endIndex);
+
+        ArrayAdapter<String> spinnerArrayAdapter = new ArrayAdapter<String>(getContext(), R.layout.radar_time, _radarTimes);
+        spinnerArrayAdapter.setDropDownViewResource(R.layout.radar_time);
+        _radarTime.setAdapter(spinnerArrayAdapter);
+
         _currentIndex = 0;
         _timerTask = new RadarTimerTask();
         _timer = new Timer("Timer");
@@ -376,7 +423,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         MainActivity.getThisInstance().stopBusy();
     }
 
-    private void renderRadarImage(String imageUrl, Bitmap bitmap) {
+    private void renderRadarImage(String imageUrl, String radarTime, Bitmap bitmap) {
         try {
             if (_radarOverlay == null) {
                 BitmapDescriptor descriptor = BitmapDescriptorFactory.fromBitmap(bitmap);
@@ -386,21 +433,64 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
             } else {
                 _radarOverlay.setImage(BitmapDescriptorFactory.fromBitmap(bitmap));
             }
-            Matcher dateTimeMatcher = _dateTimePattern.matcher(imageUrl);
-            if (dateTimeMatcher.find()) {
-                Calendar calendar = Calendar.getInstance();
-                calendar.setTimeZone(TimeZone.getTimeZone("UTC"));
-                calendar.set(Calendar.YEAR, Integer.parseInt(dateTimeMatcher.group(1)));
-                calendar.set(Calendar.MONTH, Integer.parseInt(dateTimeMatcher.group(2)) - 1);
-                calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dateTimeMatcher.group(3)));
-                calendar.set(Calendar.HOUR_OF_DAY, Integer.parseInt(dateTimeMatcher.group(4)));
-                calendar.set(Calendar.MINUTE, Integer.parseInt(dateTimeMatcher.group(5)));
-                calendar.set(Calendar.SECOND, Integer.parseInt(dateTimeMatcher.group(6)));
-                Date time = calendar.getTime();
-                if ((_radarTime != null) && (time != null)) {
-                    _radarTime.setText(_radarTimeFormat.format(calendar.getTime()));
+            Object selectedItem = _radarTime.getSelectedItem();
+            if (selectedItem != null) {
+                if (selectedItem.toString().compareToIgnoreCase(radarTime) == 0) {
+                    return;
                 }
             }
+            _radarTime.setSelection(_currentIndex, true);
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+        }
+    }
+
+    private boolean isTimerRunning() {
+        try {
+            if (_playPauseButton != null) {
+                String tag = (String) _playPauseButton.getTag();
+                _logger.info("tag: " + tag);
+                if (tag != null) {
+                    if (tag.compareToIgnoreCase("pause") == 0) {
+                        return true;
+                    } else if (tag.compareToIgnoreCase("play") == 0) {
+                        return false;
+                    }
+                }
+            }
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+        }
+        return false;
+    }
+
+    private void stopTimer() {
+        try {
+            _playPauseButton.setImageResource(R.drawable.play);
+            _playPauseButton.setTag("play");
+            if (_timer != null) {
+                _timer.cancel();
+            }
+            if (_timer != null) {
+                _timer.purge();
+            }
+            if (_timerTask != null) {
+                _timerTask.cancel();
+            }
+            _timer = null;
+            _timerTask = null;
+        } catch (Throwable t) {
+            _logger.warning("Exception: " + t.getMessage());
+        }
+    }
+
+    private void startTimer() {
+        try {
+            _playPauseButton.setImageResource(R.drawable.pause);
+            _playPauseButton.setTag("pause");
+            _timer = new Timer();
+            _timerTask = new RadarTimerTask();
+            _timer.scheduleAtFixedRate(_timerTask, _radarDelayMilliseconds, _radarDelayMilliseconds);
         } catch (Throwable t) {
             _logger.warning("Exception: " + t.getMessage());
         }
@@ -415,25 +505,9 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                     _logger.info("tag: " + tag);
                     if (tag != null) {
                         if (tag.compareToIgnoreCase("pause") == 0) {
-                            _playPauseButton.setImageResource(R.drawable.play);
-                            _playPauseButton.setTag("play");
-                            if (_timer != null) {
-                                _timer.cancel();
-                            }
-                            if (_timer != null) {
-                                _timer.purge();
-                            }
-                            if (_timerTask != null) {
-                                _timerTask.cancel();
-                            }
-                            _timer = null;
-                            _timerTask = null;
+                            stopTimer();
                         } else if (tag.compareToIgnoreCase("play") == 0) {
-                            _playPauseButton.setImageResource(R.drawable.pause);
-                            _playPauseButton.setTag("pause");
-                            _timer = new Timer();
-                            _timerTask = new RadarTimerTask();
-                            _timer.scheduleAtFixedRate(_timerTask, _radarDelayMilliseconds, _radarDelayMilliseconds);
+                            startTimer();
                         }
                     }
                 }
@@ -448,11 +522,12 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
 
     private class RadarTimerTask extends TimerTask {
         private String _imageUrl = null;
+        private String _radarTime = null;
         private RadarImageTask _task = null;
 
         @Override
         public void run() {
-            if (_urls == null) {
+            if ((_urls == null) || (_radarTimes == null)) {
                 return;
             }
             if (_task != null) {
@@ -463,13 +538,14 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 return;
             }
             _imageUrl = _urls[_currentIndex];
+            _radarTime = _radarTimes[_currentIndex];
             _task = new RadarImageTask(_imageUrl);
             _task.addListener(new AsyncTaskListener<Bitmap>() {
                 @Override
                 public void completed(AsyncTaskResult<Bitmap> result) {
                     Bitmap bitmap = result.getResult();
                     if (bitmap != null) {
-                        renderRadarImage(_imageUrl, bitmap);
+                        renderRadarImage(_imageUrl, _radarTime, bitmap);
                         if (_currentIndex < (_urls.length - 1)) {
                             ++_currentIndex;
                         } else {
@@ -520,6 +596,35 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                     // Stop everything and re-initialize with the new ICAO
                     resetForNewLocation(result.getResult());
                 }
+            }
+        }
+    }
+
+    private class RadarSiteListener implements AsyncTaskListener<RadarSiteDTO> {
+        @Override
+        public void completed(AsyncTaskResult<RadarSiteDTO> result) {
+            RadarSiteDTO radarSite = result.getResult();
+            if (radarSite != null) {
+                if (_radarSite != null) {
+                    String currICAO = _radarSite.getICAO();
+                    String newICAO = radarSite.getICAO();
+                    if (currICAO.compareToIgnoreCase(newICAO) != 0) {
+                        _logger.info("Moved from " + _radarSite.getICAO() + " to " + radarSite.getICAO());
+                    } else {
+                        return;
+                    }
+                }
+                resetForNewLocation(radarSite);
+            }
+        }
+    }
+
+    private class RadarUrlsListener implements  AsyncTaskListener<String[]> {
+        @Override
+        public void completed(AsyncTaskResult<String[]> result) {
+            String[] urls = result.getResult();
+            if (urls != null) {
+                radarUrlsLoaded(urls);
             }
         }
     }

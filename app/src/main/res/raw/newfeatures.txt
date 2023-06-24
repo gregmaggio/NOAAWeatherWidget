@@ -1,3 +1,2 @@
-* Update background processes to use the non-deprecated api
-* Enable the image cache so the hourly and daily forecast tabs load faster
-* Some dependency updates
+* Allow picking radar images when rotation is stopped
+* You can enable a longer or shorter radar window in settings
