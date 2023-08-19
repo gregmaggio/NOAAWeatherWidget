@@ -60,8 +60,8 @@ public class DiscussionFragment extends Fragment implements Renderer, NonSwipeab
                     task.execute();
                     MainActivity.getThisInstance().startBusy();
                 }
+                (new AccountingTask("Discussion", "Render")).execute();
             }
-            (new AccountingTask("Discussion", "Render")).execute();
         } catch (IllegalStateException ex) {
             _logger.warning("IllegalStateException: " + ex.getMessage());
             RenderTask renderTask = new RenderTask(this);

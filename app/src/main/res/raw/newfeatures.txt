@@ -1,2 +1,2 @@
-* Allow picking radar images when rotation is stopped
-* You can enable a longer or shorter radar window in settings
+* Update target API version as per Google requirements
+* Update to some dependencies

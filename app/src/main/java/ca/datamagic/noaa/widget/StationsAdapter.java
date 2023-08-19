@@ -9,6 +9,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -26,6 +27,16 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
     public StationsAdapter(Context context, List<StationDTO> stations) {
         _inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         _stations = stations;
+        sortStations();
+    }
+
+    private void sortStations() {
+        _stations.sort(new Comparator<StationDTO>() {
+            @Override
+            public int compare(StationDTO station1, StationDTO station2) {
+                return station1.getStationName().compareToIgnoreCase(station2.getStationName());
+            }
+        });
     }
 
     public void addListener(StationsAdapterListener listener) {
@@ -105,6 +116,7 @@ public class StationsAdapter extends BaseAdapter implements View.OnClickListener
         }
         if (!exists) {
             _stations.add(station);
+            sortStations();
             fireStationAdded(station);
         }
     }
