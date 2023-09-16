@@ -1,2 +1,1 @@
-* Update target API version as per Google requirements
-* Update to some dependencies
+* Temporary fix to get some radar data until I find a better and more permanent fix since NOAA took away my radar data

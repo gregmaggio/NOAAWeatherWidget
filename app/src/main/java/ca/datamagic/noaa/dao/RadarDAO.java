@@ -2,12 +2,10 @@ package ca.datamagic.noaa.dao;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.ParcelFileDescriptor;
 
 import org.beyka.tiffbitmapfactory.TiffBitmapFactory;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -19,7 +17,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -102,7 +99,14 @@ public class RadarDAO {
 
     public String[] loadUrls(String icao) throws IOException {
         List<String> urls = new ArrayList<>();
-        String baseUrl = MessageFormat.format("{0}/RIDGEII/L3/{1}/CREF/", RADAR_DATA_URL, icao);
+        String baseUrl = MessageFormat.format("{0}/RIDGEII/L3/{1}/SR_BREF/", RADAR_DATA_URL, icao);
+        /*
+        BDHC
+        BDSA
+        BOHA
+        SR_BREF
+        SR_BVEL
+         */
         Document document = Jsoup.parse(new URL(baseUrl), 10000);
         Elements anchors = document.getElementsByTag("a");
         if (anchors != null) {

@@ -22,6 +22,8 @@ public class RadarDAOTester extends BaseTester {
         RadarDAO dao = new RadarDAO();
         RadarDTO radar = dao.loadNearest(39.0045396, -76.9066824);
         System.out.println("radar: " + mapper.writeValueAsString(radar));
+        String urlType = dao.loadUrlType(radar.getICAO());
+        System.out.println("urlType: " + urlType);
         String[] urls = dao.loadUrls(radar.getICAO());
         System.out.println("urls: " + mapper.writeValueAsString(urls));
         String imageUrl = urls[0];
