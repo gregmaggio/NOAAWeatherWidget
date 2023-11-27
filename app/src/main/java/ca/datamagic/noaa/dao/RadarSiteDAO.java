@@ -11,10 +11,10 @@ import java.util.Comparator;
 import java.util.List;
 
 import ca.datamagic.noaa.dto.RadarSiteDTO;
+import ca.datamagic.noaa.util.DistanceCalculator;
 import ca.datamagic.noaa.util.IOUtils;
 
 public class RadarSiteDAO {
-    private static final double radiusOfEarthMeters = 6371e3;
     private static final int maxReturn = 5;
     private RadarSiteDTO[] sites = null;
 
@@ -36,11 +36,11 @@ public class RadarSiteDAO {
     }
 
     public RadarSiteDTO[] readNearest(double latitude, double longitude, double distance, String units) {
-        distance = distanceToMeters(distance, units);
+        distance = DistanceCalculator.distanceToMeters(distance, units);
         List<NearestRadarSiteResult> results = new ArrayList<NearestRadarSiteResult>();
         for (int ii = 0; ii < this.sites.length; ii++) {
             RadarSiteDTO site = this.sites[ii];
-            double distanceToSite = computeDistance(latitude, longitude, site.getLatitude(), site.getLongitude());
+            double distanceToSite = DistanceCalculator.computeDistance(latitude, longitude, site.getLatitude(), site.getLongitude());
             if (distanceToSite <= distance) {
                 results.add(new NearestRadarSiteResult(site, distanceToSite));
             }
@@ -66,7 +66,7 @@ public class RadarSiteDAO {
         for (int ii = 0; ii < this.sites.length; ii++) {
             RadarSiteDTO site = this.sites[ii];
             if ((site.getLatitude() != null) && (site.getLongitude() != null)) {
-                double distanceToSite = computeDistance(latitude, longitude, site.getLatitude(), site.getLongitude());
+                double distanceToSite = DistanceCalculator.computeDistance(latitude, longitude, site.getLatitude(), site.getLongitude());
                 if (nearest == null) {
                     nearest = site;
                     distanceToNearest = distanceToSite;
@@ -77,28 +77,6 @@ public class RadarSiteDAO {
             }
         }
         return nearest;
-    }
-
-    private static double distanceToMeters(double distance, String units) {
-        if (units.compareToIgnoreCase("statute miles") == 0) {
-            return distance * 1609.34;
-        }
-        return Double.NaN;
-    }
-
-    public static double computeDistance(double latitude1, double longitude1, double latitude2, double longitude2) {
-        double deltaLatitude = Math.toRadians(latitude2 - latitude1);
-        double deltaLongitude = Math.toRadians(longitude2 - longitude1);
-        latitude1 = Math.toRadians(latitude1);
-        latitude2 = Math.toRadians(latitude2);
-        double sinDeltaLatitudeOverTwo = Math.sin(deltaLatitude / 2);
-        double sinDeltaLongitudeOverTwo = Math.sin(deltaLongitude / 2);
-        double a = sinDeltaLatitudeOverTwo * sinDeltaLatitudeOverTwo +
-                Math.cos(latitude1) * Math.cos(latitude2) *
-                        sinDeltaLongitudeOverTwo * sinDeltaLongitudeOverTwo;
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = radiusOfEarthMeters * c;
-        return distance;
     }
 
     private class NearestRadarSiteResult {

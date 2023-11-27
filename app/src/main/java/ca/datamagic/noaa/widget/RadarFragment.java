@@ -117,6 +117,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
     @Override
     public void onResume() {
         super.onResume();
+        //TODO: Resume not working - go to radar, go to discussion, go back to radar
         _logger.info("onResume");
         if ((_urls != null) && (_radarTimes != null)) {
             _timerTask = new RadarTimerTask();
@@ -150,7 +151,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
                 return;
             }
             View view = getView();
-            if (view != null) {
+            if (view != null)  {
                 render(view);
             } else {
                 RenderTask renderTask = new RenderTask(this);

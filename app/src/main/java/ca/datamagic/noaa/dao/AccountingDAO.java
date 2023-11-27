@@ -40,7 +40,7 @@ public class AccountingDAO {
             connection.setDoInput(true);
             connection.setDoOutput(true);
             connection.setRequestMethod("POST");
-            connection.setConnectTimeout(2000);
+            connection.setConnectTimeout(1000);
             connection.connect();
             outputStream = connection.getOutputStream();
             outputStream.write(bytes, 0, bytes.length);

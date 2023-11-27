@@ -32,7 +32,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -647,9 +646,19 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             _processing = false;
             _spinner.setVisibility(View.GONE);
         } catch (Throwable t) {
-            // TODO: Show Error
-            _processing = false;
-            _spinner.setVisibility(View.GONE);
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        _processing = false;
+                        _spinner.setVisibility(View.GONE);
+                    } catch (Throwable t) {
+                        _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
+                    }
+                }
+            });
+
             _logger.log(Level.WARNING, "Unknown Exception in startBusy.", t);
         }
     }
@@ -676,23 +685,16 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     }
 
     private void showError(String message) {
-        // 1. Instantiate an AlertDialog.Builder with its constructor
         AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.ErrorDialogTheme);
-
-        // 2. Chain together various setter methods to set the dialog characteristics
         builder.setMessage(message);
         builder.setTitle("Error");
-
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 // User clicked OK button
                 dialog.dismiss();
             }
         });
-
-        // 3. Get the AlertDialog from create()
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        builder.show();
     }
 
     private void actionSettings() {

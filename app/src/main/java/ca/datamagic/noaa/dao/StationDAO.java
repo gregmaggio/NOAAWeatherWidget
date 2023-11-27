@@ -4,7 +4,6 @@ import com.univocity.parsers.csv.CsvFormat;
 import com.univocity.parsers.csv.CsvParser;
 import com.univocity.parsers.csv.CsvParserSettings;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,13 +11,13 @@ import java.util.Comparator;
 import java.util.List;
 
 import ca.datamagic.noaa.dto.StationDTO;
+import ca.datamagic.noaa.util.DistanceCalculator;
 
 public class StationDAO {
-    private static final double _radiusOfEarthMeters = 6371e3;
     private static final int _maxReturn = 5;
     private List<StationDTO> _stations = new ArrayList<StationDTO>();
 
-    public StationDAO(InputStream inputStream) throws IOException {
+    public StationDAO(InputStream inputStream) {
         CsvFormat format = new CsvFormat();
         format.setDelimiter(',');
         format.setLineSeparator("\n");
@@ -59,11 +58,11 @@ public class StationDAO {
     }
 
     public StationDTO[] readNearest(double latitude, double longitude, double distance, String units) {
-        distance = distanceToMeters(distance, units);
+        distance = DistanceCalculator.distanceToMeters(distance, units);
         List<NearestStationResult> results = new ArrayList<NearestStationResult>();
         for (int ii = 0; ii < _stations.size(); ii++) {
             StationDTO station = _stations.get(ii);
-            double distanceToStation = computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
+            double distanceToStation = DistanceCalculator.computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
             if (distanceToStation <= distance) {
                 results.add(new NearestStationResult(station, distanceToStation));
             }
@@ -88,7 +87,7 @@ public class StationDAO {
         double distanceToNearest = 0.0;
         for (int ii = 0; ii < _stations.size(); ii++) {
             StationDTO station = _stations.get(ii);
-            double distanceToStation = computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
+            double distanceToStation = DistanceCalculator.computeDistance(latitude, longitude, station.getLatitude(), station.getLongitude());
             if (nearest == null) {
                 nearest = station;
                 distanceToNearest = distanceToStation;
@@ -98,28 +97,6 @@ public class StationDAO {
             }
         }
         return nearest;
-    }
-
-    private static double distanceToMeters(double distance, String units) {
-        if (units.compareToIgnoreCase("statute miles") == 0) {
-            return distance * 1609.34;
-        }
-        return Double.NaN;
-    }
-
-    public static double computeDistance(double latitude1, double longitude1, double latitude2, double longitude2) {
-        double deltaLatitude = Math.toRadians(latitude2 - latitude1);
-        double deltaLongitude = Math.toRadians(longitude2 - longitude1);
-        latitude1 = Math.toRadians(latitude1);
-        latitude2 = Math.toRadians(latitude2);
-        double sinDeltaLatitudeOverTwo = Math.sin(deltaLatitude / 2);
-        double sinDeltaLongitudeOverTwo = Math.sin(deltaLongitude / 2);
-        double a = sinDeltaLatitudeOverTwo * sinDeltaLatitudeOverTwo +
-                Math.cos(latitude1) * Math.cos(latitude2) *
-                        sinDeltaLongitudeOverTwo * sinDeltaLongitudeOverTwo;
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        double distance = _radiusOfEarthMeters * c;
-        return distance;
     }
 
     private class NearestStationResult {

@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
 
     defaultConfig {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 30
-        targetSdkVersion 33
-        versionCode 120
-        versionName "2.17"
+        targetSdkVersion 34
+        versionCode 121
+        versionName "2.18"
     }
     compileOptions {
         sourceCompatibility 1.8
@@ -45,15 +45,15 @@ dependencies {
     implementation "androidx.drawerlayout:drawerlayout:1.2.0"
     implementation 'com.google.android.gms:play-services-location:21.0.1'
     implementation 'com.google.android.gms:play-services-places:17.0.0'
-    implementation 'com.google.android.gms:play-services-maps:18.1.0'
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
     implementation 'org.jsoup:jsoup:1.15.3'
     implementation 'it.sephiroth.android.library.imagezoom:imagezoom:2.3.0'
     implementation 'com.univocity:univocity-parsers:2.9.1'
     implementation 'org.apmem.tools:layouts:1.10'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.10.0'
     implementation 'androidx.work:work-runtime-ktx:2.8.1'
-    implementation "androidx.lifecycle:lifecycle-viewmodel:2.5.1"
-    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.5.1"
+    implementation "androidx.lifecycle:lifecycle-viewmodel:2.6.2"
+    implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2"
     implementation "io.github.beyka:Android-TiffBitmapFactory:0.9.9.1"
     implementation "androidx.viewpager2:viewpager2:1.0.0"
 }

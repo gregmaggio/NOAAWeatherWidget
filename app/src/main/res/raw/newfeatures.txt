@@ -1,1 +1,3 @@
-* Temporary fix to get some radar data until I find a better and more permanent fix since NOAA took away my radar data
+* Nuget package update
+* Cleanup of unused code
+* Minor bug fixes
