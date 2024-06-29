@@ -3,6 +3,8 @@ package ca.datamagic.noaa.async;
 import android.graphics.Bitmap;
 import android.widget.ImageView;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.logging.Logger;
 
 import ca.datamagic.noaa.dao.ImageDAO;
@@ -33,6 +35,14 @@ public class ImageTask extends AsyncTaskBase<Bitmap> {
     @Override
     protected AsyncTaskResult<Bitmap> doInBackground() {
         _logger.info("Loading image: " + _imageUrl);
+        try {
+            URL url = new URL(_imageUrl);
+        } catch (MalformedURLException ex) {
+            if (ex.getMessage().toLowerCase().contains("no protocol")) {
+                _imageUrl = "https://api.weather.gov" + _imageUrl;
+                _logger.info("New image url: " + _imageUrl);
+            }
+        }
         try {
             Bitmap bitmap = _dao.load(_imageUrl);
             if (bitmap == null) {
