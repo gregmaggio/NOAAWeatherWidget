@@ -27,6 +27,7 @@ import ca.datamagic.noaa.async.ImageTask;
 import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.current.CurrentHourlyForecast;
+import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.current.CurrentStation;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
@@ -137,12 +138,10 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                 properties = hourlyForecastFeature.getProperties();
                 geometry = hourlyForecastFeature.getGeometry();
             }
-            Double latitude = null;
-            Double longitude = null;
-            if (geometry != null) {
-                latitude = geometry.getLatitude();
-                longitude = geometry.getLongitude();
-            }
+            Double latitude = CurrentLocation.getLatitude();
+            Double longitude = CurrentLocation.getLongitude();
+            _logger.info("latitude: " + latitude);
+            _logger.info("longitude: " + longitude);
             String timeZoneId = getTimeZoneId();
             SunriseSunsetCalculator calculator = null;
             if ((properties != null) && (timeZoneId != null)) {
@@ -337,7 +336,7 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                                         iconUrl = iconUrl.replace("day", "night");
                                     }
                                 }
-                                ImageTask imageTask = new ImageTask(iconUrl, conditionsView, true);
+                                ImageTask imageTask = new ImageTask(iconUrl, conditionsView, false);
                                 imageTask.execute();
                             }
                         }

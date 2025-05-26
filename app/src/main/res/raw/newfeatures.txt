@@ -1,1 +1,1 @@
-* Fix to the api image urls not having a protocol anymore
+* Fix to the day/night icon in hourly forecast
