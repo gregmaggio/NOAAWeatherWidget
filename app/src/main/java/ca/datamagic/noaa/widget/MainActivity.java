@@ -58,6 +58,7 @@ import ca.datamagic.noaa.async.DailyForecastTask;
 import ca.datamagic.noaa.async.FeatureTask;
 import ca.datamagic.noaa.async.GooglePlaceTask;
 import ca.datamagic.noaa.async.GooglePredictionsTask;
+import ca.datamagic.noaa.async.GoogleTimeZoneTask;
 import ca.datamagic.noaa.async.HazardsTask;
 import ca.datamagic.noaa.async.HourlyForecastTask;
 import ca.datamagic.noaa.async.StationTask;
@@ -73,8 +74,10 @@ import ca.datamagic.noaa.current.CurrentHourlyForecast;
 import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.current.CurrentStation;
+import ca.datamagic.noaa.current.CurrentTimeZone;
 import ca.datamagic.noaa.dao.ForecastsDAO;
 import ca.datamagic.noaa.dao.GooglePlacesDAO;
+import ca.datamagic.noaa.dao.GoogleTimeZoneDAO;
 import ca.datamagic.noaa.dao.ImageDAO;
 import ca.datamagic.noaa.dao.ObservationDAO;
 import ca.datamagic.noaa.dao.PreferencesDAO;
@@ -85,6 +88,7 @@ import ca.datamagic.noaa.dto.PredictionDTO;
 import ca.datamagic.noaa.dto.PredictionListDTO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.StationDTO;
+import ca.datamagic.noaa.dto.TimeZoneDTO;
 import ca.datamagic.noaa.logging.LogFactory;
 import ca.datamagic.noaa.service.AppService;
 import ca.datamagic.noaa.util.IOUtils;
@@ -106,6 +110,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private final HourlyForecastListener _hourlyForecastListener = new HourlyForecastListener();
     private final DailyForecastListener _dailyForecastListener = new DailyForecastListener();
     private final StationListener _stationListener = new StationListener();
+    private final TimeZoneListener _timeZoneListener = new TimeZoneListener();
     private StationsHelper _stationsHelper = null;
     private DrawerLayout _drawerLayout = null;
     private ActionBarDrawerToggle _drawerToggle = null;
@@ -246,6 +251,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         setContentView(R.layout.activity_main);
 
         GooglePlacesDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
+        GoogleTimeZoneDAO.setApiKey(getResources().getString(R.string.google_maps_api_key));
 
         initializePermissions();
         initializeLogging();
@@ -401,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.WARNING, _filesPath, true);
+            LogFactory.initialize(Level.ALL, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
         } catch (Throwable t) {
             // Do Nothing
@@ -575,6 +581,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
             _processing = true;
             _spinner.setVisibility(View.VISIBLE);
+            GoogleTimeZoneTask timeZoneTask = new GoogleTimeZoneTask(getApplicationContext(), CurrentLocation.getLatitude(), CurrentLocation.getLongitude(), _sessionToken);
             StationTask stationTask = new StationTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             DWMLTask dwmlTask = new DWMLTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
             FeatureTask featureTask = new FeatureTask(CurrentLocation.getLatitude(), CurrentLocation.getLongitude());
@@ -583,6 +590,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             DailyForecastTask dailyForecastTask = new DailyForecastTask();
 
             Workflow refreshWorkflow = new Workflow();
+            refreshWorkflow.addStep(new WorkflowStep(timeZoneTask, _timeZoneListener));
             refreshWorkflow.addStep(new WorkflowStep(stationTask, _stationListener));
             refreshWorkflow.addStep(new WorkflowStep(dwmlTask, _dwmlListener));
             refreshWorkflow.addStep(new WorkflowStep(featureTask, _featureListener));
@@ -810,7 +818,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         int index = cursor.getColumnIndex("placeId");
         String placeId = cursor.getString(index);
 
-        _googlePlaceTask = new GooglePlaceTask(getBaseContext(), placeId);
+        _googlePlaceTask = new GooglePlaceTask(getBaseContext(), placeId, _sessionToken);
         _googlePlaceTask.addListener(new AsyncTaskListener<PlaceDTO>() {
             @Override
             public void completed(AsyncTaskResult<PlaceDTO> result) {
@@ -859,6 +867,18 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         _stationsHelper.writeStations(_stationsAdapter.getStations());
         _drawerLayout.closeDrawer(Gravity.LEFT);
         (new AccountingTask("Station", "Remove")).execute();
+    }
+
+    private class TimeZoneListener implements AsyncTaskListener<TimeZoneDTO> {
+        @Override
+        public void completed(AsyncTaskResult<TimeZoneDTO> result) {
+            if (result.getThrowable() != null) {
+                _logger.log(Level.WARNING, "Error retrieving timezone.", result.getThrowable());
+                CurrentTimeZone.setTimeZone(null);
+            } else {
+                CurrentTimeZone.setTimeZone(result.getResult());
+            }
+        }
     }
 
     private class StationListener implements AsyncTaskListener<StationDTO[]> {

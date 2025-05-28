@@ -36,6 +36,7 @@ import ca.datamagic.noaa.current.CurrentHazards;
 import ca.datamagic.noaa.current.CurrentHourlyForecast;
 import ca.datamagic.noaa.current.CurrentObservation;
 import ca.datamagic.noaa.current.CurrentStation;
+import ca.datamagic.noaa.current.CurrentTimeZone;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
@@ -80,21 +81,7 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
     }
 
     public String getTimeZoneId() {
-        String timeZoneId = null;
-        StationDTO station = CurrentStation.getStation();
-        if (station != null) {
-            timeZoneId = station.getTimeZoneId();
-        }
-        if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
-            FeatureDTO hourlyForecastFeature = CurrentHourlyForecast.getHourlyForecastFeature();
-            if (hourlyForecastFeature != null) {
-                FeaturePropertiesDTO featureProperties = hourlyForecastFeature.getProperties();
-                if (featureProperties != null) {
-                    timeZoneId = featureProperties.getTimeZone();
-                }
-            }
-        }
-        return timeZoneId;
+        return CurrentTimeZone.getTimeZone().getTimeZoneId();
     }
 
     public List<String> getHazards() {
@@ -385,10 +372,11 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
 
     private String getFormattedObservationTime(Date observationTimeUTC, PreferencesDTO preferences) {
         StringBuffer buffer = new StringBuffer();
+        TimeZone timeZone = TimeZone.getTimeZone(CurrentTimeZone.getTimeZone().getTimeZoneId());
         String dateFormat = preferences.getDateFormat();
         if ((dateFormat != null) && (dateFormat.length() > 0)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
-            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            simpleDateFormat.setTimeZone(timeZone);
             if (buffer.length() > 0) {
                 buffer.append(" ");
             }
@@ -397,7 +385,7 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
         String timeFormat = preferences.getTimeFormat();
         if ((timeFormat != null) && (timeFormat.length() > 0)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
-            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            simpleDateFormat.setTimeZone(timeZone);
             if (buffer.length() > 0) {
                 buffer.append(" ");
             }
@@ -606,7 +594,7 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
         String timeFormat = preferences.getTimeFormat();
         if ((timeFormat != null) && (timeFormat.length() > 0)) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
-            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            simpleDateFormat.setTimeZone(timeZone);
             if (buffer.length() > 0) {
                 buffer.append(" ");
             }

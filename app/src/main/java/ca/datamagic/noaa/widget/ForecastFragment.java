@@ -27,6 +27,7 @@ import ca.datamagic.noaa.current.CurrentDailyForecast;
 import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.current.CurrentForecasts;
 import ca.datamagic.noaa.current.CurrentStation;
+import ca.datamagic.noaa.current.CurrentTimeZone;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
@@ -58,21 +59,7 @@ public class ForecastFragment extends Fragment implements Renderer, NonSwipeable
     }
 
     public String getTimeZoneId() {
-        String timeZoneId = null;
-        StationDTO station = CurrentStation.getStation();
-        if (station != null) {
-            timeZoneId = station.getTimeZoneId();
-        }
-        if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
-            FeatureDTO dailyForecastFeature = CurrentDailyForecast.getDailyForecastFeature();
-            if (dailyForecastFeature != null) {
-                FeaturePropertiesDTO featureProperties = dailyForecastFeature.getProperties();
-                if (featureProperties != null) {
-                    timeZoneId = featureProperties.getTimeZone();
-                }
-            }
-        }
-        return timeZoneId;
+        return CurrentTimeZone.getTimeZone().getTimeZoneId();
     }
 
     public static ForecastFragment newInstance() {

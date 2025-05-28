@@ -48,6 +48,7 @@ import ca.datamagic.noaa.async.RadarSiteTask;
 import ca.datamagic.noaa.async.RadarUrlsTask;
 import ca.datamagic.noaa.async.RenderTask;
 import ca.datamagic.noaa.current.CurrentLocation;
+import ca.datamagic.noaa.current.CurrentTimeZone;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.PreferencesDTO;
 import ca.datamagic.noaa.dto.RadarSiteDTO;
@@ -326,6 +327,7 @@ public class RadarFragment extends Fragment implements Renderer, NonSwipeableFra
         TextView radarViewNotAvailable = view.findViewById(R.id.radarViewNotAvailable);
         TextView radarViewNotAvailableForThisLocation = view.findViewById(R.id.radarViewNotAvailableForThisLocation);
         _radarTimeFormat = new SimpleDateFormat(preferencesDTO.getDateFormat() + " " + preferencesDTO.getTimeFormat());
+        _radarTimeFormat.setTimeZone(TimeZone.getTimeZone(CurrentTimeZone.getTimeZone().getTimeZoneId()));
         if ((preferencesDTO.isTextOnly() != null) && preferencesDTO.isTextOnly().booleanValue()) {
             radarViewNotAvailable.setVisibility(View.VISIBLE);
             radarLayout.setVisibility(View.GONE);

@@ -1,7 +1,5 @@
 package ca.datamagic.noaa.dto;
 
-import android.renderscript.ScriptGroup;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;

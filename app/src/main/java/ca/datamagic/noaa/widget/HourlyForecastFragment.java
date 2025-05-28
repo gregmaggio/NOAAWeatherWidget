@@ -29,6 +29,7 @@ import ca.datamagic.noaa.current.CurrentFeature;
 import ca.datamagic.noaa.current.CurrentHourlyForecast;
 import ca.datamagic.noaa.current.CurrentLocation;
 import ca.datamagic.noaa.current.CurrentStation;
+import ca.datamagic.noaa.current.CurrentTimeZone;
 import ca.datamagic.noaa.dao.PreferencesDAO;
 import ca.datamagic.noaa.dto.FeatureDTO;
 import ca.datamagic.noaa.dto.FeaturePropertiesDTO;
@@ -54,21 +55,7 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
     }
 
     public String getTimeZoneId() {
-        String timeZoneId = null;
-        StationDTO station = CurrentStation.getStation();
-        if (station != null) {
-            timeZoneId = station.getTimeZoneId();
-        }
-        if ((timeZoneId == null) || (timeZoneId.length() < 1)) {
-            FeatureDTO hourlyForecastFeature = CurrentHourlyForecast.getHourlyForecastFeature();
-            if (hourlyForecastFeature != null) {
-                FeaturePropertiesDTO featureProperties = hourlyForecastFeature.getProperties();
-                if (featureProperties != null) {
-                    timeZoneId = featureProperties.getTimeZone();
-                }
-            }
-        }
-        return timeZoneId;
+        return CurrentTimeZone.getTimeZone().getTimeZoneId();
     }
 
     public static HourlyForecastFragment newInstance() {
@@ -180,6 +167,7 @@ public class HourlyForecastFragment extends Fragment implements Renderer, NonSwi
                     PreferencesDAO preferencesDAO = new PreferencesDAO(getContext());
                     PreferencesDTO preferencesDTO = preferencesDAO.read();
                     SimpleDateFormat hourFormat = new SimpleDateFormat(preferencesDTO.getTimeFormat().replace(":mm", ""));
+                    hourFormat.setTimeZone(tz);
                     String currentDayOfWeek = null;
                     for (int ii = 0; ii < periods.length; ii++) {
                         Calendar calendar = null;

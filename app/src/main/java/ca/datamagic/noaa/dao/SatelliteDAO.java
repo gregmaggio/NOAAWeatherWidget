@@ -36,14 +36,14 @@ public class SatelliteDAO {
     private static String getSatellitePath(String state) {
         if (state != null) {
             if (state.compareToIgnoreCase("PR") == 0) {
-                return "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/SECTOR/pr/GEOCOLOR/";
+                return "https://cdn.star.nesdis.noaa.gov/GOES19/ABI/SECTOR/pr/GEOCOLOR/";
             } else  if (state.compareToIgnoreCase("HI") == 0) {
-                return "https://cdn.star.nesdis.noaa.gov/GOES17/ABI/SECTOR/hi/GEOCOLOR/";
+                return "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/hi/GEOCOLOR/";
             } else  if (state.compareToIgnoreCase("AK") == 0) {
-                return "https://cdn.star.nesdis.noaa.gov/GOES17/ABI/SECTOR/ak/GEOCOLOR/";
+                return "https://cdn.star.nesdis.noaa.gov/GOES18/ABI/SECTOR/ak/GEOCOLOR/";
             }
         }
-        return "https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/GEOCOLOR/";
+        return "https://cdn.star.nesdis.noaa.gov/GOES19/ABI/CONUS/GEOCOLOR/";
     }
 
     public static List<String> loadSatelliteImages(String state) throws Throwable {

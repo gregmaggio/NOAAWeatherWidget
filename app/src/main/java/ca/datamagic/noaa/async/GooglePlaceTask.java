@@ -24,12 +24,14 @@ public class GooglePlaceTask extends AsyncTaskBase<PlaceDTO> {
     private CacheHelper _cacheHelper = null;
     private GooglePlacesDAO _googlePlacesDAO = null;
     private String _placeId = null;
+    private String _sessionToken = null;
 
-    public GooglePlaceTask(Context context, String placeId) {
+    public GooglePlaceTask(Context context, String placeId, String sessionToken) {
         _context = context;
         _cacheHelper = new CacheHelper(context);
         _googlePlacesDAO = new GooglePlacesDAO();
         _placeId = placeId;
+        _sessionToken = sessionToken;
     }
 
     @Override
@@ -44,7 +46,7 @@ public class GooglePlaceTask extends AsyncTaskBase<PlaceDTO> {
             }
             if (place == null) {
                 _logger.info("Loading place from api...");
-                place = _googlePlacesDAO.loadPlace(_placeId);
+                place = _googlePlacesDAO.loadPlace(_placeId, _sessionToken);
                 writePlace(_placeId, place.toString());
             }
             return new AsyncTaskResult<PlaceDTO>(place);
@@ -63,7 +65,7 @@ public class GooglePlaceTask extends AsyncTaskBase<PlaceDTO> {
         try {
             return _cacheHelper.readPlace(placeId);
         } catch (Throwable t) {
-            _logger.warning("ReadPredictions: " + t.getMessage());
+            _logger.warning("ReadPlace: " + t.getMessage());
         }
         return null;
     }
@@ -72,7 +74,7 @@ public class GooglePlaceTask extends AsyncTaskBase<PlaceDTO> {
         try {
             _cacheHelper.writePlace(placeId, placeJSON);
         } catch (Throwable t) {
-            _logger.warning("WritePredictions: " + t.getMessage());
+            _logger.warning("WritePlace: " + t.getMessage());
         }
     }
 

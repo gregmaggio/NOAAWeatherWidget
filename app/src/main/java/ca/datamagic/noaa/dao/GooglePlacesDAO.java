@@ -64,8 +64,8 @@ public class GooglePlacesDAO {
         return null;
     }
 
-    public PlaceDTO loadPlace(String placeId) throws MalformedURLException {
-        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/details/json?fields=place_id,name,geometry&placeid={0}&key={1}", placeId, _apiKey));
+    public PlaceDTO loadPlace(String placeId, String sessionToken) throws MalformedURLException {
+        URL url = new URL(MessageFormat.format("https://maps.googleapis.com/maps/api/place/details/json?fields=place_id,name,geometry&placeid={0}&sessiontoken={1}&key={2}", placeId, sessionToken, _apiKey));
         _logger.info("url: " + url.toString());
         HttpsURLConnection connection = null;
         InputStream inputStream = null;
