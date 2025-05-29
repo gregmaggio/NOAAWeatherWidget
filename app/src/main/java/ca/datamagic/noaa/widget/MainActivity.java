@@ -407,7 +407,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         try {
             File intPath = getFilesDir();
             _filesPath = intPath.getAbsolutePath();
-            LogFactory.initialize(Level.ALL, _filesPath, true);
+            LogFactory.initialize(Level.WARNING, _filesPath, true);
             ImageDAO.setFilesPath(_filesPath);
         } catch (Throwable t) {
             // Do Nothing

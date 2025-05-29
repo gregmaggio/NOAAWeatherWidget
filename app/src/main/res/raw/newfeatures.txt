@@ -2,3 +2,4 @@
 * Fix to use the time zone of the selected location for day/night icon on hourly forecast
 * Fix to use the time zone of the selected location for the radar image time
 * Fix to the use the updated satellite urls
+* Turn logging down to warning (impacts performance)
