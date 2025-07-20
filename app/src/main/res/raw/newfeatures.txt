@@ -1,5 +1,3 @@
-* Fix to use the time zone of the selected location on sunrise/sunset
-* Fix to use the time zone of the selected location for day/night icon on hourly forecast
-* Fix to use the time zone of the selected location for the radar image time
-* Fix to the use the updated satellite urls
-* Turn logging down to warning (impacts performance)
+* Increase the target Android API version as per Google requirements
+* Updates to dependencies
+* Fixed a minor bug when changing back and forth between radar and nearby tabs

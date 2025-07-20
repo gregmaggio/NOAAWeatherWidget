@@ -58,7 +58,6 @@ public class SatelliteFragment extends Fragment implements Renderer, NonSwipeabl
     public void onSaveInstanceState(@NonNull Bundle outState) {
         _logger.info("onSaveInstanceState");
         super.onSaveInstanceState(outState);
-        cleanup();
     }
 
     @Override

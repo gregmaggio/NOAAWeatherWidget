@@ -631,6 +631,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         }
     }
 
+    public boolean isBusy() {
+        return _processing;
+    }
+
     public void startBusy() {
         if (_processing) {
             return;
@@ -980,12 +984,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             _logger.info("onPageSelected: " + position);
             _logger.info("currentPage: " + _currentPage);
             if (!_processing) {
-                refreshView();
-                updateHeader();
                 if (_currentPage > -1) {
                     _mainPageAdapter.performCleanup(_currentPage);
                 }
                 _currentPage = position;
+                refreshView();
+                updateHeader();
             }
         }
 
