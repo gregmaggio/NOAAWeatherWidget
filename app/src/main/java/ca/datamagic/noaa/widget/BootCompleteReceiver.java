@@ -3,6 +3,7 @@ package ca.datamagic.noaa.widget;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 
 import ca.datamagic.noaa.current.CurrentContext;
 import ca.datamagic.noaa.current.CurrentLocation;

@@ -2,9 +2,12 @@ package ca.datamagic.noaa.dao;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 
 import java.util.UUID;
+import java.util.logging.Logger;
 
 import androidx.preference.PreferenceManager;
 import ca.datamagic.noaa.dto.HeightUnitsDTO;
@@ -13,12 +16,24 @@ import ca.datamagic.noaa.dto.PressureUnitsDTO;
 import ca.datamagic.noaa.dto.TemperatureUnitsDTO;
 import ca.datamagic.noaa.dto.VisibilityUnitsDTO;
 import ca.datamagic.noaa.dto.WindSpeedUnitsDTO;
-import ca.datamagic.noaa.widget.BuildConfig;
+import ca.datamagic.noaa.logging.LogFactory;
 
 public class PreferencesDAO {
+    private static final Logger _logger = LogFactory.getLogger(PreferencesDAO.class);
     private SharedPreferences _preferences = null;
+    String _versionCode = null;
 
     public PreferencesDAO(Context context) {
+        PackageManager packageManager = context.getPackageManager();
+        String packageName = context.getPackageName();
+        PackageInfo packageInfo = null;
+        try {
+            packageInfo = packageManager.getPackageInfo(packageName, 0);
+        } catch (PackageManager.NameNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+        _versionCode = Long.toString(packageInfo.getLongVersionCode());
+        _logger.info("Package Manager Version Code: " + _versionCode);
         _preferences = PreferenceManager.getDefaultSharedPreferences(context);
     }
 
@@ -38,7 +53,7 @@ public class PreferencesDAO {
         dto.setDateFormat(_preferences.getString("dateFormat", "yyyy-MM-dd"));
         dto.setTimeFormat(_preferences.getString("timeFormat", "HH:mm"));
         dto.setWidgetFontColor(_preferences.getInt("widgetFontColor", Color.WHITE));
-        dto.setShowNewFeatures(_preferences.getBoolean("showNewFeatures." + BuildConfig.VERSION_CODE, Boolean.TRUE));
+        dto.setShowNewFeatures(_preferences.getBoolean("showNewFeatures." + _versionCode, Boolean.TRUE));
         dto.setSessionToken(_preferences.getString("sessionToken", UUID.randomUUID().toString().toUpperCase()));
         dto.setRadarTotalMinutes(_preferences.getInt("radarTotalMinutes", 60));
         dto.setRadarDelaySeconds(_preferences.getInt("radarDelaySeconds", 2));
@@ -79,10 +94,10 @@ public class PreferencesDAO {
         editor.putString("dateFormat", dateFormat);
         editor.putString("timeFormat", timeFormat);
         editor.putInt("widgetFontColor", widgetFontColor);
-        editor.putBoolean("showNewFeatures." + BuildConfig.VERSION_CODE, showNewFeatures);
+        editor.putBoolean("showNewFeatures." + _versionCode, showNewFeatures);
         editor.putString("sessionToken", sessionToken);
         editor.putInt("radarTotalMinutes", radarTotalMinutes);
         editor.putInt("radarDelaySeconds", radarDelaySeconds);
-        editor.commit();
+        editor.apply();
     }
 }

@@ -592,7 +592,7 @@ public class ObservationFragment extends Fragment implements Renderer, NonSwipea
         today.set(Calendar.MINUTE, minutes);
         StringBuffer buffer = new StringBuffer();
         String timeFormat = preferences.getTimeFormat();
-        if ((timeFormat != null) && (timeFormat.length() > 0)) {
+        if ((timeFormat != null) && (!timeFormat.isEmpty())) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat(timeFormat);
             simpleDateFormat.setTimeZone(timeZone);
             if (buffer.length() > 0) {

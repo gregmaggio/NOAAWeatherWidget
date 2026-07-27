@@ -68,6 +68,7 @@ public class RadarDAO {
         GZIPInputStream gzipInputStream = null;
         File tempFile = null;
         OutputStream tempStream = null;
+        ParcelFileDescriptor parcelFileDescriptor = null;
         try {
             URL url = new URL(imageUrl);
             connection = (HttpsURLConnection)url.openConnection();
@@ -88,13 +89,23 @@ public class RadarDAO {
             tempStream.close();
             tempStream = null;
 
-            ParcelFileDescriptor parcelFileDescriptor = context.getContentResolver().openFileDescriptor(Uri.fromFile(tempFile), "r");
-            return TiffBitmapFactory.decodeFileDescriptor(parcelFileDescriptor.getFd());
+            //parcelFileDescriptor = context.getContentResolver().openFileDescriptor(Uri.fromFile(tempFile), "r");
+            //int fd = parcelFileDescriptor.getFd();
+            //parcelFileDescriptor.detachFd();
+            return TiffBitmapFactory.decodeFile(tempFile);
+            //return TiffBitmapFactory.decodeFileDescriptor(fd);
         } catch (Throwable t) {
             String message = t.getMessage();
             _logger.warning("Exception: " + message);
             return null;
         } finally {
+            if (parcelFileDescriptor != null) {
+                try {
+                    parcelFileDescriptor.close();
+                } catch (Throwable t) {
+                    _logger.warning("Exception: " + t.getMessage());
+                }
+            }
             IOUtils.closeQuietly(tempStream);
             if (tempFile != null) {
                 try {

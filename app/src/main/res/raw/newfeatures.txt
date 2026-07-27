@@ -1,3 +1,4 @@
-* Increase the target Android API version as per Google requirements
+* Updated build technologies
 * Updates to dependencies
-* Fixed a minor bug when changing back and forth between radar and nearby tabs
+* Updated TIFF library for 16KB devices
+* Hopefully, the radar still works

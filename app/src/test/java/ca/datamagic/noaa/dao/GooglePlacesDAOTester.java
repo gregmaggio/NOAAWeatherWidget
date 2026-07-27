@@ -23,7 +23,7 @@ public class GooglePlacesDAOTester extends BaseTester {
         GooglePlacesDAO dao = new GooglePlacesDAO();
         PredictionListDTO predictions = dao.loadAutoCompletePredictions("Haymarket", UUID.randomUUID().toString().toUpperCase());
         System.out.println("predictions: " + predictions);
-        PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId());
+        PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId(), UUID.randomUUID().toString().toUpperCase());
         System.out.println("place: " + place);
         System.out.println("Name: " + place.getName());
         System.out.println("Latitude: " + place.getLatitude());
@@ -38,7 +38,7 @@ public class GooglePlacesDAOTester extends BaseTester {
         GooglePlacesDAO dao = new GooglePlacesDAO();
         PredictionListDTO predictions = dao.loadAutoCompletePredictions("Colville,WA", UUID.randomUUID().toString().toUpperCase());
         System.out.println("predictions: " + predictions);
-        PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId());
+        PlaceDTO place = dao.loadPlace(predictions.get(0).getPlaceId(), UUID.randomUUID().toString().toUpperCase());
         System.out.println("place: " + place);
         System.out.println("Name: " + place.getName());
         System.out.println("Latitude: " + place.getLatitude());
