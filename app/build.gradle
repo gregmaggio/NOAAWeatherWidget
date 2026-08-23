@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 35
+    compileSdkVersion 36
 
     defaultConfig {
         applicationId "ca.datamagic.noaaweatherwidget"
         minSdkVersion 30
-        targetSdkVersion 35
-        versionCode 129
-        versionName "2.29"
+        targetSdkVersion 36
+        versionCode 130
+        versionName "2.30"
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -41,9 +41,9 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.json:json:20260719'
-    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.22.1'
-    implementation 'androidx.appcompat:appcompat:1.7.1'
+    testImplementation 'org.json:json:20260814'
+    testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.22.2'
+    implementation 'androidx.appcompat:appcompat:1.8.0'
     implementation 'androidx.vectordrawable:vectordrawable-animated:1.2.0'
     implementation 'androidx.media:media:1.8.0'
     implementation 'androidx.preference:preference:1.2.1'
@@ -51,7 +51,7 @@ dependencies {
     implementation 'com.google.android.gms:play-services-location:21.4.0'
     implementation 'com.google.android.gms:play-services-places:17.1.0'
     implementation 'com.google.android.gms:play-services-maps:20.0.0'
-    implementation 'org.jsoup:jsoup:1.22.2'
+    implementation 'org.jsoup:jsoup:1.23.1'
     implementation 'it.sephiroth.android.library.imagezoom:imagezoom:2.3.0'
     implementation 'com.univocity:univocity-parsers:2.9.1'
     implementation 'org.apmem.tools:layouts:1.10'

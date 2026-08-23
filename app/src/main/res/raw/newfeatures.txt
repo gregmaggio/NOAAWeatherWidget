@@ -1,4 +1,3 @@
-* Updated build technologies
+* Updated target API version as per Google requirements
 * Updates to dependencies
-* Updated TIFF library for 16KB devices
-* Hopefully, the radar still works
+* Hopefully, everything still works
